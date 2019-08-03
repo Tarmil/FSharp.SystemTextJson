@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolVersion="16.0">
+  <PropertyGroup>
+    <!--<PaketBootstrapperVersion>version</PaketBootstrapperVersion>-->
+    <PaketBootstrapperFeed>https://www.myget.org/F/paket-netcore-as-tool/api/v2</PaketBootstrapperFeed>
+  </PropertyGroup>
+</Project>
