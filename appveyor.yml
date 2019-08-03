@@ -1,0 +1,28 @@
+version: build {build}
+
+image:
+- Visual Studio 2017
+
+build:
+  verbosity: minimal
+
+init:
+- cmd: choco install dotnetcore-sdk --version 3.0.100-preview7-012821
+
+before_build:
+- ps: |
+    dotnet tool install nbgv --tool-path .paket
+    $env:SEMVER = .paket/nbgv get-version -v SemVer2
+    Update-AppveyorBuild -Version "$env:SEMVER ($env:APPVEYOR_BUILD_ID)"
+
+build_script:
+- ps: './build.cmd -v "$env:SEMVER"'
+
+test_script:
+- ps: './build.cmd -st test --push-tests "https://ci.appveyor.com/api/testresults/mstest/$env:APPVEYOR_JOB_ID"'
+
+# all builds on the AppVeyor NuGet feed
+artifacts:
+  - path: bin\*.nupkg
+    name: nuget
+ 
