@@ -1,20 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{CB1D506A-0E4B-4D73-9B71-A775E5BBED64}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{CB1D506A-0E4B-4D73-9B71-A775E5BBED64}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		build.fsx = build.fsx
 		paket.dependencies = paket.dependencies
+		version.json = version.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{79B2E5F7-01BA-459B-9269-71D41C73D228}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.SystemTextJson", "src\FSharp.SystemTextJson\FSharp.SystemTextJson.fsproj", "{5DD5F99C-D4B4-4DF6-A638-EEE6B0CCCAFB}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.SystemTextJson", "src\FSharp.SystemTextJson\FSharp.SystemTextJson.fsproj", "{5DD5F99C-D4B4-4DF6-A638-EEE6B0CCCAFB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CC287195-657A-4E49-A957-4D4B5919ACFB}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.SystemTextJson.Tests", "tests\FSharp.SystemTextJson.Tests\FSharp.SystemTextJson.Tests.fsproj", "{FD908F6A-5B23-4FAA-B52B-65379E6D5539}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.SystemTextJson.Tests", "tests\FSharp.SystemTextJson.Tests\FSharp.SystemTextJson.Tests.fsproj", "{FD908F6A-5B23-4FAA-B52B-65379E6D5539}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,9 +27,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{5DD5F99C-D4B4-4DF6-A638-EEE6B0CCCAFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -54,8 +54,14 @@ Global
 		{FD908F6A-5B23-4FAA-B52B-65379E6D5539}.Release|x86.ActiveCfg = Release|Any CPU
 		{FD908F6A-5B23-4FAA-B52B-65379E6D5539}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5DD5F99C-D4B4-4DF6-A638-EEE6B0CCCAFB} = {79B2E5F7-01BA-459B-9269-71D41C73D228}
 		{FD908F6A-5B23-4FAA-B52B-65379E6D5539} = {CC287195-657A-4E49-A957-4D4B5919ACFB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {78789C56-BAE0-436E-BDDF-789B98CEC9A5}
 	EndGlobalSection
 EndGlobal

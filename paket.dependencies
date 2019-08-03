@@ -1,5 +1,5 @@
-frameworks: netcoreapp3.0
-storage: none
+frameworks netcoreapp3.0
+storage none
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core ~> 4.6.0
 nuget Microsoft.NET.Test.Sdk ~> 16.0.1

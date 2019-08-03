@@ -3,6 +3,7 @@
 !.paket/paket.bootstrapper.proj
 !.paket/paket.bootstrapper.props
 paket-files/
+.fake/*
 **/[Oo]bj/
 **/[Bb]in/
 .vs/
