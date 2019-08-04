@@ -52,6 +52,16 @@ module NonStruct =
         let actual = JsonSerializer.Deserialize("""{"cx":{"bx":1,"by":"b"}}""", options)
         Assert.Equal({cx={bx=1;by="b"}}, actual)
 
+    [<Fact>]
+    let ``deserialize anonymous`` () =
+        let actual = JsonSerializer.Deserialize("""{"x":1,"y":"b"}""", options)
+        Assert.Equal({|x=1;y="b"|}, actual)
+
+    [<Fact>]
+    let ``serialize anonymous`` () =
+        let actual = JsonSerializer.Serialize({|x=1;y="b"|}, options)
+        Assert.Equal("""{"x":1,"y":"b"}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -78,16 +88,36 @@ module Struct =
             by: string
         }
 
+    let options = JsonSerializerOptions()
+    options.Converters.Add(JsonRecordConverter())
+
     [<Fact>]
     let ``deserialize via options`` () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonRecordConverter())
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":"b"}""", options)
         Assert.Equal({bx=1;by="b"}, actual)
 
     [<Fact>]
     let ``serialize via options`` () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonRecordConverter())
         let actual = JsonSerializer.Serialize({bx=1;by="b"}, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
+
+    [<Struct>]
+    type C =
+        {
+            cx: B
+        }
+
+    [<Fact>]
+    let ``deserialize nested`` () =
+        let actual = JsonSerializer.Deserialize("""{"cx":{"bx":1,"by":"b"}}""", options)
+        Assert.Equal({cx={bx=1;by="b"}}, actual)
+
+    [<Fact>]
+    let ``deserialize anonymous`` () =
+        let actual = JsonSerializer.Deserialize("""{"x":1,"y":"b"}""", options)
+        Assert.Equal(struct {|x=1;y="b"|}, actual)
+
+    [<Fact>]
+    let ``serialize anonymous`` () =
+        let actual = JsonSerializer.Serialize(struct {|x=1;y="b"|}, options)
+        Assert.Equal("""{"x":1,"y":"b"}""", actual)
