@@ -1,5 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Description>Provides F# union and record support for System.Text.Json</Description>
+    <Authors>Loic Denuziere</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/tarmil/FSharp.SystemTextJson</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tarmil/FSharp.SystemTextJson.git</RepositoryUrl>
+    <Tags>F#;FSharp;Json</Tags>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning">
       <Version>2.3.183</Version>
