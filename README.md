@@ -155,9 +155,9 @@ Yes!
 
 Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/6))
 
-* Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute`?
+* Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute` on record fields?
 
-Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/1), [issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/2))
+Yes!
 
 * Does FSharp.SystemTextJson support options such as `PropertyNamingPolicy` and `IgnoreNullValues`?
 
