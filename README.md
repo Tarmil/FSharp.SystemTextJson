@@ -52,6 +52,54 @@ The attribute way cannot handle the above cases.
 
 The advantage of the attribute way is that it allows calling `Serialize` and `Deserialize` without having to pass options every time. This is particularly useful if you are passing your own data to a library that calls these functions itself and doesn't take options.
 
+## Using with ASP.NET Core
+
+ASP.NET Core can be easily configured to use FSharp.SystemTextJson.
+
+### ASP.NET Core MVC
+
+To use F# types in MVC controllers, add the following to your startup `ConfigureServices`:
+
+```fsharp
+    member this.ConfigureServices(services: IServiceCollection) =
+        services.AddControllersWithViews() // or whichever method you're using to get an IMvcBuilder
+            .AddJsonOptions(fun options ->
+                options.JsonSerializerOptions.Converters.Add(JsonFSharpConverter()))
+        |> ignore
+```
+
+And you can then just do:
+
+```fsharp
+type MyTestController() =
+    inherit Controller()
+
+    member this.AddOne([<FromBody>] msg: {| value: int |}) =
+        {| value = msg.value + 1 |}
+```
+
+### SignalR
+
+To use F# types in SignalR hubs, add the following to your startup `ConfigureServices`:
+
+```fsharp
+    member this.ConfigureServices(services: IServiceCollection) =
+        services.AddSignalR()
+            .AddJsonProtocol(fun options ->
+                options.PayloadSerializerOptions.Converters.Add(JsonFSharpConverter()))
+        |> ignore
+```
+
+And you can then just do:
+
+```fsharp
+type MyHub() =
+    inherit Hub()
+
+    member this.AddOne(msg: {| value: int |})
+        this.Clients.All.SendAsync("AddedOne", {| value = msg.value + 1 |})
+```
+
 ## Format
 
 ### Records and anonymous records
@@ -118,3 +166,7 @@ Not yet.
 * Does FSharp.SystemTextJson allocate memory?
 
 As little as possible, but unfortunately the `FSharp.Reflection` API it uses requires some allocations. In particular, an array is allocated for as many items as the record fields or union arguments, and structs are boxed.
+
+* Are there any benchmarks, eg. against Newtonsoft.Json?
+
+Not yet.
