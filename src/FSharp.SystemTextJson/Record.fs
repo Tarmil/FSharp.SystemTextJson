@@ -8,6 +8,7 @@ type internal RecordProperty =
     {
         Name: string
         Type: Type
+        Ignore: bool
     }
 
 type JsonRecordConverter<'T>() =
@@ -20,8 +21,17 @@ type JsonRecordConverter<'T>() =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
                 | [| :? JsonPropertyNameAttribute as name |] -> name.Name
                 | _ -> p.Name
-            { Name = name; Type = p.PropertyType }
+            let ignore =
+                p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
+                |> Array.isEmpty
+                |> not
+            { Name = name; Type = p.PropertyType; Ignore = ignore }
         )
+
+    static let expectedFieldCount =
+        fieldProps
+        |> Seq.filter (fun p -> not p.Ignore)
+        |> Seq.length
 
     static let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
 
@@ -51,14 +61,14 @@ type JsonRecordConverter<'T>() =
                 cont <- false
             | JsonTokenType.PropertyName ->
                 match fieldIndex &reader with
-                | ValueNone ->
-                    raise (JsonException("Unknow field for record type " + typeToConvert.FullName + ": " + reader.GetString()))
-                | ValueSome (i, p) ->
+                | ValueSome (i, p) when not p.Ignore ->
                     fieldsFound <- fieldsFound + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
+                | _ ->
+                    reader.Skip()
             | _ -> ()
 
-        if fieldsFound < fields.Length then
+        if fieldsFound < expectedFieldCount then
             raise (JsonException("Missing field for record type " + typeToConvert.FullName))
         ctor fields :?> 'T
 
@@ -66,8 +76,9 @@ type JsonRecordConverter<'T>() =
         writer.WriteStartObject()
         (fieldProps, dector value)
         ||> Array.iter2 (fun p v ->
-            writer.WritePropertyName(p.Name)
-            JsonSerializer.Serialize(writer, v, options))
+            if not p.Ignore then
+                writer.WritePropertyName(p.Name)
+                JsonSerializer.Serialize(writer, v, options))
         writer.WriteEndObject()
 
 type JsonRecordConverter() =

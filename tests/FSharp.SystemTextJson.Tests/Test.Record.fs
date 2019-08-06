@@ -78,6 +78,22 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({unnamedX = 1;unnamedY = "b"}, options)
         Assert.Equal("""{"unnamedX":1,"namedY":"b"}""", actual)
 
+    type IgnoreField =
+        {
+            unignoredX: int
+            [<JsonIgnore>] ignoredY: string
+        }
+
+    [<Fact>]
+    let ``deserialize with JsonIgnore`` () =
+        let actual = JsonSerializer.Deserialize("""{"unignoredX":1,"ignoredY":"test"}""", options)
+        Assert.Equal({unignoredX = 1; ignoredY = null}, actual)
+
+    [<Fact>]
+    let ``serialize with JsonIgnore`` () =
+        let actual = JsonSerializer.Serialize({unignoredX = 1; ignoredY = "b"}, options)
+        Assert.Equal("""{"unignoredX":1}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -154,3 +170,20 @@ module Struct =
     let ``serialize with JsonPropertyName`` () =
         let actual = JsonSerializer.Serialize({unnamedX = 1;unnamedY = "b"}, options)
         Assert.Equal("""{"unnamedX":1,"namedY":"b"}""", actual)
+
+    [<Struct>]
+    type IgnoreField =
+        {
+            unignoredX: int
+            [<JsonIgnore>] ignoredY: string
+        }
+
+    [<Fact>]
+    let ``deserialize with JsonIgnore`` () =
+        let actual = JsonSerializer.Deserialize("""{"unignoredX":1,"ignoredY":"test"}""", options)
+        Assert.Equal({unignoredX = 1; ignoredY = null}, actual)
+
+    [<Fact>]
+    let ``serialize with JsonIgnore`` () =
+        let actual = JsonSerializer.Serialize({unignoredX = 1; ignoredY = "b"}, options)
+        Assert.Equal("""{"unignoredX":1}""", actual)
