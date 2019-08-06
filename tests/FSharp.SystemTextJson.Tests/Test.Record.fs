@@ -62,6 +62,22 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({|x=1;y="b"|}, options)
         Assert.Equal("""{"x":1,"y":"b"}""", actual)
 
+    type PropName =
+        {
+            unnamedX: int
+            [<JsonPropertyName "namedY">] unnamedY: string
+        }
+
+    [<Fact>]
+    let ``deserialize with JsonPropertyName`` () =
+        let actual = JsonSerializer.Deserialize("""{"unnamedX":1,"namedY":"b"}""", options)
+        Assert.Equal({unnamedX = 1; unnamedY = "b"}, actual)
+
+    [<Fact>]
+    let ``serialize with JsonPropertyName`` () =
+        let actual = JsonSerializer.Serialize({unnamedX = 1;unnamedY = "b"}, options)
+        Assert.Equal("""{"unnamedX":1,"namedY":"b"}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -121,3 +137,20 @@ module Struct =
     let ``serialize anonymous`` () =
         let actual = JsonSerializer.Serialize(struct {|x=1;y="b"|}, options)
         Assert.Equal("""{"x":1,"y":"b"}""", actual)
+
+    [<Struct>]
+    type PropName =
+        {
+            unnamedX: int
+            [<JsonPropertyName "namedY">] unnamedY: string
+        }
+
+    [<Fact>]
+    let ``deserialize with JsonPropertyName`` () =
+        let actual = JsonSerializer.Deserialize("""{"unnamedX":1,"namedY":"b"}""", options)
+        Assert.Equal({unnamedX = 1; unnamedY = "b"}, actual)
+
+    [<Fact>]
+    let ``serialize with JsonPropertyName`` () =
+        let actual = JsonSerializer.Serialize({unnamedX = 1;unnamedY = "b"}, options)
+        Assert.Equal("""{"unnamedX":1,"namedY":"b"}""", actual)

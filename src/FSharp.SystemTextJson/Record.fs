@@ -4,10 +4,24 @@ open System
 open System.Text.Json
 open FSharp.Reflection
 
+type internal RecordProperty =
+    {
+        Name: string
+        Type: Type
+    }
+
 type JsonRecordConverter<'T>() =
     inherit JsonConverter<'T>()
 
-    static let fieldProps = FSharpType.GetRecordFields(typeof<'T>, true)
+    static let fieldProps =
+        FSharpType.GetRecordFields(typeof<'T>, true)
+        |> Array.map (fun p ->
+            let name =
+                match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
+                | [| :? JsonPropertyNameAttribute as name |] -> name.Name
+                | _ -> p.Name
+            { Name = name; Type = p.PropertyType }
+        )
 
     static let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
 
@@ -41,7 +55,7 @@ type JsonRecordConverter<'T>() =
                     raise (JsonException("Unknow field for record type " + typeToConvert.FullName + ": " + reader.GetString()))
                 | ValueSome (i, p) ->
                     fieldsFound <- fieldsFound + 1
-                    fields.[i] <- JsonSerializer.Deserialize(&reader, p.PropertyType, options)
+                    fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
             | _ -> ()
 
         if fieldsFound < fields.Length then
