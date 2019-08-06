@@ -153,15 +153,15 @@ Yes!
 
 * Does FSharp.SystemTextJson support alternative formats for unions? I find `"Case"`/`"Fields"` ugly.
 
-Not yet.
+Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/6))
 
 * Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute`?
 
-Not yet.
+Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/1), [issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/2))
 
 * Does FSharp.SystemTextJson support options such as `PropertyNamingPolicy` and `IgnoreNullValues`?
 
-Not yet.
+Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/3), [issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/4), [issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/5))
 
 * Does FSharp.SystemTextJson allocate memory?
 
@@ -169,4 +169,4 @@ As little as possible, but unfortunately the `FSharp.Reflection` API it uses req
 
 * Are there any benchmarks, eg. against Newtonsoft.Json?
 
-Not yet.
+Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/7))
