@@ -15,11 +15,11 @@ module TypeCache =
         let cache = Dict<System.Type, bool>()
 
         fun (ty: System.Type) -> 
-            cache.AddOrUpdate(ty, (fun ty -> FSharpType.IsUnion(ty, true)), (fun _ty v -> v))
+            cache.GetOrAdd(ty, (fun ty -> FSharpType.IsUnion(ty, true)))
             
     /// cached access to FSharpType.IsRecord to prevent repeated access to reflection members
     let isRecord =
         let cache = Dict<System.Type, bool>()
 
         fun (ty: System.Type) -> 
-            cache.AddOrUpdate(ty, (fun ty -> FSharpType.IsRecord(ty, true)), (fun _ty v -> v))
+            cache.GetOrAdd(ty, (fun ty -> FSharpType.IsRecord(ty, true)))
