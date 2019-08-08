@@ -10,58 +10,57 @@ open BenchmarkDotNet.Environments
 open System.Reflection
 open BenchmarkDotNet.Configs
 
-type SleepMarks () =
-    [<Params(0, 1, 15, 100)>]
-    member val public sleepTime = 0 with get, set
+open System.Text.Json
+open System.Text.Json.Serialization
+open Newtonsoft.Json
+open Newtonsoft.Json.Linq
 
-    // [<GlobalSetup>]
-    // member self.GlobalSetup() =
-    //     printfn "%s" "Global Setup"
+type TestRecord = 
+    { name: string
+      thing: bool option
+      time: System.DateTimeOffset }
 
-    // [<GlobalCleanup>]
-    // member self.GlobalCleanup() =
-    //     printfn "%s" "Global Cleanup"
+type Serialization () =
+    
+    let instance = 
+        { name = "sample"
+          thing = Some true
+          time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
 
-    // [<IterationSetup>]
-    // member self.IterationSetup() =
-    //     printfn "%s" "Iteration Setup"
-    // [<IterationCleanup>]
-    // member self.IterationCleanup() =
-    //     printfn "%s" "Iteration Cleanup"
+    let systemTextOptions = 
+        let options = JsonSerializerOptions()
+        options.Converters.Add(JsonFSharpConverter())
+        options
+
+
+    [<Params(1,10,100,1000)>]
+    member val ArrayLength = 0 with get, set
+    
+    member val InstanceArray = [||] with get, set
+    
+    [<GlobalSetup>]
+    member this.InitArray () = 
+        this.InstanceArray <- Array.replicate this.ArrayLength instance
 
     [<Benchmark>]
-    member this.Thread () = System.Threading.Thread.Sleep(this.sleepTime)
+    member this.Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray |> ignore
 
     [<Benchmark>]
-    member this.Task () = System.Threading.Tasks.Task.Delay(this.sleepTime)
-
-
-    [<Benchmark>]
-    member this.AsyncToTask () = Async.Sleep(this.sleepTime) |> Async.StartAsTask
-    [<Benchmark>]
-    member this.AsyncToSync () = Async.Sleep(this.sleepTime) |> Async.RunSynchronously
-
-
-
+    member this.SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions) |> ignore
 
 let config =
      ManualConfig
             .Create(DefaultConfig.Instance)
-            .With(Job.ShortRun.With(Runtime.Mono))
             .With(Job.ShortRun.With(Runtime.Core))
             .With(MemoryDiagnoser.Default)
             .With(MarkdownExporter.GitHub)
             .With(ExecutionValidator.FailOnError)
 
 let defaultSwitch () =
-        Assembly.GetExecutingAssembly().GetTypes() |> Array.filter (fun t ->
-            t.GetMethods ()|> Array.exists (fun m ->
-                m.GetCustomAttributes (typeof<BenchmarkAttribute>, false) <> [||] ))
-        |> BenchmarkSwitcher
+    BenchmarkSwitcher([| typeof<Serialization> |])
 
 
 [<EntryPoint>]
-let main argv =
-    defaultSwitch().Run(argv,config) |>ignore
-    // BenchmarkRunner.Run<SleepMarks>(config) |> ignore
-    0 // return an integer exit code
+let main _ =
+    let _summary = BenchmarkRunner.Run<Serialization>(config)
+    0
