@@ -1,4 +1,6 @@
-﻿open System
+﻿open FSharp.Reflection
+
+open System
 open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Diagnosers
 open BenchmarkDotNet.Configs
@@ -25,14 +27,14 @@ type SimpleClass() =
     member val Thing: bool option = None with get, set
     member val Time: DateTimeOffset = DateTimeOffset.MinValue with get, set
 
-type TestBase<'t>(instance: 't) = 
+type ArrayTestBase<'t>(instance: 't) = 
     let systemTextOptions = 
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter())
         options
 
 
-    [<Params(1,10,100)>]
+    [<Params(10,100)>]
     member val ArrayLength = 0 with get, set
     
     member val InstanceArray = [||] with get, set
@@ -54,11 +56,38 @@ let recordInstance =
 
 
 type Records () =
-    inherit TestBase<TestRecord>(recordInstance)
+    inherit ArrayTestBase<TestRecord>(recordInstance)
 
 type Classes() =
-    inherit TestBase<SimpleClass>(SimpleClass(Name = "sample", Thing = Some true, Time = DateTimeOffset.UnixEpoch.AddDays(200.)))
+    inherit ArrayTestBase<SimpleClass>(SimpleClass(Name = "sample", Thing = Some true, Time = DateTimeOffset.UnixEpoch.AddDays(200.)))
     
+
+type ReflectionComparison() =
+
+    [<Params(10,100,1000)>]
+    member val Iterations = 0 with get, set
+
+    [<Benchmark>]
+    member this.FSharpUnion() = 
+        for i in 0..this.Iterations do
+            FSharpType.IsUnion(typeof<bool option>, true) |> ignore
+
+    [<Benchmark>]
+    member this.FSharpUnionCached() = 
+        for i in 0..this.Iterations do
+            TypeCache.isUnion typeof<bool option> |> ignore
+
+    [<Benchmark>]
+    member this.FSharpRecord() = 
+        for i in 0..this.Iterations do
+            Reflection.FSharpType.IsRecord(typeof<TestRecord>, true) |> ignore
+
+    [<Benchmark>]
+    member this.FSharpRecordCached() = 
+        for i in 0..this.Iterations do
+            TypeCache.isRecord typeof<TestRecord> |> ignore
+
+
 let config =
      ManualConfig
             .Create(DefaultConfig.Instance)
@@ -68,7 +97,7 @@ let config =
             .With(ExecutionValidator.FailOnError)
 
 let defaultSwitch () =
-    BenchmarkSwitcher([| typeof<Records>; typeof<Classes> |])
+    BenchmarkSwitcher([| typeof<Records>; typeof<Classes>; typeof<ReflectionComparison> |])
 
 
 [<EntryPoint>]
