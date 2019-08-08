@@ -85,7 +85,7 @@ type JsonRecordConverter() =
     inherit JsonConverterFactory()
 
     static member internal CanConvert(typeToConvert) =
-        FSharpType.IsRecord(typeToConvert, true)
+        TypeCache.isRecord typeToConvert
 
     static member internal CreateConverter(typeToConvert) =
         typedefof<JsonRecordConverter<_>>

@@ -104,7 +104,7 @@ type JsonUnionConverter() =
     inherit JsonConverterFactory()
 
     static member internal CanConvert(typeToConvert) =
-        FSharpType.IsUnion(typeToConvert, true)
+        TypeCache.isUnion typeToConvert
 
     static member internal CreateConverter(typeToConvert) =
         typedefof<JsonUnionConverter<_>>
