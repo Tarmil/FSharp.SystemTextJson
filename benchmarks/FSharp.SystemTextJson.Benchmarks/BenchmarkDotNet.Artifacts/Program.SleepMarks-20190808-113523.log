@@ -1,0 +1,1673 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 32 benchmark(s) in total *****
+// ***** Building 2 exe(s) in Parallel: Start   *****
+// ***** Done, took 00:00:22 (22.76 sec)   *****
+// ***** Failed to build in Parallel, switching to sequential build..   *****
+// ***** Done, took 00:00:23 (23.06 sec)   *****
+// Found 32 benchmarks:
+//   SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+//   SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+//   SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+//   SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+//   SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+
+// **************************
+// Benchmark: SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Thread(sleepTime: 0)" --job "ShortRun" --benchmarkId 0 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 280275.00 ns, 280.2750 us/op
+WorkloadJitting  1: 1 op, 703103.00 ns, 703.1030 us/op
+
+OverheadJitting  2: 16 op, 241579.00 ns, 15.0987 us/op
+WorkloadJitting  2: 16 op, 243124.00 ns, 15.1952 us/op
+
+WorkloadPilot    1: 16 op, 18539.00 ns, 1.1587 us/op
+WorkloadPilot    2: 32 op, 27373.00 ns, 855.4062 ns/op
+WorkloadPilot    3: 64 op, 37727.00 ns, 589.4844 ns/op
+WorkloadPilot    4: 128 op, 126583.00 ns, 988.9297 ns/op
+WorkloadPilot    5: 256 op, 116536.00 ns, 455.2188 ns/op
+WorkloadPilot    6: 512 op, 211181.00 ns, 412.4629 ns/op
+WorkloadPilot    7: 1024 op, 475874.00 ns, 464.7207 ns/op
+WorkloadPilot    8: 2048 op, 912285.00 ns, 445.4517 ns/op
+WorkloadPilot    9: 4096 op, 1766370.00 ns, 431.2427 ns/op
+WorkloadPilot   10: 8192 op, 3792703.00 ns, 462.9764 ns/op
+WorkloadPilot   11: 16384 op, 7901978.00 ns, 482.2985 ns/op
+WorkloadPilot   12: 32768 op, 16195959.00 ns, 494.2614 ns/op
+WorkloadPilot   13: 65536 op, 31096069.00 ns, 474.4884 ns/op
+WorkloadPilot   14: 131072 op, 63131121.00 ns, 481.6522 ns/op
+WorkloadPilot   15: 262144 op, 128463008.00 ns, 490.0475 ns/op
+WorkloadPilot   16: 524288 op, 250325090.00 ns, 477.4572 ns/op
+WorkloadPilot   17: 1048576 op, 481842995.00 ns, 459.5213 ns/op
+WorkloadPilot   18: 2097152 op, 976072022.00 ns, 465.4274 ns/op
+
+OverheadWarmup   1: 2097152 op, 3642337.00 ns, 1.7368 ns/op
+OverheadWarmup   2: 2097152 op, 3613985.00 ns, 1.7233 ns/op
+OverheadWarmup   3: 2097152 op, 3728169.00 ns, 1.7777 ns/op
+OverheadWarmup   4: 2097152 op, 3805488.00 ns, 1.8146 ns/op
+OverheadWarmup   5: 2097152 op, 3667605.00 ns, 1.7489 ns/op
+OverheadWarmup   6: 2097152 op, 3646601.00 ns, 1.7388 ns/op
+OverheadWarmup   7: 2097152 op, 3724682.00 ns, 1.7761 ns/op
+OverheadWarmup   8: 2097152 op, 3793277.00 ns, 1.8088 ns/op
+OverheadWarmup   9: 2097152 op, 3866844.00 ns, 1.8439 ns/op
+OverheadWarmup  10: 2097152 op, 3602587.00 ns, 1.7178 ns/op
+
+OverheadActual   1: 2097152 op, 3905781.00 ns, 1.8624 ns/op
+OverheadActual   2: 2097152 op, 3754368.00 ns, 1.7902 ns/op
+OverheadActual   3: 2097152 op, 3691084.00 ns, 1.7600 ns/op
+OverheadActual   4: 2097152 op, 3651236.00 ns, 1.7410 ns/op
+OverheadActual   5: 2097152 op, 3840894.00 ns, 1.8315 ns/op
+OverheadActual   6: 2097152 op, 3741537.00 ns, 1.7841 ns/op
+OverheadActual   7: 2097152 op, 3703375.00 ns, 1.7659 ns/op
+OverheadActual   8: 2097152 op, 3679071.00 ns, 1.7543 ns/op
+OverheadActual   9: 2097152 op, 3822971.00 ns, 1.8229 ns/op
+OverheadActual  10: 2097152 op, 3816765.00 ns, 1.8200 ns/op
+OverheadActual  11: 2097152 op, 3621979.00 ns, 1.7271 ns/op
+OverheadActual  12: 2097152 op, 3650510.00 ns, 1.7407 ns/op
+OverheadActual  13: 2097152 op, 3637892.00 ns, 1.7347 ns/op
+OverheadActual  14: 2097152 op, 3876823.00 ns, 1.8486 ns/op
+OverheadActual  15: 2097152 op, 3576627.00 ns, 1.7055 ns/op
+
+WorkloadWarmup   1: 2097152 op, 968445613.00 ns, 461.7909 ns/op
+WorkloadWarmup   2: 2097152 op, 957054368.00 ns, 456.3591 ns/op
+WorkloadWarmup   3: 2097152 op, 1002315124.00 ns, 477.9411 ns/op
+
+// BeforeActualRun
+WorkloadActual   1: 2097152 op, 956008606.00 ns, 455.8604 ns/op
+WorkloadActual   2: 2097152 op, 977204356.00 ns, 465.9673 ns/op
+WorkloadActual   3: 2097152 op, 963632964.00 ns, 459.4960 ns/op
+
+// AfterActualRun
+WorkloadResult   1: 2097152 op, 952305231.00 ns, 454.0945 ns/op
+WorkloadResult   2: 2097152 op, 973500981.00 ns, 464.2014 ns/op
+WorkloadResult   3: 2097152 op, 959929589.00 ns, 457.7301 ns/op
+GC:  0 0 0 0 2097152
+
+// AfterAll
+
+Mean = 458.6754 ns, StdErr = 2.9556 ns (0.64%); N = 3, StdDev = 5.1193 ns
+Min = 454.0945 ns, Q1 = 454.0945 ns, Median = 457.7301 ns, Q3 = 464.2014 ns, Max = 464.2014 ns
+IQR = 10.1069 ns, LowerFence = 438.9341 ns, UpperFence = 479.3618 ns
+ConfidenceInterval = [365.2796 ns; 552.0711 ns] (CI 99.9%), Margin = 93.3957 ns (20.36% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Task(sleepTime: 0)" --job "ShortRun" --benchmarkId 1 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 312851.00 ns, 312.8510 us/op
+WorkloadJitting  1: 1 op, 366841.00 ns, 366.8410 us/op
+
+OverheadJitting  2: 16 op, 290862.00 ns, 18.1789 us/op
+WorkloadJitting  2: 16 op, 239410.00 ns, 14.9631 us/op
+
+WorkloadPilot    1: 16 op, 936.00 ns, 58.5000 ns/op
+WorkloadPilot    2: 32 op, 1055.00 ns, 32.9688 ns/op
+WorkloadPilot    3: 64 op, 1882.00 ns, 29.4062 ns/op
+WorkloadPilot    4: 128 op, 2188.00 ns, 17.0938 ns/op
+WorkloadPilot    5: 256 op, 4757.00 ns, 18.5820 ns/op
+WorkloadPilot    6: 512 op, 6798.00 ns, 13.2773 ns/op
+WorkloadPilot    7: 1024 op, 12837.00 ns, 12.5361 ns/op
+WorkloadPilot    8: 2048 op, 25343.00 ns, 12.3745 ns/op
+WorkloadPilot    9: 4096 op, 50085.00 ns, 12.2278 ns/op
+WorkloadPilot   10: 8192 op, 101742.00 ns, 12.4197 ns/op
+WorkloadPilot   11: 16384 op, 198727.00 ns, 12.1293 ns/op
+WorkloadPilot   12: 32768 op, 414381.00 ns, 12.6459 ns/op
+WorkloadPilot   13: 65536 op, 780057.00 ns, 11.9027 ns/op
+WorkloadPilot   14: 131072 op, 1568842.00 ns, 11.9693 ns/op
+WorkloadPilot   15: 262144 op, 3255787.00 ns, 12.4198 ns/op
+WorkloadPilot   16: 524288 op, 6462462.00 ns, 12.3262 ns/op
+WorkloadPilot   17: 1048576 op, 12873097.00 ns, 12.2767 ns/op
+WorkloadPilot   18: 2097152 op, 25591974.00 ns, 12.2032 ns/op
+WorkloadPilot   19: 4194304 op, 51563805.00 ns, 12.2938 ns/op
+WorkloadPilot   20: 8388608 op, 61508469.00 ns, 7.3324 ns/op
+WorkloadPilot   21: 16777216 op, 73372934.00 ns, 4.3734 ns/op
+WorkloadPilot   22: 33554432 op, 145772611.00 ns, 4.3444 ns/op
+WorkloadPilot   23: 67108864 op, 291770997.00 ns, 4.3477 ns/op
+WorkloadPilot   24: 134217728 op, 581997462.00 ns, 4.3362 ns/op
+
+OverheadWarmup   1: 134217728 op, 259059409.00 ns, 1.9301 ns/op
+OverheadWarmup   2: 134217728 op, 228322430.00 ns, 1.7011 ns/op
+OverheadWarmup   3: 134217728 op, 232780080.00 ns, 1.7343 ns/op
+OverheadWarmup   4: 134217728 op, 234782805.00 ns, 1.7493 ns/op
+OverheadWarmup   5: 134217728 op, 235188591.00 ns, 1.7523 ns/op
+OverheadWarmup   6: 134217728 op, 231278296.00 ns, 1.7232 ns/op
+OverheadWarmup   7: 134217728 op, 227540320.00 ns, 1.6953 ns/op
+OverheadWarmup   8: 134217728 op, 228095777.00 ns, 1.6994 ns/op
+OverheadWarmup   9: 134217728 op, 228299600.00 ns, 1.7010 ns/op
+OverheadWarmup  10: 134217728 op, 227837045.00 ns, 1.6975 ns/op
+
+OverheadActual   1: 134217728 op, 228182213.00 ns, 1.7001 ns/op
+OverheadActual   2: 134217728 op, 228414892.00 ns, 1.7018 ns/op
+OverheadActual   3: 134217728 op, 229883588.00 ns, 1.7128 ns/op
+OverheadActual   4: 134217728 op, 230211282.00 ns, 1.7152 ns/op
+OverheadActual   5: 134217728 op, 228790918.00 ns, 1.7046 ns/op
+OverheadActual   6: 134217728 op, 227947249.00 ns, 1.6983 ns/op
+OverheadActual   7: 134217728 op, 227632144.00 ns, 1.6960 ns/op
+OverheadActual   8: 134217728 op, 227804276.00 ns, 1.6973 ns/op
+OverheadActual   9: 134217728 op, 228563186.00 ns, 1.7029 ns/op
+OverheadActual  10: 134217728 op, 228478589.00 ns, 1.7023 ns/op
+OverheadActual  11: 134217728 op, 228680787.00 ns, 1.7038 ns/op
+OverheadActual  12: 134217728 op, 231057384.00 ns, 1.7215 ns/op
+OverheadActual  13: 134217728 op, 227867823.00 ns, 1.6977 ns/op
+OverheadActual  14: 134217728 op, 228842933.00 ns, 1.7050 ns/op
+OverheadActual  15: 134217728 op, 249677331.00 ns, 1.8602 ns/op
+
+WorkloadWarmup   1: 134217728 op, 581679076.00 ns, 4.3338 ns/op
+WorkloadWarmup   2: 134217728 op, 590602036.00 ns, 4.4003 ns/op
+WorkloadWarmup   3: 134217728 op, 580886333.00 ns, 4.3279 ns/op
+
+// BeforeActualRun
+WorkloadActual   1: 134217728 op, 581683646.00 ns, 4.3339 ns/op
+WorkloadActual   2: 134217728 op, 583236987.00 ns, 4.3455 ns/op
+WorkloadActual   3: 134217728 op, 582872790.00 ns, 4.3427 ns/op
+
+// AfterActualRun
+WorkloadResult   1: 134217728 op, 353120460.00 ns, 2.6310 ns/op
+WorkloadResult   2: 134217728 op, 354673801.00 ns, 2.6425 ns/op
+WorkloadResult   3: 134217728 op, 354309604.00 ns, 2.6398 ns/op
+GC:  0 0 0 0 134217728
+
+// AfterAll
+
+Mean = 2.6378 ns, StdErr = 0.0035 ns (0.13%); N = 3, StdDev = 0.0061 ns
+Min = 2.6310 ns, Q1 = 2.6310 ns, Median = 2.6398 ns, Q3 = 2.6425 ns, Max = 2.6425 ns
+IQR = 0.0116 ns, LowerFence = 2.6136 ns, UpperFence = 2.6599 ns
+ConfidenceInterval = [2.5273 ns; 2.7482 ns] (CI 99.9%), Margin = 0.1104 ns (4.19% of Mean)
+Skewness = -0.3, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToTask(sleepTime: 0)" --job "ShortRun" --benchmarkId 2 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 394351.00 ns, 394.3510 us/op
+WorkloadJitting  1: 1 op, 11029145.00 ns, 11.0291 ms/op
+
+OverheadJitting  2: 16 op, 820541.00 ns, 51.2838 us/op
+WorkloadJitting  2: 16 op, 1147285.00 ns, 71.7053 us/op
+
+WorkloadPilot    1: 16 op, 343428.00 ns, 21.4642 us/op
+WorkloadPilot    2: 32 op, 590322.00 ns, 18.4476 us/op
+WorkloadPilot    3: 64 op, 1316816.00 ns, 20.5753 us/op
+WorkloadPilot    4: 128 op, 2817434.00 ns, 22.0112 us/op
+WorkloadPilot    5: 256 op, 5298144.00 ns, 20.6959 us/op
+WorkloadPilot    6: 512 op, 9680495.00 ns, 18.9072 us/op
+WorkloadPilot    7: 1024 op, 17861725.00 ns, 17.4431 us/op
+WorkloadPilot    8: 2048 op, 35689177.00 ns, 17.4264 us/op
+WorkloadPilot    9: 4096 op, 56067621.00 ns, 13.6884 us/op
+WorkloadPilot   10: 8192 op, 111422964.00 ns, 13.6014 us/op
+WorkloadPilot   11: 16384 op, 226975950.00 ns, 13.8535 us/op
+WorkloadPilot   12: 32768 op, 479906563.00 ns, 14.6456 us/op
+WorkloadPilot   13: 65536 op, 806881644.00 ns, 12.3120 us/op
+
+OverheadWarmup   1: 65536 op, 262575.00 ns, 4.0066 ns/op
+OverheadWarmup   2: 65536 op, 402505.00 ns, 6.1417 ns/op
+OverheadWarmup   3: 65536 op, 398746.00 ns, 6.0844 ns/op
+OverheadWarmup   4: 65536 op, 301240.00 ns, 4.5966 ns/op
+OverheadWarmup   5: 65536 op, 306099.00 ns, 4.6707 ns/op
+OverheadWarmup   6: 65536 op, 258219.00 ns, 3.9401 ns/op
+
+OverheadActual   1: 65536 op, 281498.00 ns, 4.2953 ns/op
+OverheadActual   2: 65536 op, 265607.00 ns, 4.0528 ns/op
+OverheadActual   3: 65536 op, 319675.00 ns, 4.8779 ns/op
+OverheadActual   4: 65536 op, 266925.00 ns, 4.0730 ns/op
+OverheadActual   5: 65536 op, 265576.00 ns, 4.0524 ns/op
+OverheadActual   6: 65536 op, 264244.00 ns, 4.0320 ns/op
+OverheadActual   7: 65536 op, 266778.00 ns, 4.0707 ns/op
+OverheadActual   8: 65536 op, 268992.00 ns, 4.1045 ns/op
+OverheadActual   9: 65536 op, 278396.00 ns, 4.2480 ns/op
+OverheadActual  10: 65536 op, 267395.00 ns, 4.0801 ns/op
+OverheadActual  11: 65536 op, 265568.00 ns, 4.0522 ns/op
+OverheadActual  12: 65536 op, 270259.00 ns, 4.1238 ns/op
+OverheadActual  13: 65536 op, 262015.00 ns, 3.9980 ns/op
+OverheadActual  14: 65536 op, 265545.00 ns, 4.0519 ns/op
+OverheadActual  15: 65536 op, 265577.00 ns, 4.0524 ns/op
+
+WorkloadWarmup   1: 65536 op, 792610986.00 ns, 12.0943 us/op
+WorkloadWarmup   2: 65536 op, 790151856.00 ns, 12.0568 us/op
+WorkloadWarmup   3: 65536 op, 764058486.00 ns, 11.6586 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 65536 op, 779161905.00 ns, 11.8891 us/op
+WorkloadActual   2: 65536 op, 789361451.00 ns, 12.0447 us/op
+WorkloadActual   3: 65536 op, 839151654.00 ns, 12.8044 us/op
+
+// AfterActualRun
+WorkloadResult   1: 65536 op, 778895127.00 ns, 11.8850 us/op
+WorkloadResult   2: 65536 op, 789094673.00 ns, 12.0406 us/op
+WorkloadResult   3: 65536 op, 838884876.00 ns, 12.8004 us/op
+GC:  19 0 0 40022688 65536
+
+// AfterAll
+
+Mean = 12.2420 us, StdErr = 0.2828 us (2.31%); N = 3, StdDev = 0.4898 us
+Min = 11.8850 us, Q1 = 11.8850 us, Median = 12.0406 us, Q3 = 12.8004 us, Max = 12.8004 us
+IQR = 0.9154 us, LowerFence = 10.5119 us, UpperFence = 14.1734 us
+ConfidenceInterval = [3.3065 us; 21.1775 us] (CI 99.9%), Margin = 8.9355 us (72.99% of Mean)
+Skewness = 0.34, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToSync(sleepTime: 0)" --job "ShortRun" --benchmarkId 3 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 276675.00 ns, 276.6750 us/op
+WorkloadJitting  1: 1 op, 13964933.00 ns, 13.9649 ms/op
+
+OverheadJitting  2: 16 op, 225548.00 ns, 14.0968 us/op
+WorkloadJitting  2: 16 op, 806184.00 ns, 50.3865 us/op
+
+WorkloadPilot    1: 16 op, 349818.00 ns, 21.8636 us/op
+WorkloadPilot    2: 32 op, 742412.00 ns, 23.2004 us/op
+WorkloadPilot    3: 64 op, 1093183.00 ns, 17.0810 us/op
+WorkloadPilot    4: 128 op, 2666474.00 ns, 20.8318 us/op
+WorkloadPilot    5: 256 op, 4041223.00 ns, 15.7860 us/op
+WorkloadPilot    6: 512 op, 8602850.00 ns, 16.8024 us/op
+WorkloadPilot    7: 1024 op, 17664849.00 ns, 17.2508 us/op
+WorkloadPilot    8: 2048 op, 36466947.00 ns, 17.8061 us/op
+WorkloadPilot    9: 4096 op, 71760402.00 ns, 17.5196 us/op
+WorkloadPilot   10: 8192 op, 131305480.00 ns, 16.0285 us/op
+WorkloadPilot   11: 16384 op, 251889398.00 ns, 15.3741 us/op
+WorkloadPilot   12: 32768 op, 502963522.00 ns, 15.3492 us/op
+
+OverheadWarmup   1: 32768 op, 56396.00 ns, 1.7211 ns/op
+OverheadWarmup   2: 32768 op, 55552.00 ns, 1.6953 ns/op
+OverheadWarmup   3: 32768 op, 58331.00 ns, 1.7801 ns/op
+OverheadWarmup   4: 32768 op, 55547.00 ns, 1.6952 ns/op
+OverheadWarmup   5: 32768 op, 54906.00 ns, 1.6756 ns/op
+OverheadWarmup   6: 32768 op, 54784.00 ns, 1.6719 ns/op
+OverheadWarmup   7: 32768 op, 55882.00 ns, 1.7054 ns/op
+OverheadWarmup   8: 32768 op, 55313.00 ns, 1.6880 ns/op
+
+OverheadActual   1: 32768 op, 67291.00 ns, 2.0536 ns/op
+OverheadActual   2: 32768 op, 56391.00 ns, 1.7209 ns/op
+OverheadActual   3: 32768 op, 72063.00 ns, 2.1992 ns/op
+OverheadActual   4: 32768 op, 86863.00 ns, 2.6508 ns/op
+OverheadActual   5: 32768 op, 102569.00 ns, 3.1302 ns/op
+OverheadActual   6: 32768 op, 53321.00 ns, 1.6272 ns/op
+OverheadActual   7: 32768 op, 53213.00 ns, 1.6239 ns/op
+OverheadActual   8: 32768 op, 55439.00 ns, 1.6919 ns/op
+OverheadActual   9: 32768 op, 53256.00 ns, 1.6252 ns/op
+OverheadActual  10: 32768 op, 88454.00 ns, 2.6994 ns/op
+OverheadActual  11: 32768 op, 54001.00 ns, 1.6480 ns/op
+OverheadActual  12: 32768 op, 53971.00 ns, 1.6471 ns/op
+OverheadActual  13: 32768 op, 53965.00 ns, 1.6469 ns/op
+OverheadActual  14: 32768 op, 53205.00 ns, 1.6237 ns/op
+OverheadActual  15: 32768 op, 53118.00 ns, 1.6210 ns/op
+OverheadActual  16: 32768 op, 67867.00 ns, 2.0711 ns/op
+OverheadActual  17: 32768 op, 80606.00 ns, 2.4599 ns/op
+OverheadActual  18: 32768 op, 87194.00 ns, 2.6609 ns/op
+OverheadActual  19: 32768 op, 54858.00 ns, 1.6741 ns/op
+OverheadActual  20: 32768 op, 88161.00 ns, 2.6905 ns/op
+
+WorkloadWarmup   1: 32768 op, 519371382.00 ns, 15.8500 us/op
+WorkloadWarmup   2: 32768 op, 508803993.00 ns, 15.5275 us/op
+WorkloadWarmup   3: 32768 op, 502383165.00 ns, 15.3315 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 32768 op, 514366413.00 ns, 15.6972 us/op
+WorkloadActual   2: 32768 op, 505712573.00 ns, 15.4331 us/op
+WorkloadActual   3: 32768 op, 506170155.00 ns, 15.4471 us/op
+
+// AfterActualRun
+WorkloadResult   1: 32768 op, 514310498.00 ns, 15.6955 us/op
+WorkloadResult   2: 32768 op, 505656658.00 ns, 15.4314 us/op
+WorkloadResult   3: 32768 op, 506114240.00 ns, 15.4454 us/op
+GC:  10 0 0 39583632 32768
+
+// AfterAll
+
+Mean = 15.5241 us, StdErr = 0.0858 us (0.55%); N = 3, StdDev = 0.1486 us
+Min = 15.4314 us, Q1 = 15.4314 us, Median = 15.4454 us, Q3 = 15.6955 us, Max = 15.6955 us
+IQR = 0.2641 us, LowerFence = 15.0353 us, UpperFence = 16.0917 us
+ConfidenceInterval = [12.8129 us; 18.2353 us] (CI 99.9%), Margin = 2.7112 us (17.46% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// **************************
+// Benchmark: SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Thread(sleepTime: 1)" --job "ShortRun" --benchmarkId 4 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 324960.00 ns, 324.9600 us/op
+WorkloadJitting  1: 1 op, 1861622.00 ns, 1.8616 ms/op
+
+OverheadJitting  2: 16 op, 260118.00 ns, 16.2574 us/op
+WorkloadJitting  2: 16 op, 20258122.00 ns, 1.2661 ms/op
+
+WorkloadPilot    1: 16 op, 20483539.00 ns, 1.2802 ms/op
+WorkloadPilot    2: 32 op, 39822676.00 ns, 1.2445 ms/op
+WorkloadPilot    3: 64 op, 79434058.00 ns, 1.2412 ms/op
+WorkloadPilot    4: 128 op, 157434928.00 ns, 1.2300 ms/op
+WorkloadPilot    5: 256 op, 319584668.00 ns, 1.2484 ms/op
+WorkloadPilot    6: 512 op, 644138002.00 ns, 1.2581 ms/op
+
+OverheadWarmup   1: 512 op, 6559.00 ns, 12.8105 ns/op
+OverheadWarmup   2: 512 op, 1532.00 ns, 2.9922 ns/op
+OverheadWarmup   3: 512 op, 1467.00 ns, 2.8652 ns/op
+OverheadWarmup   4: 512 op, 1481.00 ns, 2.8926 ns/op
+OverheadWarmup   5: 512 op, 14707.00 ns, 28.7246 ns/op
+OverheadWarmup   6: 512 op, 1348.00 ns, 2.6328 ns/op
+OverheadWarmup   7: 512 op, 1362.00 ns, 2.6602 ns/op
+OverheadWarmup   8: 512 op, 1361.00 ns, 2.6582 ns/op
+
+OverheadActual   1: 512 op, 1363.00 ns, 2.6621 ns/op
+OverheadActual   2: 512 op, 1292.00 ns, 2.5234 ns/op
+OverheadActual   3: 512 op, 1394.00 ns, 2.7227 ns/op
+OverheadActual   4: 512 op, 1424.00 ns, 2.7812 ns/op
+OverheadActual   5: 512 op, 1375.00 ns, 2.6855 ns/op
+OverheadActual   6: 512 op, 1242.00 ns, 2.4258 ns/op
+OverheadActual   7: 512 op, 1270.00 ns, 2.4805 ns/op
+OverheadActual   8: 512 op, 1223.00 ns, 2.3887 ns/op
+OverheadActual   9: 512 op, 1236.00 ns, 2.4141 ns/op
+OverheadActual  10: 512 op, 1238.00 ns, 2.4180 ns/op
+OverheadActual  11: 512 op, 1238.00 ns, 2.4180 ns/op
+OverheadActual  12: 512 op, 1233.00 ns, 2.4082 ns/op
+OverheadActual  13: 512 op, 1263.00 ns, 2.4668 ns/op
+OverheadActual  14: 512 op, 1773.00 ns, 3.4629 ns/op
+OverheadActual  15: 512 op, 1240.00 ns, 2.4219 ns/op
+OverheadActual  16: 512 op, 1266.00 ns, 2.4727 ns/op
+OverheadActual  17: 512 op, 1244.00 ns, 2.4297 ns/op
+OverheadActual  18: 512 op, 1205.00 ns, 2.3535 ns/op
+OverheadActual  19: 512 op, 1275.00 ns, 2.4902 ns/op
+
+WorkloadWarmup   1: 512 op, 620461131.00 ns, 1.2118 ms/op
+WorkloadWarmup   2: 512 op, 611213594.00 ns, 1.1938 ms/op
+WorkloadWarmup   3: 512 op, 629493649.00 ns, 1.2295 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 512 op, 633566487.00 ns, 1.2374 ms/op
+WorkloadActual   2: 512 op, 642144406.00 ns, 1.2542 ms/op
+WorkloadActual   3: 512 op, 637658759.00 ns, 1.2454 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 512 op, 633565224.00 ns, 1.2374 ms/op
+WorkloadResult   2: 512 op, 642143143.00 ns, 1.2542 ms/op
+WorkloadResult   3: 512 op, 637657496.00 ns, 1.2454 ms/op
+GC:  0 0 0 0 512
+
+// AfterAll
+
+Mean = 1.2457 ms, StdErr = 0.0048 ms (0.39%); N = 3, StdDev = 0.0084 ms
+Min = 1.2374 ms, Q1 = 1.2374 ms, Median = 1.2454 ms, Q3 = 1.2542 ms, Max = 1.2542 ms
+IQR = 0.0168 ms, LowerFence = 1.2123 ms, UpperFence = 1.2793 ms
+ConfidenceInterval = [1.0928 ms; 1.3986 ms] (CI 99.9%), Margin = 0.1529 ms (12.27% of Mean)
+Skewness = 0.03, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Task(sleepTime: 1)" --job "ShortRun" --benchmarkId 5 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 287954.00 ns, 287.9540 us/op
+WorkloadJitting  1: 1 op, 2911582.00 ns, 2.9116 ms/op
+
+OverheadJitting  2: 16 op, 263041.00 ns, 16.4401 us/op
+WorkloadJitting  2: 16 op, 20306787.00 ns, 1.2692 ms/op
+
+WorkloadPilot    1: 16 op, 20439912.00 ns, 1.2775 ms/op
+WorkloadPilot    2: 32 op, 39949357.00 ns, 1.2484 ms/op
+WorkloadPilot    3: 64 op, 84085167.00 ns, 1.3138 ms/op
+WorkloadPilot    4: 128 op, 163973080.00 ns, 1.2810 ms/op
+WorkloadPilot    5: 256 op, 330948634.00 ns, 1.2928 ms/op
+WorkloadPilot    6: 512 op, 654331522.00 ns, 1.2780 ms/op
+
+OverheadWarmup   1: 512 op, 6542.00 ns, 12.7773 ns/op
+OverheadWarmup   2: 512 op, 1426.00 ns, 2.7852 ns/op
+OverheadWarmup   3: 512 op, 1423.00 ns, 2.7793 ns/op
+OverheadWarmup   4: 512 op, 1470.00 ns, 2.8711 ns/op
+OverheadWarmup   5: 512 op, 1416.00 ns, 2.7656 ns/op
+OverheadWarmup   6: 512 op, 1413.00 ns, 2.7598 ns/op
+OverheadWarmup   7: 512 op, 1432.00 ns, 2.7969 ns/op
+OverheadWarmup   8: 512 op, 1386.00 ns, 2.7070 ns/op
+
+OverheadActual   1: 512 op, 1416.00 ns, 2.7656 ns/op
+OverheadActual   2: 512 op, 1440.00 ns, 2.8125 ns/op
+OverheadActual   3: 512 op, 1415.00 ns, 2.7637 ns/op
+OverheadActual   4: 512 op, 1516.00 ns, 2.9609 ns/op
+OverheadActual   5: 512 op, 1379.00 ns, 2.6934 ns/op
+OverheadActual   6: 512 op, 1351.00 ns, 2.6387 ns/op
+OverheadActual   7: 512 op, 1390.00 ns, 2.7148 ns/op
+OverheadActual   8: 512 op, 1385.00 ns, 2.7051 ns/op
+OverheadActual   9: 512 op, 1397.00 ns, 2.7285 ns/op
+OverheadActual  10: 512 op, 1420.00 ns, 2.7734 ns/op
+OverheadActual  11: 512 op, 1327.00 ns, 2.5918 ns/op
+OverheadActual  12: 512 op, 1394.00 ns, 2.7227 ns/op
+OverheadActual  13: 512 op, 1349.00 ns, 2.6348 ns/op
+OverheadActual  14: 512 op, 1329.00 ns, 2.5957 ns/op
+OverheadActual  15: 512 op, 1412.00 ns, 2.7578 ns/op
+
+WorkloadWarmup   1: 512 op, 653062417.00 ns, 1.2755 ms/op
+WorkloadWarmup   2: 512 op, 643248110.00 ns, 1.2563 ms/op
+WorkloadWarmup   3: 512 op, 651737335.00 ns, 1.2729 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 512 op, 649682270.00 ns, 1.2689 ms/op
+WorkloadActual   2: 512 op, 652011438.00 ns, 1.2735 ms/op
+WorkloadActual   3: 512 op, 636861704.00 ns, 1.2439 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 512 op, 649680876.00 ns, 1.2689 ms/op
+WorkloadResult   2: 512 op, 652010044.00 ns, 1.2735 ms/op
+WorkloadResult   3: 512 op, 636860310.00 ns, 1.2439 ms/op
+GC:  0 0 0 118760 512
+
+// AfterAll
+
+Mean = 1.2621 ms, StdErr = 0.0092 ms (0.73%); N = 3, StdDev = 0.0159 ms
+Min = 1.2439 ms, Q1 = 1.2439 ms, Median = 1.2689 ms, Q3 = 1.2735 ms, Max = 1.2735 ms
+IQR = 0.0296 ms, LowerFence = 1.1995 ms, UpperFence = 1.3178 ms
+ConfidenceInterval = [0.9714 ms; 1.5528 ms] (CI 99.9%), Margin = 0.2907 ms (23.03% of Mean)
+Skewness = -0.35, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToTask(sleepTime: 1)" --job "ShortRun" --benchmarkId 6 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 412967.00 ns, 412.9670 us/op
+WorkloadJitting  1: 1 op, 11867796.00 ns, 11.8678 ms/op
+
+OverheadJitting  2: 16 op, 755713.00 ns, 47.2321 us/op
+WorkloadJitting  2: 16 op, 21097659.00 ns, 1.3186 ms/op
+
+WorkloadPilot    1: 16 op, 20997740.00 ns, 1.3124 ms/op
+WorkloadPilot    2: 32 op, 40639715.00 ns, 1.2700 ms/op
+WorkloadPilot    3: 64 op, 81424108.00 ns, 1.2723 ms/op
+WorkloadPilot    4: 128 op, 163844228.00 ns, 1.2800 ms/op
+WorkloadPilot    5: 256 op, 339986050.00 ns, 1.3281 ms/op
+WorkloadPilot    6: 512 op, 662362085.00 ns, 1.2937 ms/op
+
+OverheadWarmup   1: 512 op, 6711.00 ns, 13.1074 ns/op
+OverheadWarmup   2: 512 op, 3511.00 ns, 6.8574 ns/op
+OverheadWarmup   3: 512 op, 3305.00 ns, 6.4551 ns/op
+OverheadWarmup   4: 512 op, 3233.00 ns, 6.3145 ns/op
+OverheadWarmup   5: 512 op, 3218.00 ns, 6.2852 ns/op
+OverheadWarmup   6: 512 op, 3228.00 ns, 6.3047 ns/op
+OverheadWarmup   7: 512 op, 3145.00 ns, 6.1426 ns/op
+OverheadWarmup   8: 512 op, 3118.00 ns, 6.0898 ns/op
+OverheadWarmup   9: 512 op, 3136.00 ns, 6.1250 ns/op
+OverheadWarmup  10: 512 op, 3146.00 ns, 6.1445 ns/op
+
+OverheadActual   1: 512 op, 3181.00 ns, 6.2129 ns/op
+OverheadActual   2: 512 op, 3023.00 ns, 5.9043 ns/op
+OverheadActual   3: 512 op, 2914.00 ns, 5.6914 ns/op
+OverheadActual   4: 512 op, 2989.00 ns, 5.8379 ns/op
+OverheadActual   5: 512 op, 2799.00 ns, 5.4668 ns/op
+OverheadActual   6: 512 op, 2743.00 ns, 5.3574 ns/op
+OverheadActual   7: 512 op, 2816.00 ns, 5.5000 ns/op
+OverheadActual   8: 512 op, 2709.00 ns, 5.2910 ns/op
+OverheadActual   9: 512 op, 2701.00 ns, 5.2754 ns/op
+OverheadActual  10: 512 op, 2705.00 ns, 5.2832 ns/op
+OverheadActual  11: 512 op, 2629.00 ns, 5.1348 ns/op
+OverheadActual  12: 512 op, 2649.00 ns, 5.1738 ns/op
+OverheadActual  13: 512 op, 2766.00 ns, 5.4023 ns/op
+OverheadActual  14: 512 op, 2594.00 ns, 5.0664 ns/op
+OverheadActual  15: 512 op, 2812.00 ns, 5.4922 ns/op
+OverheadActual  16: 512 op, 21983.00 ns, 42.9355 ns/op
+OverheadActual  17: 512 op, 2625.00 ns, 5.1270 ns/op
+OverheadActual  18: 512 op, 4696.00 ns, 9.1719 ns/op
+OverheadActual  19: 512 op, 2599.00 ns, 5.0762 ns/op
+OverheadActual  20: 512 op, 3818.00 ns, 7.4570 ns/op
+
+WorkloadWarmup   1: 512 op, 651257214.00 ns, 1.2720 ms/op
+WorkloadWarmup   2: 512 op, 652767036.00 ns, 1.2749 ms/op
+WorkloadWarmup   3: 512 op, 668074833.00 ns, 1.3048 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 512 op, 664723423.00 ns, 1.2983 ms/op
+WorkloadActual   2: 512 op, 670093068.00 ns, 1.3088 ms/op
+WorkloadActual   3: 512 op, 661739818.00 ns, 1.2925 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 512 op, 664720640.50 ns, 1.2983 ms/op
+WorkloadResult   2: 512 op, 670090285.50 ns, 1.3088 ms/op
+WorkloadResult   3: 512 op, 661737035.50 ns, 1.2925 ms/op
+GC:  0 0 0 344064 512
+
+// AfterAll
+
+Mean = 1.2998 ms, StdErr = 0.0048 ms (0.37%); N = 3, StdDev = 0.0083 ms
+Min = 1.2925 ms, Q1 = 1.2925 ms, Median = 1.2983 ms, Q3 = 1.3088 ms, Max = 1.3088 ms
+IQR = 0.0163 ms, LowerFence = 1.2680 ms, UpperFence = 1.3332 ms
+ConfidenceInterval = [1.1490 ms; 1.4507 ms] (CI 99.9%), Margin = 0.1508 ms (11.60% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToSync(sleepTime: 1)" --job "ShortRun" --benchmarkId 7 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 289656.00 ns, 289.6560 us/op
+WorkloadJitting  1: 1 op, 15760731.00 ns, 15.7607 ms/op
+
+OverheadJitting  2: 16 op, 251924.00 ns, 15.7453 us/op
+WorkloadJitting  2: 16 op, 20591223.00 ns, 1.2870 ms/op
+
+WorkloadPilot    1: 16 op, 20513416.00 ns, 1.2821 ms/op
+WorkloadPilot    2: 32 op, 42121521.00 ns, 1.3163 ms/op
+WorkloadPilot    3: 64 op, 80986503.00 ns, 1.2654 ms/op
+WorkloadPilot    4: 128 op, 165333495.00 ns, 1.2917 ms/op
+WorkloadPilot    5: 256 op, 334767439.00 ns, 1.3077 ms/op
+WorkloadPilot    6: 512 op, 672355250.00 ns, 1.3132 ms/op
+
+OverheadWarmup   1: 512 op, 5074.00 ns, 9.9102 ns/op
+OverheadWarmup   2: 512 op, 1521.00 ns, 2.9707 ns/op
+OverheadWarmup   3: 512 op, 1531.00 ns, 2.9902 ns/op
+OverheadWarmup   4: 512 op, 1531.00 ns, 2.9902 ns/op
+OverheadWarmup   5: 512 op, 1496.00 ns, 2.9219 ns/op
+OverheadWarmup   6: 512 op, 1461.00 ns, 2.8535 ns/op
+OverheadWarmup   7: 512 op, 1300.00 ns, 2.5391 ns/op
+OverheadWarmup   8: 512 op, 1234.00 ns, 2.4102 ns/op
+OverheadWarmup   9: 512 op, 1895.00 ns, 3.7012 ns/op
+
+OverheadActual   1: 512 op, 1244.00 ns, 2.4297 ns/op
+OverheadActual   2: 512 op, 1294.00 ns, 2.5273 ns/op
+OverheadActual   3: 512 op, 1263.00 ns, 2.4668 ns/op
+OverheadActual   4: 512 op, 1414.00 ns, 2.7617 ns/op
+OverheadActual   5: 512 op, 1296.00 ns, 2.5312 ns/op
+OverheadActual   6: 512 op, 1214.00 ns, 2.3711 ns/op
+OverheadActual   7: 512 op, 1272.00 ns, 2.4844 ns/op
+OverheadActual   8: 512 op, 1226.00 ns, 2.3945 ns/op
+OverheadActual   9: 512 op, 1248.00 ns, 2.4375 ns/op
+OverheadActual  10: 512 op, 1276.00 ns, 2.4922 ns/op
+OverheadActual  11: 512 op, 1278.00 ns, 2.4961 ns/op
+OverheadActual  12: 512 op, 1266.00 ns, 2.4727 ns/op
+OverheadActual  13: 512 op, 1219.00 ns, 2.3809 ns/op
+OverheadActual  14: 512 op, 1247.00 ns, 2.4355 ns/op
+OverheadActual  15: 512 op, 1224.00 ns, 2.3906 ns/op
+
+WorkloadWarmup   1: 512 op, 655267777.00 ns, 1.2798 ms/op
+WorkloadWarmup   2: 512 op, 659233631.00 ns, 1.2876 ms/op
+WorkloadWarmup   3: 512 op, 649949142.00 ns, 1.2694 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 512 op, 661476854.00 ns, 1.2919 ms/op
+WorkloadActual   2: 512 op, 658461900.00 ns, 1.2861 ms/op
+WorkloadActual   3: 512 op, 651893754.00 ns, 1.2732 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 512 op, 661475591.00 ns, 1.2919 ms/op
+WorkloadResult   2: 512 op, 658460637.00 ns, 1.2861 ms/op
+WorkloadResult   3: 512 op, 651892491.00 ns, 1.2732 ms/op
+GC:  0 0 0 618496 512
+
+// AfterAll
+
+Mean = 1.2837 ms, StdErr = 0.0055 ms (0.43%); N = 3, StdDev = 0.0096 ms
+Min = 1.2732 ms, Q1 = 1.2732 ms, Median = 1.2861 ms, Q3 = 1.2919 ms, Max = 1.2919 ms
+IQR = 0.0187 ms, LowerFence = 1.2452 ms, UpperFence = 1.3200 ms
+ConfidenceInterval = [1.1091 ms; 1.4583 ms] (CI 99.9%), Margin = 0.1746 ms (13.60% of Mean)
+Skewness = -0.23, Kurtosis = 0.67, MValue = 2
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// **************************
+// Benchmark: SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Thread(sleepTime: 15)" --job "ShortRun" --benchmarkId 8 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 284660.00 ns, 284.6600 us/op
+WorkloadJitting  1: 1 op, 18836344.00 ns, 18.8363 ms/op
+
+OverheadJitting  2: 16 op, 252051.00 ns, 15.7532 us/op
+WorkloadJitting  2: 16 op, 295355781.00 ns, 18.4597 ms/op
+
+WorkloadPilot    1: 16 op, 293251282.00 ns, 18.3282 ms/op
+WorkloadPilot    2: 32 op, 577811224.00 ns, 18.0566 ms/op
+
+OverheadWarmup   1: 32 op, 5945.00 ns, 185.7812 ns/op
+OverheadWarmup   2: 32 op, 718.00 ns, 22.4375 ns/op
+OverheadWarmup   3: 32 op, 562.00 ns, 17.5625 ns/op
+OverheadWarmup   4: 32 op, 484.00 ns, 15.1250 ns/op
+OverheadWarmup   5: 32 op, 614.00 ns, 19.1875 ns/op
+OverheadWarmup   6: 32 op, 565.00 ns, 17.6562 ns/op
+OverheadWarmup   7: 32 op, 570.00 ns, 17.8125 ns/op
+OverheadWarmup   8: 32 op, 531.00 ns, 16.5938 ns/op
+
+OverheadActual   1: 32 op, 656.00 ns, 20.5000 ns/op
+OverheadActual   2: 32 op, 775.00 ns, 24.2188 ns/op
+OverheadActual   3: 32 op, 635.00 ns, 19.8438 ns/op
+OverheadActual   4: 32 op, 602.00 ns, 18.8125 ns/op
+OverheadActual   5: 32 op, 593.00 ns, 18.5312 ns/op
+OverheadActual   6: 32 op, 505.00 ns, 15.7813 ns/op
+OverheadActual   7: 32 op, 649.00 ns, 20.2812 ns/op
+OverheadActual   8: 32 op, 491.00 ns, 15.3438 ns/op
+OverheadActual   9: 32 op, 457.00 ns, 14.2812 ns/op
+OverheadActual  10: 32 op, 420.00 ns, 13.1250 ns/op
+OverheadActual  11: 32 op, 392.00 ns, 12.2500 ns/op
+OverheadActual  12: 32 op, 455.00 ns, 14.2188 ns/op
+OverheadActual  13: 32 op, 400.00 ns, 12.5000 ns/op
+OverheadActual  14: 32 op, 460.00 ns, 14.3750 ns/op
+OverheadActual  15: 32 op, 449.00 ns, 14.0312 ns/op
+OverheadActual  16: 32 op, 433.00 ns, 13.5312 ns/op
+OverheadActual  17: 32 op, 418.00 ns, 13.0625 ns/op
+OverheadActual  18: 32 op, 591.00 ns, 18.4688 ns/op
+OverheadActual  19: 32 op, 693.00 ns, 21.6562 ns/op
+OverheadActual  20: 32 op, 521.00 ns, 16.2812 ns/op
+
+WorkloadWarmup   1: 32 op, 572534992.00 ns, 17.8917 ms/op
+WorkloadWarmup   2: 32 op, 577046386.00 ns, 18.0327 ms/op
+WorkloadWarmup   3: 32 op, 581487535.00 ns, 18.1715 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 32 op, 580129441.00 ns, 18.1290 ms/op
+WorkloadActual   2: 32 op, 575167429.00 ns, 17.9740 ms/op
+WorkloadActual   3: 32 op, 572380109.00 ns, 17.8869 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 32 op, 580128943.00 ns, 18.1290 ms/op
+WorkloadResult   2: 32 op, 575166931.00 ns, 17.9740 ms/op
+WorkloadResult   3: 32 op, 572379611.00 ns, 17.8869 ms/op
+GC:  0 0 0 0 32
+
+// AfterAll
+
+Mean = 17.9966 ms, StdErr = 0.0708 ms (0.39%); N = 3, StdDev = 0.1227 ms
+Min = 17.8869 ms, Q1 = 17.8869 ms, Median = 17.9740 ms, Q3 = 18.1290 ms, Max = 18.1290 ms
+IQR = 0.2422 ms, LowerFence = 17.5236 ms, UpperFence = 18.4923 ms
+ConfidenceInterval = [15.7588 ms; 20.2344 ms] (CI 99.9%), Margin = 2.2378 ms (12.43% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Task(sleepTime: 15)" --job "ShortRun" --benchmarkId 9 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 286401.00 ns, 286.4010 us/op
+WorkloadJitting  1: 1 op, 20157589.00 ns, 20.1576 ms/op
+
+OverheadJitting  2: 16 op, 249752.00 ns, 15.6095 us/op
+WorkloadJitting  2: 16 op, 288578807.00 ns, 18.0362 ms/op
+
+WorkloadPilot    1: 16 op, 289796166.00 ns, 18.1123 ms/op
+WorkloadPilot    2: 32 op, 581848962.00 ns, 18.1828 ms/op
+
+OverheadWarmup   1: 32 op, 35651.00 ns, 1.1141 us/op
+OverheadWarmup   2: 32 op, 611.00 ns, 19.0938 ns/op
+OverheadWarmup   3: 32 op, 632.00 ns, 19.7500 ns/op
+OverheadWarmup   4: 32 op, 553.00 ns, 17.2812 ns/op
+OverheadWarmup   5: 32 op, 610.00 ns, 19.0625 ns/op
+OverheadWarmup   6: 32 op, 554.00 ns, 17.3125 ns/op
+
+OverheadActual   1: 32 op, 654.00 ns, 20.4375 ns/op
+OverheadActual   2: 32 op, 632.00 ns, 19.7500 ns/op
+OverheadActual   3: 32 op, 619.00 ns, 19.3438 ns/op
+OverheadActual   4: 32 op, 584.00 ns, 18.2500 ns/op
+OverheadActual   5: 32 op, 601.00 ns, 18.7812 ns/op
+OverheadActual   6: 32 op, 461.00 ns, 14.4062 ns/op
+OverheadActual   7: 32 op, 425.00 ns, 13.2812 ns/op
+OverheadActual   8: 32 op, 504.00 ns, 15.7500 ns/op
+OverheadActual   9: 32 op, 550.00 ns, 17.1875 ns/op
+OverheadActual  10: 32 op, 488.00 ns, 15.2500 ns/op
+OverheadActual  11: 32 op, 487.00 ns, 15.2187 ns/op
+OverheadActual  12: 32 op, 482.00 ns, 15.0625 ns/op
+OverheadActual  13: 32 op, 505.00 ns, 15.7813 ns/op
+OverheadActual  14: 32 op, 501.00 ns, 15.6563 ns/op
+OverheadActual  15: 32 op, 469.00 ns, 14.6562 ns/op
+OverheadActual  16: 32 op, 456.00 ns, 14.2500 ns/op
+OverheadActual  17: 32 op, 680.00 ns, 21.2500 ns/op
+OverheadActual  18: 32 op, 514.00 ns, 16.0625 ns/op
+OverheadActual  19: 32 op, 457.00 ns, 14.2812 ns/op
+OverheadActual  20: 32 op, 574.00 ns, 17.9375 ns/op
+
+WorkloadWarmup   1: 32 op, 580035196.00 ns, 18.1261 ms/op
+WorkloadWarmup   2: 32 op, 582561983.00 ns, 18.2051 ms/op
+WorkloadWarmup   3: 32 op, 584286050.00 ns, 18.2589 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 32 op, 576886888.00 ns, 18.0277 ms/op
+WorkloadActual   2: 32 op, 576825220.00 ns, 18.0258 ms/op
+WorkloadActual   3: 32 op, 587898232.00 ns, 18.3718 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 32 op, 576886383.50 ns, 18.0277 ms/op
+WorkloadResult   2: 32 op, 576824715.50 ns, 18.0258 ms/op
+WorkloadResult   3: 32 op, 587897727.50 ns, 18.3718 ms/op
+GC:  0 0 0 7424 32
+
+// AfterAll
+
+Mean = 18.1418 ms, StdErr = 0.1150 ms (0.63%); N = 3, StdDev = 0.1992 ms
+Min = 18.0258 ms, Q1 = 18.0258 ms, Median = 18.0277 ms, Q3 = 18.3718 ms, Max = 18.3718 ms
+IQR = 0.3460 ms, LowerFence = 17.5067 ms, UpperFence = 18.8909 ms
+ConfidenceInterval = [14.5071 ms; 21.7764 ms] (CI 99.9%), Margin = 3.6347 ms (20.03% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToTask(sleepTime: 15)" --job "ShortRun" --benchmarkId 10 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 393300.00 ns, 393.3000 us/op
+WorkloadJitting  1: 1 op, 29494720.00 ns, 29.4947 ms/op
+
+OverheadJitting  2: 16 op, 870243.00 ns, 54.3902 us/op
+WorkloadJitting  2: 16 op, 288680378.00 ns, 18.0425 ms/op
+
+WorkloadPilot    1: 16 op, 286218187.00 ns, 17.8886 ms/op
+WorkloadPilot    2: 32 op, 579942908.00 ns, 18.1232 ms/op
+
+OverheadWarmup   1: 32 op, 5935.00 ns, 185.4688 ns/op
+OverheadWarmup   2: 32 op, 673.00 ns, 21.0312 ns/op
+OverheadWarmup   3: 32 op, 764.00 ns, 23.8750 ns/op
+OverheadWarmup   4: 32 op, 664.00 ns, 20.7500 ns/op
+OverheadWarmup   5: 32 op, 702.00 ns, 21.9375 ns/op
+OverheadWarmup   6: 32 op, 687.00 ns, 21.4688 ns/op
+
+OverheadActual   1: 32 op, 671.00 ns, 20.9688 ns/op
+OverheadActual   2: 32 op, 650.00 ns, 20.3125 ns/op
+OverheadActual   3: 32 op, 742.00 ns, 23.1875 ns/op
+OverheadActual   4: 32 op, 632.00 ns, 19.7500 ns/op
+OverheadActual   5: 32 op, 663.00 ns, 20.7188 ns/op
+OverheadActual   6: 32 op, 584.00 ns, 18.2500 ns/op
+OverheadActual   7: 32 op, 581.00 ns, 18.1562 ns/op
+OverheadActual   8: 32 op, 577.00 ns, 18.0312 ns/op
+OverheadActual   9: 32 op, 572.00 ns, 17.8750 ns/op
+OverheadActual  10: 32 op, 487.00 ns, 15.2187 ns/op
+OverheadActual  11: 32 op, 583.00 ns, 18.2188 ns/op
+OverheadActual  12: 32 op, 614.00 ns, 19.1875 ns/op
+OverheadActual  13: 32 op, 600.00 ns, 18.7500 ns/op
+OverheadActual  14: 32 op, 438.00 ns, 13.6875 ns/op
+OverheadActual  15: 32 op, 491.00 ns, 15.3438 ns/op
+OverheadActual  16: 32 op, 439.00 ns, 13.7188 ns/op
+OverheadActual  17: 32 op, 430.00 ns, 13.4375 ns/op
+OverheadActual  18: 32 op, 475.00 ns, 14.8438 ns/op
+OverheadActual  19: 32 op, 566.00 ns, 17.6875 ns/op
+OverheadActual  20: 32 op, 681.00 ns, 21.2812 ns/op
+
+WorkloadWarmup   1: 32 op, 589125449.00 ns, 18.4102 ms/op
+WorkloadWarmup   2: 32 op, 581658682.00 ns, 18.1768 ms/op
+WorkloadWarmup   3: 32 op, 576373442.00 ns, 18.0117 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 32 op, 581137565.00 ns, 18.1605 ms/op
+WorkloadActual   2: 32 op, 580270281.00 ns, 18.1334 ms/op
+WorkloadActual   3: 32 op, 582078501.00 ns, 18.1900 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 32 op, 581136983.00 ns, 18.1605 ms/op
+WorkloadResult   2: 32 op, 580269699.00 ns, 18.1334 ms/op
+WorkloadResult   3: 32 op, 582077919.00 ns, 18.1899 ms/op
+GC:  0 0 0 21504 32
+
+// AfterAll
+
+Mean = 18.1613 ms, StdErr = 0.0163 ms (0.09%); N = 3, StdDev = 0.0283 ms
+Min = 18.1334 ms, Q1 = 18.1334 ms, Median = 18.1605 ms, Q3 = 18.1899 ms, Max = 18.1899 ms
+IQR = 0.0565 ms, LowerFence = 18.0487 ms, UpperFence = 18.2747 ms
+ConfidenceInterval = [17.6457 ms; 18.6769 ms] (CI 99.9%), Margin = 0.5156 ms (2.84% of Mean)
+Skewness = 0.03, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToSync(sleepTime: 15)" --job "ShortRun" --benchmarkId 11 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 297897.00 ns, 297.8970 us/op
+WorkloadJitting  1: 1 op, 34812094.00 ns, 34.8121 ms/op
+
+WorkloadPilot    1: 2 op, 33305666.00 ns, 16.6528 ms/op
+WorkloadPilot    2: 3 op, 56140155.00 ns, 18.7134 ms/op
+WorkloadPilot    3: 4 op, 72527008.00 ns, 18.1318 ms/op
+WorkloadPilot    4: 5 op, 89523886.00 ns, 17.9048 ms/op
+WorkloadPilot    5: 6 op, 107638091.00 ns, 17.9397 ms/op
+WorkloadPilot    6: 7 op, 128117543.00 ns, 18.3025 ms/op
+WorkloadPilot    7: 8 op, 146829624.00 ns, 18.3537 ms/op
+WorkloadPilot    8: 9 op, 163793763.00 ns, 18.1993 ms/op
+WorkloadPilot    9: 10 op, 184015038.00 ns, 18.4015 ms/op
+WorkloadPilot   10: 11 op, 200895010.00 ns, 18.2632 ms/op
+WorkloadPilot   11: 12 op, 218804291.00 ns, 18.2337 ms/op
+WorkloadPilot   12: 13 op, 235636759.00 ns, 18.1259 ms/op
+WorkloadPilot   13: 14 op, 258949024.00 ns, 18.4964 ms/op
+WorkloadPilot   14: 15 op, 274747030.00 ns, 18.3165 ms/op
+WorkloadPilot   15: 16 op, 290688662.00 ns, 18.1680 ms/op
+WorkloadPilot   16: 32 op, 581052354.00 ns, 18.1579 ms/op
+
+WorkloadWarmup   1: 32 op, 579812634.00 ns, 18.1191 ms/op
+WorkloadWarmup   2: 32 op, 581199291.00 ns, 18.1625 ms/op
+WorkloadWarmup   3: 32 op, 591054081.00 ns, 18.4704 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 32 op, 582220108.00 ns, 18.1944 ms/op
+WorkloadActual   2: 32 op, 585022740.00 ns, 18.2820 ms/op
+WorkloadActual   3: 32 op, 573385213.00 ns, 17.9183 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 32 op, 582220108.00 ns, 18.1944 ms/op
+WorkloadResult   2: 32 op, 585022740.00 ns, 18.2820 ms/op
+WorkloadResult   3: 32 op, 573385213.00 ns, 17.9183 ms/op
+GC:  0 0 0 38656 32
+
+// AfterAll
+
+Mean = 18.1315 ms, StdErr = 0.1096 ms (0.60%); N = 3, StdDev = 0.1898 ms
+Min = 17.9183 ms, Q1 = 17.9183 ms, Median = 18.1944 ms, Q3 = 18.2820 ms, Max = 18.2820 ms
+IQR = 0.3637 ms, LowerFence = 17.3728 ms, UpperFence = 18.8275 ms
+ConfidenceInterval = [14.6688 ms; 21.5943 ms] (CI 99.9%), Margin = 3.4627 ms (19.10% of Mean)
+Skewness = -0.29, Kurtosis = 0.67, MValue = 2
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// **************************
+// Benchmark: SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Thread(sleepTime: 100)" --job "ShortRun" --benchmarkId 12 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 275136.00 ns, 275.1360 us/op
+WorkloadJitting  1: 1 op, 104436558.00 ns, 104.4366 ms/op
+
+WorkloadPilot    1: 2 op, 209021717.00 ns, 104.5109 ms/op
+WorkloadPilot    2: 3 op, 314048224.00 ns, 104.6827 ms/op
+WorkloadPilot    3: 4 op, 417826117.00 ns, 104.4565 ms/op
+WorkloadPilot    4: 5 op, 521816643.00 ns, 104.3633 ms/op
+
+WorkloadWarmup   1: 5 op, 523213793.00 ns, 104.6428 ms/op
+WorkloadWarmup   2: 5 op, 522070918.00 ns, 104.4142 ms/op
+WorkloadWarmup   3: 5 op, 521495761.00 ns, 104.2992 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 5 op, 520862106.00 ns, 104.1724 ms/op
+WorkloadActual   2: 5 op, 522896738.00 ns, 104.5793 ms/op
+WorkloadActual   3: 5 op, 523333159.00 ns, 104.6666 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 5 op, 520862106.00 ns, 104.1724 ms/op
+WorkloadResult   2: 5 op, 522896738.00 ns, 104.5793 ms/op
+WorkloadResult   3: 5 op, 523333159.00 ns, 104.6666 ms/op
+GC:  0 0 0 0 5
+
+// AfterAll
+
+Mean = 104.4728 ms, StdErr = 0.1523 ms (0.15%); N = 3, StdDev = 0.2638 ms
+Min = 104.1724 ms, Q1 = 104.1724 ms, Median = 104.5793 ms, Q3 = 104.6666 ms, Max = 104.6666 ms
+IQR = 0.4942 ms, LowerFence = 103.4311 ms, UpperFence = 105.4079 ms
+ConfidenceInterval = [99.6606 ms; 109.2850 ms] (CI 99.9%), Margin = 4.8122 ms (4.61% of Mean)
+Skewness = -0.34, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.Task(sleepTime: 100)" --job "ShortRun" --benchmarkId 13 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 291387.00 ns, 291.3870 us/op
+WorkloadJitting  1: 1 op, 104812061.00 ns, 104.8121 ms/op
+
+WorkloadPilot    1: 2 op, 208285970.00 ns, 104.1430 ms/op
+WorkloadPilot    2: 3 op, 312742497.00 ns, 104.2475 ms/op
+WorkloadPilot    3: 4 op, 419367613.00 ns, 104.8419 ms/op
+WorkloadPilot    4: 5 op, 523974298.00 ns, 104.7949 ms/op
+
+WorkloadWarmup   1: 5 op, 519789637.00 ns, 103.9579 ms/op
+WorkloadWarmup   2: 5 op, 522691646.00 ns, 104.5383 ms/op
+WorkloadWarmup   3: 5 op, 523528886.00 ns, 104.7058 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 5 op, 522010079.00 ns, 104.4020 ms/op
+WorkloadActual   2: 5 op, 523611445.00 ns, 104.7223 ms/op
+WorkloadActual   3: 5 op, 524305579.00 ns, 104.8611 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 5 op, 522010079.00 ns, 104.4020 ms/op
+WorkloadResult   2: 5 op, 523611445.00 ns, 104.7223 ms/op
+WorkloadResult   3: 5 op, 524305579.00 ns, 104.8611 ms/op
+GC:  0 0 0 1160 5
+
+// AfterAll
+
+Mean = 104.6618 ms, StdErr = 0.1359 ms (0.13%); N = 3, StdDev = 0.2355 ms
+Min = 104.4020 ms, Q1 = 104.4020 ms, Median = 104.7223 ms, Q3 = 104.8611 ms, Max = 104.8611 ms
+IQR = 0.4591 ms, LowerFence = 103.7134 ms, UpperFence = 105.5498 ms
+ConfidenceInterval = [100.3663 ms; 108.9573 ms] (CI 99.9%), Margin = 4.2955 ms (4.10% of Mean)
+Skewness = -0.24, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToTask(sleepTime: 100)" --job "ShortRun" --benchmarkId 14 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 398887.00 ns, 398.8870 us/op
+WorkloadJitting  1: 1 op, 114580603.00 ns, 114.5806 ms/op
+
+WorkloadPilot    1: 2 op, 211009055.00 ns, 105.5045 ms/op
+WorkloadPilot    2: 3 op, 311522244.00 ns, 103.8407 ms/op
+WorkloadPilot    3: 4 op, 417799471.00 ns, 104.4499 ms/op
+WorkloadPilot    4: 5 op, 525020855.00 ns, 105.0042 ms/op
+
+WorkloadWarmup   1: 5 op, 519978421.00 ns, 103.9957 ms/op
+WorkloadWarmup   2: 5 op, 519530247.00 ns, 103.9060 ms/op
+WorkloadWarmup   3: 5 op, 524904746.00 ns, 104.9809 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 5 op, 521207864.00 ns, 104.2416 ms/op
+WorkloadActual   2: 5 op, 524248753.00 ns, 104.8498 ms/op
+WorkloadActual   3: 5 op, 524120287.00 ns, 104.8241 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 5 op, 521207864.00 ns, 104.2416 ms/op
+WorkloadResult   2: 5 op, 524248753.00 ns, 104.8498 ms/op
+WorkloadResult   3: 5 op, 524120287.00 ns, 104.8241 ms/op
+GC:  0 0 0 3360 5
+
+// AfterAll
+
+Mean = 104.6385 ms, StdErr = 0.1986 ms (0.19%); N = 3, StdDev = 0.3440 ms
+Min = 104.2416 ms, Q1 = 104.2416 ms, Median = 104.8241 ms, Q3 = 104.8498 ms, Max = 104.8498 ms
+IQR = 0.6082 ms, LowerFence = 103.3293 ms, UpperFence = 105.7620 ms
+ConfidenceInterval = [98.3634 ms; 110.9135 ms] (CI 99.9%), Margin = 6.2750 ms (6.00% of Mean)
+Skewness = -0.38, Kurtosis = 0.67, MValue = 2
+
+// **************************
+// Benchmark: SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "57595065-7212-40bb-ad5e-139b7a684f2c.dll" --benchmarkName "Program+SleepMarks.AsyncToSync(sleepTime: 100)" --job "ShortRun" --benchmarkId 15 in /Users/chethusk/oss/FSharp.SystemTextJson/benchmarks/FSharp.SystemTextJson.Benchmarks/bin/Release/netcoreapp3.0/57595065-7212-40bb-ad5e-139b7a684f2c/bin/Release/netcoreapp3.0
+Failed to set up high priority. Make sure you have the right permissions. Message: Permission denied
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+// GC=Concurrent Workstation
+// Job: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3)
+
+OverheadJitting  1: 1 op, 287520.00 ns, 287.5200 us/op
+WorkloadJitting  1: 1 op, 119460129.00 ns, 119.4601 ms/op
+
+WorkloadPilot    1: 2 op, 209782830.00 ns, 104.8914 ms/op
+WorkloadPilot    2: 3 op, 313061144.00 ns, 104.3537 ms/op
+WorkloadPilot    3: 4 op, 417196238.00 ns, 104.2991 ms/op
+WorkloadPilot    4: 5 op, 524275072.00 ns, 104.8550 ms/op
+
+WorkloadWarmup   1: 5 op, 520467084.00 ns, 104.0934 ms/op
+WorkloadWarmup   2: 5 op, 521042183.00 ns, 104.2084 ms/op
+WorkloadWarmup   3: 5 op, 523918550.00 ns, 104.7837 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 5 op, 521875023.00 ns, 104.3750 ms/op
+WorkloadActual   2: 5 op, 525073997.00 ns, 105.0148 ms/op
+WorkloadActual   3: 5 op, 523861670.00 ns, 104.7723 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 5 op, 521875023.00 ns, 104.3750 ms/op
+WorkloadResult   2: 5 op, 525073997.00 ns, 105.0148 ms/op
+WorkloadResult   3: 5 op, 523861670.00 ns, 104.7723 ms/op
+GC:  0 0 0 6040 5
+
+// AfterAll
+
+Mean = 104.7207 ms, StdErr = 0.1865 ms (0.18%); N = 3, StdDev = 0.3230 ms
+Min = 104.3750 ms, Q1 = 104.3750 ms, Median = 104.7723 ms, Q3 = 105.0148 ms, Max = 105.0148 ms
+IQR = 0.6398 ms, LowerFence = 103.4153 ms, UpperFence = 105.9745 ms
+ConfidenceInterval = [98.8279 ms; 110.6135 ms] (CI 99.9%), Margin = 5.8928 ms (5.63% of Mean)
+Skewness = -0.16, Kurtosis = 0.67, MValue = 2
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// Build Error: The build has failed!
+CS1069: The type name 'File' could not be found in the namespace 'System.IO'. This type has been forwarded to assembly 'System.IO.FileSystem, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Console' could not be found in the namespace 'System'. This type has been forwarded to assembly 'System.Console, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS0012: The type 'TextWriter' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+CS1069: The type name 'Enumerable' could not be found in the namespace 'System.Linq'. This type has been forwarded to assembly 'System.Linq, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' Consider adding a reference to that assembly.
+
+
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts/results/Program.SleepMarks-report.csv
+  BenchmarkDotNet.Artifacts/results/Program.SleepMarks-report-github.md
+  BenchmarkDotNet.Artifacts/results/Program.SleepMarks-report.html
+
+// * Detailed results *
+SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 458.6754 ns, StdErr = 2.9556 ns (0.64%); N = 3, StdDev = 5.1193 ns
+Min = 454.0945 ns, Q1 = 454.0945 ns, Median = 457.7301 ns, Q3 = 464.2014 ns, Max = 464.2014 ns
+IQR = 10.1069 ns, LowerFence = 438.9341 ns, UpperFence = 479.3618 ns
+ConfidenceInterval = [365.2796 ns; 552.0711 ns] (CI 99.9%), Margin = 93.3957 ns (20.36% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[450.989 ns ; 467.307 ns) | @@@
+---------------------------------------------------
+
+SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 2.6378 ns, StdErr = 0.0035 ns (0.13%); N = 3, StdDev = 0.0061 ns
+Min = 2.6310 ns, Q1 = 2.6310 ns, Median = 2.6398 ns, Q3 = 2.6425 ns, Max = 2.6425 ns
+IQR = 0.0116 ns, LowerFence = 2.6136 ns, UpperFence = 2.6599 ns
+ConfidenceInterval = [2.5273 ns; 2.7482 ns] (CI 99.9%), Margin = 0.1104 ns (4.19% of Mean)
+Skewness = -0.3, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[2.627 ns ; 2.646 ns) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 12.2420 us, StdErr = 0.2828 us (2.31%); N = 3, StdDev = 0.4898 us
+Min = 11.8850 us, Q1 = 11.8850 us, Median = 12.0406 us, Q3 = 12.8004 us, Max = 12.8004 us
+IQR = 0.9154 us, LowerFence = 10.5119 us, UpperFence = 14.1734 us
+ConfidenceInterval = [3.3065 us; 21.1775 us] (CI 99.9%), Margin = 8.9355 us (72.99% of Mean)
+Skewness = 0.34, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[11.666 us ; 12.503 us) | @@
+[12.503 us ; 13.098 us) | @
+---------------------------------------------------
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 15.5241 us, StdErr = 0.0858 us (0.55%); N = 3, StdDev = 0.1486 us
+Min = 15.4314 us, Q1 = 15.4314 us, Median = 15.4454 us, Q3 = 15.6955 us, Max = 15.6955 us
+IQR = 0.2641 us, LowerFence = 15.0353 us, UpperFence = 16.0917 us
+ConfidenceInterval = [12.8129 us; 18.2353 us] (CI 99.9%), Margin = 2.7112 us (17.46% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[15.341 us ; 15.786 us) | @@@
+---------------------------------------------------
+
+SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 1.2457 ms, StdErr = 0.0048 ms (0.39%); N = 3, StdDev = 0.0084 ms
+Min = 1.2374 ms, Q1 = 1.2374 ms, Median = 1.2454 ms, Q3 = 1.2542 ms, Max = 1.2542 ms
+IQR = 0.0168 ms, LowerFence = 1.2123 ms, UpperFence = 1.2793 ms
+ConfidenceInterval = [1.0928 ms; 1.3986 ms] (CI 99.9%), Margin = 0.1529 ms (12.27% of Mean)
+Skewness = 0.03, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[1.232 ms ; 1.259 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 1.2621 ms, StdErr = 0.0092 ms (0.73%); N = 3, StdDev = 0.0159 ms
+Min = 1.2439 ms, Q1 = 1.2439 ms, Median = 1.2689 ms, Q3 = 1.2735 ms, Max = 1.2735 ms
+IQR = 0.0296 ms, LowerFence = 1.1995 ms, UpperFence = 1.3178 ms
+ConfidenceInterval = [0.9714 ms; 1.5528 ms] (CI 99.9%), Margin = 0.2907 ms (23.03% of Mean)
+Skewness = -0.35, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[1.234 ms ; 1.283 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 1.2998 ms, StdErr = 0.0048 ms (0.37%); N = 3, StdDev = 0.0083 ms
+Min = 1.2925 ms, Q1 = 1.2925 ms, Median = 1.2983 ms, Q3 = 1.3088 ms, Max = 1.3088 ms
+IQR = 0.0163 ms, LowerFence = 1.2680 ms, UpperFence = 1.3332 ms
+ConfidenceInterval = [1.1490 ms; 1.4507 ms] (CI 99.9%), Margin = 0.1508 ms (11.60% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[1.287 ms ; 1.314 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 1.2837 ms, StdErr = 0.0055 ms (0.43%); N = 3, StdDev = 0.0096 ms
+Min = 1.2732 ms, Q1 = 1.2732 ms, Median = 1.2861 ms, Q3 = 1.2919 ms, Max = 1.2919 ms
+IQR = 0.0187 ms, LowerFence = 1.2452 ms, UpperFence = 1.3200 ms
+ConfidenceInterval = [1.1091 ms; 1.4583 ms] (CI 99.9%), Margin = 0.1746 ms (13.60% of Mean)
+Skewness = -0.23, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[1.267 ms ; 1.298 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 17.9966 ms, StdErr = 0.0708 ms (0.39%); N = 3, StdDev = 0.1227 ms
+Min = 17.8869 ms, Q1 = 17.8869 ms, Median = 17.9740 ms, Q3 = 18.1290 ms, Max = 18.1290 ms
+IQR = 0.2422 ms, LowerFence = 17.5236 ms, UpperFence = 18.4923 ms
+ConfidenceInterval = [15.7588 ms; 20.2344 ms] (CI 99.9%), Margin = 2.2378 ms (12.43% of Mean)
+Skewness = 0.18, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[17.812 ms ; 18.203 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 18.1418 ms, StdErr = 0.1150 ms (0.63%); N = 3, StdDev = 0.1992 ms
+Min = 18.0258 ms, Q1 = 18.0258 ms, Median = 18.0277 ms, Q3 = 18.3718 ms, Max = 18.3718 ms
+IQR = 0.3460 ms, LowerFence = 17.5067 ms, UpperFence = 18.8909 ms
+ConfidenceInterval = [14.5071 ms; 21.7764 ms] (CI 99.9%), Margin = 3.6347 ms (20.03% of Mean)
+Skewness = 0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[17.905 ms ; 18.493 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 18.1613 ms, StdErr = 0.0163 ms (0.09%); N = 3, StdDev = 0.0283 ms
+Min = 18.1334 ms, Q1 = 18.1334 ms, Median = 18.1605 ms, Q3 = 18.1899 ms, Max = 18.1899 ms
+IQR = 0.0565 ms, LowerFence = 18.0487 ms, UpperFence = 18.2747 ms
+ConfidenceInterval = [17.6457 ms; 18.6769 ms] (CI 99.9%), Margin = 0.5156 ms (2.84% of Mean)
+Skewness = 0.03, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[18.116 ms ; 18.207 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 18.1315 ms, StdErr = 0.1096 ms (0.60%); N = 3, StdDev = 0.1898 ms
+Min = 17.9183 ms, Q1 = 17.9183 ms, Median = 18.1944 ms, Q3 = 18.2820 ms, Max = 18.2820 ms
+IQR = 0.3637 ms, LowerFence = 17.3728 ms, UpperFence = 18.8275 ms
+ConfidenceInterval = [14.6688 ms; 21.5943 ms] (CI 99.9%), Margin = 3.4627 ms (19.10% of Mean)
+Skewness = -0.29, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[17.803 ms ; 18.397 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Thread: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 104.4728 ms, StdErr = 0.1523 ms (0.15%); N = 3, StdDev = 0.2638 ms
+Min = 104.1724 ms, Q1 = 104.1724 ms, Median = 104.5793 ms, Q3 = 104.6666 ms, Max = 104.6666 ms
+IQR = 0.4942 ms, LowerFence = 103.4311 ms, UpperFence = 105.4079 ms
+ConfidenceInterval = [99.6606 ms; 109.2850 ms] (CI 99.9%), Margin = 4.8122 ms (4.61% of Mean)
+Skewness = -0.34, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[104.012 ms ; 104.827 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.Task: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 104.6618 ms, StdErr = 0.1359 ms (0.13%); N = 3, StdDev = 0.2355 ms
+Min = 104.4020 ms, Q1 = 104.4020 ms, Median = 104.7223 ms, Q3 = 104.8611 ms, Max = 104.8611 ms
+IQR = 0.4591 ms, LowerFence = 103.7134 ms, UpperFence = 105.5498 ms
+ConfidenceInterval = [100.3663 ms; 108.9573 ms] (CI 99.9%), Margin = 4.2955 ms (4.10% of Mean)
+Skewness = -0.24, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[104.259 ms ; 105.004 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 104.6385 ms, StdErr = 0.1986 ms (0.19%); N = 3, StdDev = 0.3440 ms
+Min = 104.2416 ms, Q1 = 104.2416 ms, Median = 104.8241 ms, Q3 = 104.8498 ms, Max = 104.8498 ms
+IQR = 0.6082 ms, LowerFence = 103.3293 ms, UpperFence = 105.7620 ms
+ConfidenceInterval = [98.3634 ms; 110.9135 ms] (CI 99.9%), Margin = 6.2750 ms (6.00% of Mean)
+Skewness = -0.38, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[104.033 ms ; 105.058 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Core, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT; GC = Concurrent Workstation
+Mean = 104.7207 ms, StdErr = 0.1865 ms (0.18%); N = 3, StdDev = 0.3230 ms
+Min = 104.3750 ms, Q1 = 104.3750 ms, Median = 104.7723 ms, Q3 = 105.0148 ms, Max = 105.0148 ms
+IQR = 0.6398 ms, LowerFence = 103.4153 ms, UpperFence = 105.9745 ms
+ConfidenceInterval = [98.8279 ms; 110.6135 ms] (CI 99.9%), Margin = 5.8928 ms (5.63% of Mean)
+Skewness = -0.16, Kurtosis = 0.67, MValue = 2
+-------------------- Histogram --------------------
+[104.179 ms ; 105.211 ms) | @@@
+---------------------------------------------------
+
+SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = ; GC = 
+There are not any results runs
+
+SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+Runtime = ; GC = 
+There are not any results runs
+
+// * Summary *
+
+BenchmarkDotNet=v0.11.5, OS=macOS Mojave 10.14.5 (18F132) [Darwin 18.6.0]
+Intel Core i7-7820HQ CPU 2.90GHz (Kaby Lake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=3.0.100-preview7-012821
+  [Host]   : .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT DEBUG
+  ShortRun : .NET Core 3.0.0-preview7-27912-14 (CoreCLR 4.700.19.32702, CoreFX 4.700.19.36209), 64bit RyuJIT
+
+Job=ShortRun  IterationCount=3  LaunchCount=1  
+WarmupCount=3  
+
+|      Method | Runtime | sleepTime |               Mean |             Error |          StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|------------ |-------- |---------- |-------------------:|------------------:|----------------:|-------:|------:|------:|----------:|
+|      Thread |    Core |         0 |         458.675 ns |        93.3957 ns |       5.1193 ns |      - |     - |     - |         - |
+|        Task |    Core |         0 |           2.638 ns |         0.1104 ns |       0.0061 ns |      - |     - |     - |         - |
+| AsyncToTask |    Core |         0 |      12,241.998 ns |     8,935.4754 ns |     489.7836 ns | 0.2899 |     - |     - |     611 B |
+| AsyncToSync |    Core |         0 |      15,524.103 ns |     2,711.1604 ns |     148.6078 ns | 0.3052 |     - |     - |    1208 B |
+|      Thread |    Mono |         0 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|        Task |    Mono |         0 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToTask |    Mono |         0 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToSync |    Mono |         0 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|      Thread |    Core |         1 |   1,245,680.900 ns |   152,878.9237 ns |   8,379.8097 ns |      - |     - |     - |         - |
+|        Task |    Core |         1 |   1,262,077.624 ns |   290,683.9133 ns |  15,933.3662 ns |      - |     - |     - |     232 B |
+| AsyncToTask |    Core |         1 |   1,299,835.912 ns |   150,832.8319 ns |   8,267.6565 ns |      - |     - |     - |     672 B |
+| AsyncToSync |    Core |         1 |   1,283,742.656 ns |   174,601.9418 ns |   9,570.5216 ns |      - |     - |     - |    1208 B |
+|      Thread |    Mono |         1 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|        Task |    Mono |         1 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToTask |    Mono |         1 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToSync |    Mono |         1 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|      Thread |    Core |        15 |  17,996,619.635 ns | 2,237,816.9045 ns | 122,662.2957 ns |      - |     - |     - |         - |
+|        Task |    Core |        15 |  18,141,758.609 ns | 3,634,650.6904 ns | 199,227.4689 ns |      - |     - |     - |     232 B |
+| AsyncToTask |    Core |        15 |  18,161,297.927 ns |   515,590.3864 ns |  28,261.2489 ns |      - |     - |     - |     672 B |
+| AsyncToSync |    Core |        15 |  18,131,542.302 ns | 3,462,740.2942 ns | 189,804.4800 ns |      - |     - |     - |    1208 B |
+|      Thread |    Mono |        15 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|        Task |    Mono |        15 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToTask |    Mono |        15 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToSync |    Mono |        15 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|      Thread |    Core |       100 | 104,472,800.200 ns | 4,812,170.1650 ns | 263,771.2847 ns |      - |     - |     - |         - |
+|        Task |    Core |       100 | 104,661,806.867 ns | 4,295,487.0718 ns | 235,450.1409 ns |      - |     - |     - |     232 B |
+| AsyncToTask |    Core |       100 | 104,638,460.267 ns | 6,275,012.7078 ns | 343,954.6206 ns |      - |     - |     - |     672 B |
+| AsyncToSync |    Core |       100 | 104,720,712.667 ns | 5,892,833.0704 ns | 323,006.0651 ns |      - |     - |     - |    1208 B |
+|      Thread |    Mono |       100 |                 NA |                NA |              NA |      - |     - |     - |         - |
+|        Task |    Mono |       100 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToTask |    Mono |       100 |                 NA |                NA |              NA |      - |     - |     - |         - |
+| AsyncToSync |    Mono |       100 |                 NA |                NA |              NA |      - |     - |     - |         - |
+
+Benchmarks with issues:
+  SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+  SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+  SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+  SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=0]
+  SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+  SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+  SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+  SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=1]
+  SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+  SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+  SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+  SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=15]
+  SleepMarks.Thread: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+  SleepMarks.Task: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+  SleepMarks.AsyncToTask: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+  SleepMarks.AsyncToSync: ShortRun(Runtime=Mono, IterationCount=3, LaunchCount=1, WarmupCount=3) [sleepTime=100]
+
+// * Legends *
+  sleepTime : Value of the 'sleepTime' parameter
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Gen 0     : GC Generation 0 collects per 1000 operations
+  Gen 1     : GC Generation 1 collects per 1000 operations
+  Gen 2     : GC Generation 2 collects per 1000 operations
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 ns      : 1 Nanosecond (0.000000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+// ** Remained 0 benchmark(s) to run **
+Run time: 00:01:44 (104.4 sec), executed benchmarks: 16
+
+Global total time: 00:02:07 (127.48 sec), executed benchmarks: 16
+// * Artifacts cleanup *

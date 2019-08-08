@@ -33,6 +33,7 @@ module Paths =
     let root = __SOURCE_DIRECTORY__
     let sln = root </> "FSharp.SystemTextJson.sln"
     let out = root </> "bin"
+    let benchmarks = root </> "benchmarks" </> "FSharp.SystemTextJson.Benchmarks"
 
 Target.create "Clean" (fun _ ->
     !! "**/bin"
@@ -69,10 +70,20 @@ Target.create "Test" (fun _ ->
         Option.iter uploadTests Cli.pushTestsUrl
 )
 
+Target.create "Benchmark" (fun _ ->
+    DotNet.exec (fun o -> { o with 
+                                WorkingDirectory = Paths.benchmarks } ) "run" "-c release"
+    |> fun r -> 
+        if r.OK 
+        then () 
+        else failwithf "Benchmarks failed with code %d:\n%A" r.ExitCode r.Errors
+)
+
 Target.create "All" ignore
 
 "Build"
 ==> "Test"
+==> "Benchmark"
 ==> "Pack"
 ==> "All"
 

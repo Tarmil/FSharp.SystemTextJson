@@ -6,3 +6,5 @@ nuget Microsoft.NET.Test.Sdk ~> 16.0.1
 nuget System.Text.Json ~> 4.6.0 preview7
 nuget xunit ~> 2.4.0
 nuget xunit.runner.visualstudio ~> 2.4.0
+nuget BenchmarkDotNet
+nuget Newtonsoft.Json
