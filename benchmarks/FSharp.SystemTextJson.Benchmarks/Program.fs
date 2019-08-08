@@ -72,6 +72,6 @@ let defaultSwitch () =
 
 
 [<EntryPoint>]
-let main _ =
-    let _summary = defaultSwitch().RunAll()
+let main argv =
+    let _summary = defaultSwitch().Run(argv, config)
     0
