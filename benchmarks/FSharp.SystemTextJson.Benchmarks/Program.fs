@@ -20,20 +20,19 @@ type TestRecord =
       thing: bool option
       time: System.DateTimeOffset }
 
-type Serialization () =
-    
-    let instance = 
-        { name = "sample"
-          thing = Some true
-          time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
+type SimpleClass() =
+    member val Name: string = null with get, set
+    member val Thing: bool option = None with get, set
+    member val Time: DateTimeOffset = DateTimeOffset.MinValue with get, set
 
+type TestBase<'t>(instance: 't) = 
     let systemTextOptions = 
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter())
         options
 
 
-    [<Params(1,10,100,1000)>]
+    [<Params(1,10,100)>]
     member val ArrayLength = 0 with get, set
     
     member val InstanceArray = [||] with get, set
@@ -48,6 +47,18 @@ type Serialization () =
     [<Benchmark>]
     member this.SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions)
 
+let recordInstance = 
+    { name = "sample"
+      thing = Some true
+      time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
+
+
+type Records () =
+    inherit TestBase<TestRecord>(recordInstance)
+
+type Classes() =
+    inherit TestBase<SimpleClass>(SimpleClass(Name = "sample", Thing = Some true, Time = DateTimeOffset.UnixEpoch.AddDays(200.)))
+    
 let config =
      ManualConfig
             .Create(DefaultConfig.Instance)
@@ -57,10 +68,10 @@ let config =
             .With(ExecutionValidator.FailOnError)
 
 let defaultSwitch () =
-    BenchmarkSwitcher([| typeof<Serialization> |])
+    BenchmarkSwitcher([| typeof<Records>; typeof<Classes> |])
 
 
 [<EntryPoint>]
 let main _ =
-    let _summary = BenchmarkRunner.Run<Serialization>(config)
+    let _summary = defaultSwitch().RunAll()
     0
