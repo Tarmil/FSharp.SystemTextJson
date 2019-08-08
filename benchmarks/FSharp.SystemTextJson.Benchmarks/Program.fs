@@ -43,10 +43,10 @@ type Serialization () =
         this.InstanceArray <- Array.replicate this.ArrayLength instance
 
     [<Benchmark>]
-    member this.Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray |> ignore
+    member this.Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray
 
     [<Benchmark>]
-    member this.SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions) |> ignore
+    member this.SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions)
 
 let config =
      ManualConfig
