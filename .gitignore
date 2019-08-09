@@ -8,3 +8,5 @@ paket-files/
 **/[Bb]in/
 .vs/
 **/BenchmarkDotNet.Artifacts
+.ionide
+.vscode
