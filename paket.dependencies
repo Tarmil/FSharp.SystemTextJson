@@ -1,4 +1,4 @@
-frameworks netcoreapp3.0
+frameworks netstandard2.0, netcoreapp3.0
 storage none
 source https://api.nuget.org/v3/index.json
 nuget FSharp.Core ~> 4.6.0
