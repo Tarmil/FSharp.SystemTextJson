@@ -33,6 +33,7 @@ module Paths =
     let root = __SOURCE_DIRECTORY__
     let sln = root </> "FSharp.SystemTextJson.sln"
     let out = root </> "bin"
+    let benchmarks = root </> "benchmarks" </> "FSharp.SystemTextJson.Benchmarks"
 
 Target.create "Clean" (fun _ ->
     !! "**/bin"
@@ -67,6 +68,17 @@ Target.create "Test" (fun _ ->
         ) Paths.sln
     finally
         Option.iter uploadTests Cli.pushTestsUrl
+)
+
+/// This target doesn't need a dependency chain, because the benchmarks actually wrap and build the referenced
+/// project(s) as part of the run.
+Target.create "Benchmark" (fun _ ->
+    DotNet.exec (fun o -> { o with 
+                                WorkingDirectory = Paths.benchmarks } ) "run" "-c release --filter \"*\""
+    |> fun r -> 
+        if r.OK 
+        then () 
+        else failwithf "Benchmarks failed with code %d:\n%A" r.ExitCode r.Errors
 )
 
 Target.create "All" ignore

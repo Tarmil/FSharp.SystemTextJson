@@ -7,3 +7,4 @@ paket-files/
 **/[Oo]bj/
 **/[Bb]in/
 .vs/
+**/BenchmarkDotNet.Artifacts
