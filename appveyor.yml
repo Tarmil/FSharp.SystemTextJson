@@ -6,6 +6,8 @@ image:
 build:
   verbosity: minimal
 
+skip_tags: true
+
 init:
 - cmd: choco install dotnetcore-sdk --version 3.0.100-preview7-012821
 
