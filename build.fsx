@@ -70,9 +70,11 @@ Target.create "Test" (fun _ ->
         Option.iter uploadTests Cli.pushTestsUrl
 )
 
+/// This target doesn't need a dependency chain, because the benchmarks actually wrap and build the referenced
+/// project(s) as part of the run.
 Target.create "Benchmark" (fun _ ->
     DotNet.exec (fun o -> { o with 
-                                WorkingDirectory = Paths.benchmarks } ) "run" "-c release"
+                                WorkingDirectory = Paths.benchmarks } ) "run" "-c release --filter \"*\""
     |> fun r -> 
         if r.OK 
         then () 
@@ -83,7 +85,6 @@ Target.create "All" ignore
 
 "Build"
 ==> "Test"
-==> "Benchmark"
 ==> "Pack"
 ==> "All"
 
