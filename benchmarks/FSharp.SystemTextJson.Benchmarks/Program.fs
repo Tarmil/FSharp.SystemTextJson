@@ -22,6 +22,12 @@ type TestRecord =
       thing: bool option
       time: System.DateTimeOffset }
 
+[<Struct>]
+type TestStructRecord = 
+    { name: string
+      thing: bool voption
+      time: System.DateTimeOffset }
+
 type SimpleClass() =
     member val Name: string = null with get, set
     member val Thing: bool option = None with get, set
@@ -58,7 +64,7 @@ type ArrayTestBase<'t>(instance: 't) =
     [<Benchmark>]
     member this.Deserialize_SystemTextJson () = System.Text.Json.JsonSerializer.Deserialize<'t[]>(this.Serialized, systemTextOptions)
 
-let recordInstance = 
+let recordInstance : TestRecord = 
     { name = "sample"
       thing = Some true
       time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
@@ -66,6 +72,14 @@ let recordInstance =
 
 type Records () =
     inherit ArrayTestBase<TestRecord>(recordInstance)
+
+let recordStructInstance : TestStructRecord = 
+    { name = "sample"
+      thing = ValueSome true
+      time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
+
+type StructRecords () =
+    inherit ArrayTestBase<TestStructRecord>(recordStructInstance)
 
 type Classes() =
     inherit ArrayTestBase<SimpleClass>(SimpleClass(Name = "sample", Thing = Some true, Time = DateTimeOffset.UnixEpoch.AddDays(200.)))
@@ -106,7 +120,7 @@ let config =
             .With(ExecutionValidator.FailOnError)
 
 let defaultSwitch () =
-    BenchmarkSwitcher([| typeof<Records>; typeof<Classes>; typeof<ReflectionComparison> |])
+    BenchmarkSwitcher([| typeof<Records>; typeof<StructRecords>; typeof<Classes>; typeof<ReflectionComparison> |])
 
 
 [<EntryPoint>]

@@ -6,15 +6,14 @@ open FSharp.Reflection
 open System.Reflection.Emit
 open System.Text.Json
 
-type internal Serializer<'Record> = delegate of Utf8JsonWriter * 'Record * JsonSerializerOptions -> unit
-type internal FieldReader<'Record, 'Field> = delegate of 'Record -> 'Field
+type internal Serializer = Action<Utf8JsonWriter, obj, JsonSerializerOptions>
 
 type internal RecordField<'Record> =
     {
         Name: string
         Type: Type
         Ignore: bool
-        Serialize: Serializer<'Record>
+        Serialize: Serializer
     }
 
     static member name (p: PropertyInfo) =
@@ -39,15 +38,17 @@ type internal RecordField<'Record> =
                 )
             let gen = dynMethod.GetILGenerator()
             gen.Emit(OpCodes.Ldarg_0)
+            if f.DeclaringType.IsValueType then
+                gen.Emit(OpCodes.Unbox, typeof<'Record>)
             gen.Emit(OpCodes.Ldfld, f)
             gen.Emit(OpCodes.Ret)
-            dynMethod.CreateDelegate(typeof<FieldReader<'Record, 'Field>>) :?> FieldReader<'Record, 'Field>
-        Serializer<'Record>(fun writer r options ->
+            dynMethod.CreateDelegate(typeof<Func<obj, 'Field>>) :?> Func<obj, 'Field>
+        Serializer(fun writer r options ->
             let v = getter.Invoke(r)
             JsonSerializer.Serialize<'Field>(writer, v, options)
         )
 
-    static member properties () =
+    static member fields () =
         let recordTy = typeof<'Record>
         let fields = recordTy.GetFields(BindingFlags.Instance ||| BindingFlags.NonPublic)
         let props = FSharpType.GetRecordFields(recordTy, true)
@@ -57,7 +58,7 @@ type internal RecordField<'Record> =
                 typeof<RecordField<'Record>>.GetMethod("serializer", BindingFlags.Static ||| BindingFlags.NonPublic)
                     .MakeGenericMethod(p.PropertyType)
                     .Invoke(null, [|f|])
-                    :?> Serializer<'Record>
+                    :?> Serializer
             {
                 Name = RecordField<'Record>.name p
                 Type = p.PropertyType

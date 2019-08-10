@@ -8,7 +8,7 @@ open FSharp.Reflection
 type JsonRecordConverter<'T>() =
     inherit JsonConverter<'T>()
 
-    static let fieldProps = RecordField<'T>.properties()
+    static let fieldProps = RecordField<'T>.fields()
 
     static let expectedFieldCount =
         fieldProps
@@ -54,11 +54,10 @@ type JsonRecordConverter<'T>() =
 
     override __.Write(writer, value, options) =
         writer.WriteStartObject()
-        fieldProps
-        |> Array.iter (fun p ->
+        for p in fieldProps do
             if not p.Ignore then
                 writer.WritePropertyName(p.Name)
-                p.Serialize.Invoke(writer, value, options))
+                p.Serialize.Invoke(writer, value, options)
         writer.WriteEndObject()
 
 type JsonRecordConverter() =
