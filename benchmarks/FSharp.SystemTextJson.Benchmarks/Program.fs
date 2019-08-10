@@ -38,16 +38,25 @@ type ArrayTestBase<'t>(instance: 't) =
     member val ArrayLength = 0 with get, set
     
     member val InstanceArray = [||] with get, set
+
+    member val Serialized = "" with get, set
     
     [<GlobalSetup>]
     member this.InitArray () = 
         this.InstanceArray <- Array.replicate this.ArrayLength instance
+        this.Serialized <- this.InstanceArray |> JsonConvert.SerializeObject
 
     [<Benchmark>]
-    member this.Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray
+    member this.Serialize_Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray
 
     [<Benchmark>]
-    member this.SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions)
+    member this.Serialize_SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions)
+
+    [<Benchmark>]
+    member this.Deserialize_Newtonsoft () = JsonConvert.DeserializeObject<'t[]> this.Serialized
+
+    [<Benchmark>]
+    member this.Deserialize_SystemTextJson () = System.Text.Json.JsonSerializer.Deserialize<'t[]>(this.Serialized, systemTextOptions)
 
 let recordInstance = 
     { name = "sample"
