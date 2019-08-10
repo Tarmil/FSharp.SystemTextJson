@@ -1,3 +1,5 @@
 FSharp.Core
 System.Text.Json framework: = netstandard2.0
+System.Reflection.Emit.Lightweight framework: = netstandard2.0
+System.Reflection.Emit.ILGeneration framework: = netstandard2.0
 Microsoft.SourceLink.GitHub

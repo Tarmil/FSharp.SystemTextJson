@@ -1,32 +1,14 @@
 ﻿namespace System.Text.Json.Serialization
 
 open System
+open System.Runtime.Serialization
 open System.Text.Json
 open FSharp.Reflection
-
-type internal RecordProperty =
-    {
-        Name: string
-        Type: Type
-        Ignore: bool
-    }
 
 type JsonRecordConverter<'T>() =
     inherit JsonConverter<'T>()
 
-    static let fieldProps =
-        FSharpType.GetRecordFields(typeof<'T>, true)
-        |> Array.map (fun p ->
-            let name =
-                match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
-                | [| :? JsonPropertyNameAttribute as name |] -> name.Name
-                | _ -> p.Name
-            let ignore =
-                p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
-                |> Array.isEmpty
-                |> not
-            { Name = name; Type = p.PropertyType; Ignore = ignore }
-        )
+    static let fieldProps = RecordField<'T>.properties()
 
     static let expectedFieldCount =
         fieldProps
@@ -34,8 +16,6 @@ type JsonRecordConverter<'T>() =
         |> Seq.length
 
     static let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
-
-    static let dector = FSharpValue.PreComputeRecordReader(typeof<'T>, true)
 
     static let fieldIndex (reader: byref<Utf8JsonReader>) =
         let mutable found = ValueNone
@@ -74,11 +54,11 @@ type JsonRecordConverter<'T>() =
 
     override __.Write(writer, value, options) =
         writer.WriteStartObject()
-        (fieldProps, dector value)
-        ||> Array.iter2 (fun p v ->
+        fieldProps
+        |> Array.iter (fun p ->
             if not p.Ignore then
                 writer.WritePropertyName(p.Name)
-                JsonSerializer.Serialize(writer, v, options))
+                p.Serialize.Invoke(writer, value, options))
         writer.WriteEndObject()
 
 type JsonRecordConverter() =

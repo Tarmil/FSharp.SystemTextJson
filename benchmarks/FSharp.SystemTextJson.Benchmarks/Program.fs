@@ -34,7 +34,7 @@ type ArrayTestBase<'t>(instance: 't) =
         options
 
 
-    [<Params(10,100)>]
+    [<Params(10,100,1000)>]
     member val ArrayLength = 0 with get, set
     
     member val InstanceArray = [||] with get, set
