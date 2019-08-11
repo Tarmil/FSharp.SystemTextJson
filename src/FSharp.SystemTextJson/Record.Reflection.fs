@@ -6,8 +6,18 @@ open FSharp.Reflection
 open System.Reflection.Emit
 open System.Text.Json
 
-type internal Serializer = delegate of Utf8JsonWriter * obj * JsonSerializerOptions -> unit
-type internal Deserializer = delegate of byref<Utf8JsonReader> * obj * JsonSerializerOptions -> unit
+type internal Serializer = Action<Utf8JsonWriter, obj, JsonSerializerOptions>
+
+type internal RefobjFieldSetter<'Record, 'Field> = Action<'Record, 'Field>
+type internal StructFieldSetter<'Record, 'Field> = delegate of byref<'Record> * 'Field -> unit
+
+type internal RefobjDeserializer<'Record> = delegate of byref<Utf8JsonReader> * 'Record * JsonSerializerOptions -> unit
+type internal StructDeserializer<'Record> = delegate of byref<Utf8JsonReader> * byref<'Record> * JsonSerializerOptions -> unit
+
+[<Struct>]
+type internal Deserializer<'Record> =
+    | DStruct of s: StructDeserializer<'Record>
+    | DRefobj of n: RefobjDeserializer<'Record>
 
 type internal RecordField<'Record> =
     {
@@ -15,7 +25,7 @@ type internal RecordField<'Record> =
         Type: Type
         Ignore: bool
         Serialize: Serializer
-        Deserialize: Deserializer
+        Deserialize: Deserializer<'Record>
     }
 
 module internal RecordReflection =
@@ -30,27 +40,39 @@ module internal RecordReflection =
         |> Array.isEmpty
         |> not
 
-    let private deserializer<'Field> (f: FieldInfo) =
+    let private deserializer<'Record, 'Field> (f: FieldInfo) =
         let setter =
             let dynMethod =
                 new DynamicMethod(
                     f.Name,
                     typeof<Void>,
-                    [| typeof<obj>; f.FieldType |],
+                    [|
+                        (if f.DeclaringType.IsValueType
+                            then typeof<'Record>.MakeByRefType()
+                            else typeof<'Record>)
+                        f.FieldType
+                    |],
                     typedefof<RecordField<_>>.Module,
                     skipVisibility = true
                 )
             let gen = dynMethod.GetILGenerator()
             gen.Emit(OpCodes.Ldarg_0)
-            if f.DeclaringType.IsValueType then
-                gen.Emit(OpCodes.Unbox, f.DeclaringType)
             gen.Emit(OpCodes.Ldarg_1)
             gen.Emit(OpCodes.Stfld, f)
             gen.Emit(OpCodes.Ret)
-            dynMethod.CreateDelegate(typeof<Action<obj, 'Field>>) :?> Action<obj, 'Field>
-        Deserializer(fun reader record options ->
-            let value = JsonSerializer.Deserialize<'Field>(&reader, options)
-            setter.Invoke(record, value))
+            dynMethod
+        if f.DeclaringType.IsValueType then
+            let setter = setter.CreateDelegate(typeof<StructFieldSetter<'Record, 'Field>>) :?> StructFieldSetter<'Record, 'Field>
+            StructDeserializer<'Record>(fun reader record options ->
+                let value = JsonSerializer.Deserialize<'Field>(&reader, options)
+                setter.Invoke(&record, value))
+            |> DStruct
+        else
+            let setter = setter.CreateDelegate(typeof<RefobjFieldSetter<'Record, 'Field>>) :?> RefobjFieldSetter<'Record, 'Field>
+            RefobjDeserializer<'Record>(fun reader record options ->
+                let value = JsonSerializer.Deserialize<'Field>(&reader, options)
+                setter.Invoke(record, value))
+            |> DRefobj
 
     let private serializer<'Field> (f: FieldInfo) =
         let getter =
@@ -89,9 +111,9 @@ module internal RecordReflection =
                     :?> Serializer
             let deserializer =
                 thisModule.GetMethod("deserializer", BindingFlags.Static ||| BindingFlags.NonPublic)
-                    .MakeGenericMethod(p.PropertyType)
+                    .MakeGenericMethod(recordTy, p.PropertyType)
                     .Invoke(null, [|f|])
-                    :?> Deserializer
+                    :?> Deserializer<'Record>
             {
                 Name = name p
                 Type = p.PropertyType

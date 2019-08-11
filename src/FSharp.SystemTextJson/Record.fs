@@ -4,6 +4,7 @@ open System
 open System.Runtime.Serialization
 open System.Text.Json
 open FSharp.Reflection
+open System.Collections.Generic
 
 type JsonRecordConverter<'T>() =
     inherit JsonConverter<'T>()
@@ -12,13 +13,20 @@ type JsonRecordConverter<'T>() =
 
     static let fields = RecordReflection.fields<'T>()
 
+    static let fieldIndices = Dictionary(StringComparer.InvariantCulture)
+    static do fields |> Array.iteri (fun i f ->
+        fieldIndices.[f.Name] <- f)
+
     static let expectedFieldCount =
         fields
         |> Seq.filter (fun p -> not p.Ignore)
         |> Seq.length
 
-    static let ctor() =
-        FormatterServices.GetUninitializedObject(ty)
+    static let ctor =
+        if ty.IsValueType then
+            fun () -> Unchecked.defaultof<'T>
+        else
+            fun () -> FormatterServices.GetUninitializedObject(ty) :?> 'T
 
     static let fieldIndex (reader: byref<Utf8JsonReader>) =
         let mutable found = ValueNone
@@ -35,7 +43,7 @@ type JsonRecordConverter<'T>() =
         if reader.TokenType <> JsonTokenType.StartObject then
             raise (JsonException("Failed to parse record type " + typeToConvert.FullName + ", expected JSON object, found " + string reader.TokenType))
 
-        let res = ctor()
+        let mutable res = ctor()
         let mutable cont = true
         let mutable fieldsFound = 0
         while cont && reader.Read() do
@@ -46,14 +54,16 @@ type JsonRecordConverter<'T>() =
                 match fieldIndex &reader with
                 | ValueSome p when not p.Ignore ->
                     fieldsFound <- fieldsFound + 1
-                    p.Deserialize.Invoke(&reader, res, options)
+                    match p.Deserialize with
+                    | DStruct p -> p.Invoke(&reader, &res, options)
+                    | DRefobj p -> p.Invoke(&reader, res, options)
                 | _ ->
                     reader.Skip()
             | _ -> ()
 
         if fieldsFound < expectedFieldCount then
             raise (JsonException("Missing field for record type " + typeToConvert.FullName))
-        res :?> 'T
+        res
 
     override __.Write(writer, value, options) =
         writer.WriteStartObject()
