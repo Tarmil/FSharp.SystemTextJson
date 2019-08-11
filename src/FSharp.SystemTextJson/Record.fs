@@ -70,7 +70,9 @@ type JsonRecordConverter<'T>() =
         for p in fields do
             if not p.Ignore then
                 writer.WritePropertyName(p.Name)
-                p.Serialize.Invoke(writer, value, options)
+                match p.Serialize with
+                | SStruct p -> p.Invoke(writer, &value, options)
+                | SRefobj p -> p.Invoke(writer, value, options)
         writer.WriteEndObject()
 
 type JsonRecordConverter() =
