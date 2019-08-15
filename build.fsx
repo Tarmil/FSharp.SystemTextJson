@@ -62,6 +62,7 @@ Target.create "Test" (fun _ ->
     try
         DotNet.test (fun o ->
             { o with
+                Configuration = DotNet.BuildConfiguration.Release
                 Logger = Some "trx"
                 ResultsDirectory = Some Paths.out
             }
