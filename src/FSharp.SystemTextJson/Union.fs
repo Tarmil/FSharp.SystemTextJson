@@ -43,7 +43,7 @@ type JsonUnionEncoding =
 
     | Default           = 0x00_01
     | NewtonsoftLike    = 0x00_01
-    | ThothLike         = 0x00_04
+    | ThothLike         = 0x02_04
 
 type private Case =
     {
