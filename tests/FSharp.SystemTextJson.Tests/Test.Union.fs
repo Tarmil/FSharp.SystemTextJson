@@ -77,6 +77,24 @@ module NonStruct =
         Assert.Equal("""{"Db":[32]}""", JsonSerializer.Serialize(Db 32))
         Assert.Equal("""{"Dc":["test",true]}""", JsonSerializer.Serialize(Dc("test", true)))
 
+    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    type E =
+        | Ea
+        | Eb of int
+        | Ec of string * bool
+
+    [<Fact>]
+    let ``deserialize InternalTag`` () =
+        Assert.Equal(Ea, JsonSerializer.Deserialize """["Ea"]""")
+        Assert.Equal(Eb 32, JsonSerializer.Deserialize """["Eb",32]""")
+        Assert.Equal(Ec("test", true), JsonSerializer.Deserialize """["Ec","test",true]""")
+
+    [<Fact>]
+    let ``serialize InternalTag`` () =
+        Assert.Equal("""["Ea"]""", JsonSerializer.Serialize Ea)
+        Assert.Equal("""["Eb",32]""", JsonSerializer.Serialize(Eb 32))
+        Assert.Equal("""["Ec","test",true]""", JsonSerializer.Serialize(Ec("test", true)))
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -135,3 +153,21 @@ module Struct =
         Assert.Equal("""{"Da":[]}""", JsonSerializer.Serialize Da)
         Assert.Equal("""{"Db":[32]}""", JsonSerializer.Serialize(Db 32))
         Assert.Equal("""{"Dc":["test",true]}""", JsonSerializer.Serialize(Dc("test", true)))
+
+    [<Struct; JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    type E =
+        | Ea
+        | Eb of int
+        | Ec of string * bool
+
+    [<Fact>]
+    let ``deserialize InternalTag`` () =
+        Assert.Equal(Ea, JsonSerializer.Deserialize """["Ea"]""")
+        Assert.Equal(Eb 32, JsonSerializer.Deserialize """["Eb",32]""")
+        Assert.Equal(Ec("test", true), JsonSerializer.Deserialize """["Ec","test",true]""")
+
+    [<Fact>]
+    let ``serialize InternalTag`` () =
+        Assert.Equal("""["Ea"]""", JsonSerializer.Serialize Ea)
+        Assert.Equal("""["Eb",32]""", JsonSerializer.Serialize(Eb 32))
+        Assert.Equal("""["Ec","test",true]""", JsonSerializer.Serialize(Ec("test", true)))

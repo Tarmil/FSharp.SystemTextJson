@@ -45,6 +45,7 @@ type JsonUnionEncoding =
     | NewtonsoftLike    = 0x00_01
     | ThothLike         = 0x02_04
 
+
 type private Case =
     {
         Info: UnionCaseInfo
@@ -57,6 +58,8 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
     inherit JsonConverter<'T>()
 
     static let ty = typeof<'T>
+
+    static let [<Literal>] BaseFormatMask = enum<JsonUnionEncoding> 0x00_ff
 
     static let cases =
         FSharpType.GetUnionCases(ty, true)
@@ -93,6 +96,10 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
         |> JsonException
         |> raise
 
+    static let expectAlreadyRead expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>) =
+        if reader.TokenType <> expectedTokenType then
+            fail expectedLabel &reader
+
     static let readExpecting expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>) =
         if not (reader.Read()) || reader.TokenType <> expectedTokenType then
             fail expectedLabel &reader
@@ -108,49 +115,56 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
         | ValueSome case ->
             case
 
-    static let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
+    static let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.zeroCreate fieldCount
-        readExpecting JsonTokenType.StartArray "array" &reader
         for i in 0..fieldCount-1 do
             reader.Read() |> ignore
             fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].PropertyType, options)
         readExpecting JsonTokenType.EndArray "end of array" &reader
         case.Ctor fields :?> 'T
+    
+    static let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
+        readExpecting JsonTokenType.StartArray "array" &reader
+        readFieldsAsRestOfArray &reader case options
 
     static let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        match reader.TokenType with
-        | JsonTokenType.StartObject ->
-            readExpectingPropertyNamed "Case" &reader
-            readExpecting JsonTokenType.String "case name" &reader
-            let case = getCaseTag &reader
-            let res =
-                if case.Fields.Length > 0 then
-                    readExpectingPropertyNamed "Fields" &reader
-                    readFieldsAsArray &reader case options
-                else
-                    case.Ctor [||] :?> 'T
-            readExpecting JsonTokenType.EndObject "end of object" &reader
-            res
-        | _ ->
-            fail "JSON object" &reader
+        expectAlreadyRead JsonTokenType.StartObject "object" &reader
+        readExpectingPropertyNamed "Case" &reader
+        readExpecting JsonTokenType.String "case name" &reader
+        let case = getCaseTag &reader
+        let res =
+            if case.Fields.Length > 0 then
+                readExpectingPropertyNamed "Fields" &reader
+                readFieldsAsArray &reader case options
+            else
+                case.Ctor [||] :?> 'T
+        readExpecting JsonTokenType.EndObject "end of object" &reader
+        res
 
     static let readExternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        match reader.TokenType with
-        | JsonTokenType.StartObject ->
-            readExpecting JsonTokenType.PropertyName "case name" &reader
-            let case = getCaseTag(&reader)
-            let res = readFieldsAsArray &reader case options
-            readExpecting JsonTokenType.EndObject "end of object" &reader
-            res
-        | _ ->
-            fail "JSON object" &reader
+        expectAlreadyRead JsonTokenType.StartObject "object" &reader
+        readExpecting JsonTokenType.PropertyName "case name" &reader
+        let case = getCaseTag(&reader)
+        let res = readFieldsAsArray &reader case options
+        readExpecting JsonTokenType.EndObject "end of object" &reader
+        res
 
-    static let writeFieldsAsArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
-        writer.WriteStartArray()
+    static let readInternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
+        expectAlreadyRead JsonTokenType.StartArray "array" &reader
+        readExpecting JsonTokenType.String "case name" &reader
+        let case = getCaseTag(&reader)
+        let res = readFieldsAsRestOfArray &reader case options
+        res
+
+    static let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         for field in case.Dector value do
             JsonSerializer.Serialize(writer, field, options)
         writer.WriteEndArray()
+
+    static let writeFieldsAsArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+        writer.WriteStartArray()
+        writeFieldsAsRestOfArray writer case value options
 
     static let writeAdjacentTag (writer: Utf8JsonWriter) (value: obj) (options: JsonSerializerOptions) =
         let tag = tagReader value
@@ -170,28 +184,33 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
         writeFieldsAsArray writer case value options
         writer.WriteEndObject()
 
+    static let writeInternalTag (writer: Utf8JsonWriter) (value: obj) (options: JsonSerializerOptions) =
+        let tag = tagReader value
+        let case = cases.[tag]
+        writer.WriteStartArray()
+        writer.WriteStringValue(case.Info.Name)
+        writeFieldsAsRestOfArray writer case value options
+
     override __.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
         | JsonTokenType.Null when usesNull ->
             (null : obj) :?> 'T
         | _ ->
-            if encoding.HasFlag(JsonUnionEncoding.AdjacentTag) then
-                readAdjacentTag &reader options
-            elif encoding.HasFlag(JsonUnionEncoding.ExternalTag) then
-                readExternalTag &reader options
-            else
-                raise (JsonException("Unsupported union encoding: " + string encoding))
+            match encoding &&& BaseFormatMask with
+            | JsonUnionEncoding.AdjacentTag -> readAdjacentTag &reader options
+            | JsonUnionEncoding.ExternalTag -> readExternalTag &reader options
+            | JsonUnionEncoding.InternalTag -> readInternalTag &reader options
+            | _ -> raise (JsonException("Invalid union encoding: " + string encoding))
 
     override __.Write(writer, value, options) =
         let value = box value
         if isNull value then writer.WriteNullValue() else
 
-        if encoding.HasFlag(JsonUnionEncoding.AdjacentTag) then
-            writeAdjacentTag writer value options
-        elif encoding.HasFlag(JsonUnionEncoding.ExternalTag) then
-            writeExternalTag writer value options
-        else
-            raise (JsonException("Unsupported union encoding: " + string encoding))
+        match encoding &&& BaseFormatMask with
+        | JsonUnionEncoding.AdjacentTag -> writeAdjacentTag writer value options
+        | JsonUnionEncoding.ExternalTag -> writeExternalTag writer value options
+        | JsonUnionEncoding.InternalTag -> writeInternalTag writer value options
+        | _ -> raise (JsonException("Invalid union encoding: " + string encoding))
 
 type JsonUnionConverter
     (
