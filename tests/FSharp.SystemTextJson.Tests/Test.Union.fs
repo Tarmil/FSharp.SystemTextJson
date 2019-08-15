@@ -59,6 +59,24 @@ module NonStruct =
         Assert.Equal("""null""", JsonSerializer.Serialize(Ca, options))
         Assert.Equal("""{"Case":"Cb","Fields":[32]}""", JsonSerializer.Serialize(Cb 32, options))
 
+    [<JsonFSharpConverter(JsonUnionEncoding.ExternalTag)>]
+    type D =
+        | Da
+        | Db of int
+        | Dc of string * bool
+
+    [<Fact>]
+    let ``deserialize ExternalTag`` () =
+        Assert.Equal(Da, JsonSerializer.Deserialize """{"Da":[]}""")
+        Assert.Equal(Db 32, JsonSerializer.Deserialize """{"Db":[32]}""")
+        Assert.Equal(Dc("test", true), JsonSerializer.Deserialize """{"Dc":["test",true]}""")
+
+    [<Fact>]
+    let ``serialize ExternalTag`` () =
+        Assert.Equal("""{"Da":[]}""", JsonSerializer.Serialize Da)
+        Assert.Equal("""{"Db":[32]}""", JsonSerializer.Serialize(Db 32))
+        Assert.Equal("""{"Dc":["test",true]}""", JsonSerializer.Serialize(Dc("test", true)))
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -99,3 +117,21 @@ module Struct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, options))
         Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, options))
         Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), options))
+
+    [<Struct; JsonFSharpConverter(JsonUnionEncoding.ExternalTag)>]
+    type D =
+        | Da
+        | Db of int
+        | Dc of string * bool
+
+    [<Fact>]
+    let ``deserialize ExternalTag`` () =
+        Assert.Equal(Da, JsonSerializer.Deserialize """{"Da":[]}""")
+        Assert.Equal(Db 32, JsonSerializer.Deserialize """{"Db":[32]}""")
+        Assert.Equal(Dc("test", true), JsonSerializer.Deserialize """{"Dc":["test",true]}""")
+
+    [<Fact>]
+    let ``serialize ExternalTag`` () =
+        Assert.Equal("""{"Da":[]}""", JsonSerializer.Serialize Da)
+        Assert.Equal("""{"Db":[32]}""", JsonSerializer.Serialize(Db 32))
+        Assert.Equal("""{"Dc":["test",true]}""", JsonSerializer.Serialize(Dc("test", true)))
