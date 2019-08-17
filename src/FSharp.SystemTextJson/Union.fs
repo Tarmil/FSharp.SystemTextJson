@@ -375,5 +375,5 @@ type JsonUnionConverter
     override this.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    override this.CreateConverter(typeToConvert) =
+    override this.CreateConverter(typeToConvert, _options) =
         JsonUnionConverter.CreateConverter(typeToConvert, encoding)

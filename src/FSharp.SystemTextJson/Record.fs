@@ -97,5 +97,5 @@ type JsonRecordConverter() =
     override __.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
-    override __.CreateConverter(typeToConvert) =
+    override __.CreateConverter(typeToConvert, _options) =
         JsonRecordConverter.CreateConverter(typeToConvert)

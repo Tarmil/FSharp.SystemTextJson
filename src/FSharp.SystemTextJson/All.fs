@@ -23,7 +23,7 @@ type JsonFSharpConverter
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
-    override this.CreateConverter(typeToConvert) =
+    override this.CreateConverter(typeToConvert, _options) =
         JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding)
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
