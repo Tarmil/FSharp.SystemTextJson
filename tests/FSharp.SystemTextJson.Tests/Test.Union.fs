@@ -149,6 +149,19 @@ module NonStruct =
         Assert.Equal("""{"Case":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsOptions))
 
+    let bareFieldlessTagsOptions = JsonSerializerOptions()
+    bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
+
+    type S = { b: B }
+
+    [<Fact>]
+    let ``deserialize BareFieldlessTags`` () =
+        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"Ba"}""", bareFieldlessTagsOptions))
+
+    [<Fact>]
+    let ``serialize BareFieldlessTags`` () =
+        Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsOptions))
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -279,3 +292,17 @@ module Struct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsOptions))
+
+    let bareFieldlessTagsOptions = JsonSerializerOptions()
+    bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
+
+    [<Struct>]
+    type S = { b: B }
+
+    [<Fact>]
+    let ``deserialize BareFieldlessTags`` () =
+        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"Ba"}""", bareFieldlessTagsOptions))
+
+    [<Fact>]
+    let ``serialize BareFieldlessTags`` () =
+        Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsOptions))
