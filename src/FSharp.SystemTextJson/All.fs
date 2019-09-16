@@ -1,7 +1,6 @@
 ﻿namespace System.Text.Json.Serialization
 
 open System
-open FSharp.Reflection
 open System.Runtime.InteropServices
 
 type JsonFSharpConverter
@@ -12,11 +11,14 @@ type JsonFSharpConverter
     inherit JsonConverterFactory()
 
     override this.CanConvert(typeToConvert) =
+        JsonListConverter.CanConvert(typeToConvert) ||
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
     static member internal CreateConverter(typeToConvert, unionEncoding) =
-        if JsonRecordConverter.CanConvert(typeToConvert) then
+        if JsonListConverter.CanConvert(typeToConvert) then
+            JsonListConverter.CreateConverter(typeToConvert)
+        elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
             JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding)

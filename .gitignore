@@ -7,6 +7,7 @@ paket-files/
 **/[Oo]bj/
 **/[Bb]in/
 .vs/
+*.user
 **/BenchmarkDotNet.Artifacts
 .ionide
 .vscode

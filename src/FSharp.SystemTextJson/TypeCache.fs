@@ -13,14 +13,17 @@ module TypeCache =
     type TypeKind =
         | Record = 0
         | Union = 1
+        | List = 2
         | Other = 100
 
     let getKind =
         let cache = Dict<System.Type, TypeKind>()
+        let listTy = typedefof<_ list>
 
         fun (ty: System.Type) ->
             cache.GetOrAdd(ty, fun ty -> 
-                if FSharpType.IsUnion(ty, true) then TypeKind.Union
+                if ty.IsGenericType && ty.GetGenericTypeDefinition() = listTy then TypeKind.List
+                elif FSharpType.IsUnion(ty, true) then TypeKind.Union
                 elif FSharpType.IsRecord(ty, true) then TypeKind.Record
                 else TypeKind.Other)
 
@@ -31,3 +34,6 @@ module TypeCache =
     /// cached access to FSharpType.IsRecord to prevent repeated access to reflection members
     let isRecord ty =
         getKind ty = TypeKind.Record
+
+    let isList ty =
+        getKind ty = TypeKind.List
