@@ -10,16 +10,24 @@ module TypeCache =
             at System.Collections.Generic.Dictionary`2.TryInsert(TKey key, TValue value, InsertionBehavior behavior) *)
     type Dict<'a, 'b> = System.Collections.Concurrent.ConcurrentDictionary<'a, 'b>
 
-    /// cached access to FSharpType.IsUnion to prevent repeated access to reflection members
-    let isUnion =
-        let cache = Dict<System.Type, bool>()
+    type TypeKind =
+        | Record = 0
+        | Union = 1
+        | Other = 100
 
-        fun (ty: System.Type) -> 
-            cache.GetOrAdd(ty, (fun ty -> FSharpType.IsUnion(ty, true)))
+    let getKind =
+        let cache = Dict<System.Type, TypeKind>()
+
+        fun (ty: System.Type) ->
+            cache.GetOrAdd(ty, fun ty -> 
+                if FSharpType.IsUnion(ty, true) then TypeKind.Union
+                elif FSharpType.IsRecord(ty, true) then TypeKind.Record
+                else TypeKind.Other)
+
+    /// cached access to FSharpType.IsUnion to prevent repeated access to reflection members
+    let isUnion ty =
+        getKind ty = TypeKind.Union
             
     /// cached access to FSharpType.IsRecord to prevent repeated access to reflection members
-    let isRecord =
-        let cache = Dict<System.Type, bool>()
-
-        fun (ty: System.Type) -> 
-            cache.GetOrAdd(ty, (fun ty -> FSharpType.IsRecord(ty, true)))
+    let isRecord ty =
+        getKind ty = TypeKind.Record
