@@ -9,7 +9,7 @@ build:
 skip_tags: true
 
 init:
-- cmd: choco install dotnetcore-sdk --version 3.0.100-preview9-014004
+- cmd: choco install dotnetcore-sdk --version 3.0.100-rc1-014190
 
 before_build:
 - ps: |
