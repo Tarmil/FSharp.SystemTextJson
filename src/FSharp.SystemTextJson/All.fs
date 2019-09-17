@@ -12,12 +12,15 @@ type JsonFSharpConverter
 
     override this.CanConvert(typeToConvert) =
         JsonListConverter.CanConvert(typeToConvert) ||
+        JsonSetConverter.CanConvert(typeToConvert) ||
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
     static member internal CreateConverter(typeToConvert, unionEncoding) =
         if JsonListConverter.CanConvert(typeToConvert) then
             JsonListConverter.CreateConverter(typeToConvert)
+        elif JsonSetConverter.CanConvert(typeToConvert) then
+            JsonSetConverter.CreateConverter(typeToConvert)
         elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert)
         elif JsonUnionConverter.CanConvert(typeToConvert) then

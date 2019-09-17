@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="TypeCache.fs" />
-    <Compile Include="List.fs" />
+    <Compile Include="Collection.fs" />
     <Compile Include="Record.fs" />
     <Compile Include="Union.fs" />
     <Compile Include="All.fs" />

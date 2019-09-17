@@ -6,7 +6,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Test.List.fs" />
+    <Compile Include="Test.Collection.fs" />
     <Compile Include="Test.Record.fs" />
     <Compile Include="Test.Union.fs" />
     <Compile Include="Program.fs" />

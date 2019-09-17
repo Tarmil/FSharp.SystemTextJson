@@ -14,15 +14,18 @@ module TypeCache =
         | Record = 0
         | Union = 1
         | List = 2
+        | Set = 3
         | Other = 100
 
     let getKind =
         let cache = Dict<System.Type, TypeKind>()
         let listTy = typedefof<_ list>
+        let setTy = typedefof<Set<_>>
 
         fun (ty: System.Type) ->
             cache.GetOrAdd(ty, fun ty -> 
                 if ty.IsGenericType && ty.GetGenericTypeDefinition() = listTy then TypeKind.List
+                elif ty.IsGenericType && ty.GetGenericTypeDefinition() = setTy then TypeKind.Set
                 elif FSharpType.IsUnion(ty, true) then TypeKind.Union
                 elif FSharpType.IsRecord(ty, true) then TypeKind.Record
                 else TypeKind.Other)
@@ -37,3 +40,6 @@ module TypeCache =
 
     let isList ty =
         getKind ty = TypeKind.List
+
+    let isSet ty =
+        getKind ty = TypeKind.Set
