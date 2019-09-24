@@ -1,8 +1,8 @@
-namespace System.Text.Json.Serialization
+﻿namespace System.Text.Json.Serialization
 
-module TypeCache = 
+module TypeCache =
     open FSharp.Reflection
-    
+
     // Have to use concurrentdictionary here because dictionaries thrown on non-locked access:
     (* Error Message:
         System.InvalidOperationException : Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.
@@ -14,12 +14,12 @@ module TypeCache =
     let isUnion =
         let cache = Dict<System.Type, bool>()
 
-        fun (ty: System.Type) -> 
+        fun (ty: System.Type) ->
             cache.GetOrAdd(ty, (fun ty -> FSharpType.IsUnion(ty, true)))
-            
+
     /// cached access to FSharpType.IsRecord to prevent repeated access to reflection members
     let isRecord =
         let cache = Dict<System.Type, bool>()
 
-        fun (ty: System.Type) -> 
+        fun (ty: System.Type) ->
             cache.GetOrAdd(ty, (fun ty -> FSharpType.IsRecord(ty, true)))
