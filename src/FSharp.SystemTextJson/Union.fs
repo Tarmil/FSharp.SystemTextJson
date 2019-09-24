@@ -175,7 +175,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
             fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].PropertyType, options)
         readExpecting JsonTokenType.EndArray "end of array" &reader
         case.Ctor fields :?> 'T
-    
+
     static let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         readExpecting JsonTokenType.StartArray "array" &reader
         readFieldsAsRestOfArray &reader case options
