@@ -170,20 +170,20 @@ Here are the possible values:
 * `JsonUnionEncoding.ExternalTag` represents unions as a JSON object with one field, whose name is the name of the union case, and whose value is an array whose items are the arguments of the union case.
 
     ```fsharp
-    JsonSerialize.Serialize NoArgs
+    JsonSerializer.Serialize NoArgs
     // --> {"NoArgs":[]}
     
-    JsonSerialize.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
     // --> {"WithArgs":[123,"Hello world!"]}
     ```
     
 * `JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array.
 
     ```fsharp
-    JsonSerialize.Serialize NoArgs
+    JsonSerializer.Serialize NoArgs
     // --> {"NoArgs":[]}
     
-    JsonSerialize.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
     // --> {"WithArgs":{"anInt":123,"aString":"Hello world!"}}
     ```
 
@@ -192,20 +192,20 @@ Here are the possible values:
     This is the same format used by Thoth.Json.
 
     ```fsharp
-    JsonSerialize.Serialize NoArgs
+    JsonSerializer.Serialize NoArgs
     // --> ["NoArgs"]
     
-    JsonSerialize.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
     // --> ["WithArgs",123,"Hello world!"]
     ```
 
 * `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` represents unions as an object whose first field has name `"Case"` and value the name of the case, and the rest of the fields have the names and values of the arguments.
 
     ```fsharp
-    JsonSerialize.Serialize NoArgs
+    JsonSerializer.Serialize NoArgs
     // --> {"Case":"NoArgs"}
     
-    JsonSerialize.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
     // --> {"Case":"WithArgs","anInt":123,"aString":"Hello world!"}
     ```
 
@@ -213,20 +213,20 @@ Here are the possible values:
 
 
     ```fsharp
-    JsonSerialize.Serialize NoArgs
+    JsonSerializer.Serialize NoArgs
     // --> {}
     
-    JsonSerialize.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
     // --> {"anInt":123,"aString":"Hello world!"}
     ```
 
 * Additionally, or-ing `||| JsonUnionEncoding.BareFieldlessTags` to any of the previous formats represents cases that don't have any arguments as a simple string.
 
     ```fsharp
-    JsonSerialize.Serialize NoArgs
+    JsonSerializer.Serialize NoArgs
     // --> "NoArgs"
     
-    JsonSerialize.Serialize (WithArgs (123, "HelloWorld!"))
+    JsonSerializer.Serialize (WithArgs (123, "HelloWorld!"))
     // --> (same format as without BareFieldlessTags)
     ```
 
