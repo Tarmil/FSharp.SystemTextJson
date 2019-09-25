@@ -1,15 +1,12 @@
 version: build {build}
 
 image:
-- Visual Studio 2017
+- Visual Studio 2019
 
 build:
   verbosity: minimal
 
 skip_tags: true
-
-init:
-- cmd: choco install dotnetcore-sdk --version 3.0.100-rc1-014190
 
 before_build:
 - ps: |

@@ -10,3 +10,4 @@ paket-files/
 **/BenchmarkDotNet.Artifacts
 .ionide
 .vscode
+*.user
