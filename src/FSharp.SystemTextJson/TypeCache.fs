@@ -16,6 +16,7 @@ module TypeCache =
         | List = 2
         | Set = 3
         | Map = 4
+        | Tuple = 5
         | Other = 100
 
     let getKind =
@@ -29,6 +30,7 @@ module TypeCache =
                 if ty.IsGenericType && ty.GetGenericTypeDefinition() = listTy then TypeKind.List
                 elif ty.IsGenericType && ty.GetGenericTypeDefinition() = setTy then TypeKind.Set
                 elif ty.IsGenericType && ty.GetGenericTypeDefinition() = mapTy then TypeKind.Map
+                elif FSharpType.IsTuple(ty) then TypeKind.Tuple
                 elif FSharpType.IsUnion(ty, true) then TypeKind.Union
                 elif FSharpType.IsRecord(ty, true) then TypeKind.Record
                 else TypeKind.Other)
@@ -49,3 +51,6 @@ module TypeCache =
 
     let isMap ty =
         getKind ty = TypeKind.Map
+
+    let isTuple ty =
+        getKind ty = TypeKind.Tuple

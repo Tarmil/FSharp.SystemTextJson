@@ -14,6 +14,7 @@ type JsonFSharpConverter
         JsonListConverter.CanConvert(typeToConvert) ||
         JsonSetConverter.CanConvert(typeToConvert) ||
         JsonMapConverter.CanConvert(typeToConvert) ||
+        JsonTupleConverter.CanConvert(typeToConvert) ||
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
@@ -24,6 +25,8 @@ type JsonFSharpConverter
             JsonSetConverter.CreateConverter(typeToConvert)
         elif JsonMapConverter.CanConvert(typeToConvert) then
             JsonMapConverter.CreateConverter(typeToConvert)
+        elif JsonTupleConverter.CanConvert(typeToConvert) then
+            JsonTupleConverter.CreateConverter(typeToConvert)
         elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert)
         elif JsonUnionConverter.CanConvert(typeToConvert) then

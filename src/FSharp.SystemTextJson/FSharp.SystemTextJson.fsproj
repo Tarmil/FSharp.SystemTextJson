@@ -7,6 +7,7 @@
     <Compile Include="TypeCache.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Collection.fs" />
+    <Compile Include="Tuple.fs" />
     <Compile Include="Record.fs" />
     <Compile Include="Union.fs" />
     <Compile Include="All.fs" />
