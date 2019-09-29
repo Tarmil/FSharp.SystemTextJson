@@ -122,22 +122,113 @@ Anonymous record fields are serialized in alphabetical order.
 
 ### Unions
 
-Unions are serialized with the same format as `Newtonsoft.Json`, that is, a JSON object with two fields:
-
-* `"Case"`: a string whose value is the name of the union case.
-* `"Fields"`: an array whose items are the arguments of the union case. This field is absent if the union case has no arguments.
+Unions can be serialized in a number of formats. The enum `JsonUnionEncoding` defines the format to use; you can pass a value of this type to the constructor of `JsonFSharpConverter` or to the `JsonFSharpConverter` attribute.
 
 ```fsharp
-type Example =
-    | WithArgs of int * string
-    | NoArgs
+// Using options:
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.BareFieldlessTags))
 
-JsonSerializer.Serialize NoArgs
-// --> {"Case":"NoArgs"}
-
-JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
-// --> {"Case":"WithArgs","Fields":[123,"Hello world!"]}
+// Using attributes:
+[<JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.BareFieldlessTags)>]
+type MyUnion = // ...
 ```
+
+Here are the possible values:
+
+* `JsonUnionEncoding.AdjacentTag` is the default format. It represents unions as a JSON object with two fields:
+
+    * `"Case"`: a string whose value is the name of the union case.
+    * `"Fields"`: an array whose items are the arguments of the union case. This field is absent if the union case has no arguments.
+
+    This is the same format used by Newtonsoft.Json.
+
+    ```fsharp
+    type Example =
+        | WithArgs of anInt: int * aString: string
+        | NoArgs
+
+    JsonSerializer.Serialize NoArgs
+    // --> {"Case":"NoArgs"}
+
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> {"Case":"WithArgs","Fields":[123,"Hello world!"]}
+    ```
+
+* `JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array. The field names on this object are the names of the arguments.
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> {"Case":"NoArgs"}
+
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> {"Case":"WithArgs","Fields":{"anInt":123,"aString":"Hello world!"}}
+    ```
+
+    Note that if an argument doesn't have an explicit name, F# automatically gives it the name `Item` (if it's the only argument of its case) or `Item1`/`Item2`/etc (if the case has multiple arguments).
+
+* `JsonUnionEncoding.ExternalTag` represents unions as a JSON object with one field, whose name is the name of the union case, and whose value is an array whose items are the arguments of the union case.
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> {"NoArgs":[]}
+    
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> {"WithArgs":[123,"Hello world!"]}
+    ```
+    
+* `JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array.
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> {"NoArgs":{}}
+    
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> {"WithArgs":{"anInt":123,"aString":"Hello world!"}}
+    ```
+
+* `JsonUnionEncoding.InternalTag` represents unions as an array whose first item is the name of the case, and the rest of the items are the arguments.
+
+    This is the same format used by Thoth.Json.
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> ["NoArgs"]
+    
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> ["WithArgs",123,"Hello world!"]
+    ```
+
+* `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` represents unions as an object whose first field has name `"Case"` and value the name of the case, and the rest of the fields have the names and values of the arguments.
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> {"Case":"NoArgs"}
+    
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> {"Case":"WithArgs","anInt":123,"aString":"Hello world!"}
+    ```
+
+* `JsonUnionEncoding.Untagged` represents unions as an object whose fields have the names and values of the arguments. The name of the case is not encoded at all. Deserialization is only possible if the fields of all cases have different names.
+
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> {}
+    
+    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    // --> {"anInt":123,"aString":"Hello world!"}
+    ```
+
+* Additionally, or-ing `||| JsonUnionEncoding.BareFieldlessTags` to any of the previous formats represents cases that don't have any arguments as a simple string.
+
+    ```fsharp
+    JsonSerializer.Serialize NoArgs
+    // --> "NoArgs"
+    
+    JsonSerializer.Serialize (WithArgs (123, "HelloWorld!"))
+    // --> (same format as without BareFieldlessTags)
+    ```
 
 Union cases that are represented as `null` in .NET using `CompilationRepresentationFlags.UseNullAsTrueValue`, such as `Option.None`, are serialized as `null`.
 
@@ -151,9 +242,13 @@ Yes!
 
 Yes!
 
-* Does FSharp.SystemTextJson support alternative formats for unions? I find `"Case"`/`"Fields"` ugly.
+* Does FSharp.SystemTextJson support alternative formats for unions?
 
-Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/6))
+[Yes!](#unions)
+
+* Does FSharp.SystemTextJson support representing `'T option` as either just `'T` or `null` (or an absent field)?
+
+Not yet: `None` is represented as `null`, but `Some` is represented like any other union case. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/16))
 
 * Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute` on record fields?
 
@@ -165,8 +260,8 @@ Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/3), [is
 
 * Does FSharp.SystemTextJson allocate memory?
 
-As little as possible, but unfortunately the `FSharp.Reflection` API it uses requires some allocations. In particular, an array is allocated for as many items as the record fields or union arguments, and structs are boxed.
+As little as possible, but unfortunately the `FSharp.Reflection` API it uses requires some allocations. In particular, an array is allocated for as many items as the record fields or union arguments, and structs are boxed. There is [work in progress](https://github.com/Tarmil/FSharp.SystemTextJson/pull/15) to improve this.
 
 * Are there any benchmarks, eg. against Newtonsoft.Json?
 
-Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/7))
+[Yes!](https://github.com/Tarmil/FSharp.SystemTextJson/pull/11)
