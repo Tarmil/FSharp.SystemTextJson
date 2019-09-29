@@ -102,6 +102,52 @@ type MyHub() =
 
 ## Format
 
+### Lists
+
+F# lists are serialized as JSON arrays.
+
+```fsharp
+JsonSerializer.Serialize([1; 2; 3], options)
+// --> [1,2,3]
+```
+
+### Sets
+
+F# sets are serialized as JSON arrays.
+
+```fsharp
+JsonSerializer.Serialize(Set [1; 2; 3], options)
+// --> [1,2,3]
+```
+
+### Maps
+
+F# string-keyed maps are serialized as JSON objects.
+
+```fsharp
+JsonSerializer.Serialize(Map [("a", 1); ("b", 2); ("c", 3)], options)
+// --> {"a":1,"b":2,"c":3}
+```
+
+Maps with other types as keys are serialized as JSON arrays, where each item is a `[key,value]` array.
+
+```fsharp
+JsonSerializer.Serialize(Map [(1, "a"); (2, "b"); (3, "c")], options)
+// --> [[1,"a"],[2,"b"],[3,"c"]]
+```
+
+### Tuples
+
+Tuples and struct tuples are serialized as JSON arrays.
+
+```fsharp
+JsonSerializer.Serialize((1, "abc"), options)
+// --> [1,"abc"]
+
+JsonSerializer.Serialize(struct (1, "abc"), options)
+// --> [1,"abc"]
+```
+
 ### Records and anonymous records
 
 Records and anonymous records are serialized as JSON objects.
@@ -109,10 +155,10 @@ Records and anonymous records are serialized as JSON objects.
 ```fsharp
 type Example = { x: string; y: string }
 
-JsonSerializer.Serialize { x = "Hello"; y = "world!" }
+JsonSerializer.Serialize({ x = "Hello"; y = "world!" }, options)
 // --> {"x":"Hello","y":"world!"}
 
-JsonSerializer.Serialize {| x = "Hello"; y = "world!" |}
+JsonSerializer.Serialize({| x = "Hello"; y = "world!" |}, options)
 // --> {"x":"Hello","y":"world!"}
 ```
 
@@ -148,20 +194,20 @@ Here are the possible values:
         | WithArgs of anInt: int * aString: string
         | NoArgs
 
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> {"Case":"NoArgs"}
 
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> {"Case":"WithArgs","Fields":[123,"Hello world!"]}
     ```
 
 * `JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array. The field names on this object are the names of the arguments.
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> {"Case":"NoArgs"}
 
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> {"Case":"WithArgs","Fields":{"anInt":123,"aString":"Hello world!"}}
     ```
 
@@ -170,20 +216,20 @@ Here are the possible values:
 * `JsonUnionEncoding.ExternalTag` represents unions as a JSON object with one field, whose name is the name of the union case, and whose value is an array whose items are the arguments of the union case.
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> {"NoArgs":[]}
     
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> {"WithArgs":[123,"Hello world!"]}
     ```
     
 * `JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array.
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> {"NoArgs":{}}
     
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> {"WithArgs":{"anInt":123,"aString":"Hello world!"}}
     ```
 
@@ -192,20 +238,20 @@ Here are the possible values:
     This is the same format used by Thoth.Json.
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> ["NoArgs"]
     
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> ["WithArgs",123,"Hello world!"]
     ```
 
 * `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` represents unions as an object whose first field has name `"Case"` and value the name of the case, and the rest of the fields have the names and values of the arguments.
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> {"Case":"NoArgs"}
     
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> {"Case":"WithArgs","anInt":123,"aString":"Hello world!"}
     ```
 
@@ -213,20 +259,20 @@ Here are the possible values:
 
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> {}
     
-    JsonSerializer.Serialize (WithArgs (123, "Hello world!"))
+    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
     // --> {"anInt":123,"aString":"Hello world!"}
     ```
 
 * Additionally, or-ing `||| JsonUnionEncoding.BareFieldlessTags` to any of the previous formats represents cases that don't have any arguments as a simple string.
 
     ```fsharp
-    JsonSerializer.Serialize NoArgs
+    JsonSerializer.Serialize(NoArgs, options)
     // --> "NoArgs"
     
-    JsonSerializer.Serialize (WithArgs (123, "HelloWorld!"))
+    JsonSerializer.Serialize(WithArgs (123, "HelloWorld!"), options)
     // --> (same format as without BareFieldlessTags)
     ```
 
