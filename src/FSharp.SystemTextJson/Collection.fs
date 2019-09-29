@@ -2,6 +2,7 @@
 
 open System
 open System.Text.Json
+open System.Text.Json.Serialization.Helpers
 
 type JsonListConverter<'T>() =
     inherit JsonConverter<list<'T>>()
@@ -44,8 +45,7 @@ type JsonSetConverter<'T when 'T : comparison>() =
             read (Set.add elt acc) &reader options
 
     override __.Read(reader, typeToConvert, options) =
-        if reader.TokenType <> JsonTokenType.StartArray then
-            raise (JsonException("Failed to parse type " + typeToConvert.FullName + ", expected JSON array, found " + string reader.TokenType))
+        expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
         read Set.empty &reader options
 
     override __.Write(writer, value, options) =
@@ -69,3 +69,87 @@ type JsonSetConverter() =
 
     override __.CreateConverter(typeToConvert, _options) =
         JsonSetConverter.CreateConverter(typeToConvert)
+
+type JsonStringMapConverter<'V>() =
+    inherit JsonConverter<Map<string, 'V>>()
+
+    let ty = typeof<Map<string, 'V>>
+
+    let rec read (acc: Map<string, 'V>) (reader: byref<Utf8JsonReader>) options =
+        if not (reader.Read()) then acc else
+        match reader.TokenType with
+        | JsonTokenType.EndObject -> acc
+        | JsonTokenType.PropertyName ->
+            let key = reader.GetString()
+            let value = JsonSerializer.Deserialize<'V>(&reader, options)
+            read (Map.add key value acc) &reader options
+        | _ ->
+            fail "JSON field" &reader ty
+
+    override __.Read(reader, _typeToConvert, options) =
+        expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
+        read Map.empty &reader options
+
+    override __.Write(writer, value, options) =
+        writer.WriteStartObject()
+        for kv in value do
+            writer.WritePropertyName(kv.Key)
+            JsonSerializer.Serialize<'V>(writer, kv.Value, options)
+        writer.WriteEndObject()
+
+type JsonMapConverter<'K, 'V when 'K : comparison>() =
+    inherit JsonConverter<Map<'K, 'V>>()
+
+    let ty = typeof<Map<'K, 'V>>
+
+    let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) options =
+        if not (reader.Read()) then acc else
+        match reader.TokenType with
+        | JsonTokenType.EndArray -> acc
+        | JsonTokenType.StartArray ->
+            reader.Read() |> ignore
+            let key = JsonSerializer.Deserialize<'K>(&reader, options)
+            reader.Read() |> ignore
+            let value = JsonSerializer.Deserialize<'V>(&reader, options)
+            readExpecting JsonTokenType.EndArray "JSON array" &reader ty
+            read (Map.add key value acc) &reader options
+        | _ ->
+            fail "JSON array" &reader ty
+
+    override __.Read(reader, _typeToConvert, options) =
+        expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader ty
+        read Map.empty &reader options
+
+    override __.Write(writer, value, options) =
+        writer.WriteStartArray()
+        for kv in value do
+            writer.WriteStartArray()
+            JsonSerializer.Serialize<'K>(writer, kv.Key, options)
+            JsonSerializer.Serialize<'V>(writer, kv.Value, options)
+            writer.WriteEndArray()
+        writer.WriteEndArray()
+
+type JsonMapConverter() =
+    inherit JsonConverterFactory()
+
+    static member internal CanConvert(typeToConvert: Type) =
+        TypeCache.isMap typeToConvert
+
+    static member internal CreateConverter(typeToConvert: Type) =
+        let genArgs = typeToConvert.GetGenericArguments()
+        let ty =
+            if genArgs.[0] = typeof<string> then
+                typedefof<JsonStringMapConverter<_>>
+                    .MakeGenericType([|genArgs.[1]|])
+            else
+                typedefof<JsonMapConverter<_,_>>
+                    .MakeGenericType(genArgs)
+        ty.GetConstructor([||])
+            .Invoke([||])
+        :?> JsonConverter
+
+    override __.CanConvert(typeToConvert) =
+        JsonMapConverter.CanConvert(typeToConvert)
+
+    override __.CreateConverter(typeToConvert, _options) =
+        JsonMapConverter.CreateConverter(typeToConvert)

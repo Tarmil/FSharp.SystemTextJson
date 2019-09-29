@@ -5,6 +5,7 @@ open System.Reflection
 open System.Text.Json
 open FSharp.Reflection
 open System.Runtime.InteropServices
+open System.Text.Json.Serialization.Helpers
 
 type JsonUnionEncoding =
 
@@ -149,35 +150,17 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
                 i <- i + 1
         found
 
-    static let fail expected (reader: byref<Utf8JsonReader>) =
-        sprintf "Failed to parse union type %s: expected %s, found %A"
-            ty.FullName expected reader.TokenType
-        |> JsonException
-        |> raise
-
-    static let expectAlreadyRead expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>) =
-        if reader.TokenType <> expectedTokenType then
-            fail expectedLabel &reader
-
-    static let readExpecting expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>) =
-        if not (reader.Read()) || reader.TokenType <> expectedTokenType then
-            fail expectedLabel &reader
-
-    static let readExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) =
-        if not (reader.Read()) || reader.TokenType <> JsonTokenType.PropertyName || not (reader.ValueTextEquals expectedPropertyName) then
-            fail ("\"" + expectedPropertyName + "\"") &reader
-
     static let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.zeroCreate fieldCount
         for i in 0..fieldCount-1 do
             reader.Read() |> ignore
             fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].PropertyType, options)
-        readExpecting JsonTokenType.EndArray "end of array" &reader
+        readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
     
     static let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
-        readExpecting JsonTokenType.StartArray "array" &reader
+        readExpecting JsonTokenType.StartArray "array" &reader ty
         readFieldsAsRestOfArray &reader case options
 
     static let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
@@ -205,7 +188,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
         case.Ctor fields :?> 'T
 
     static let readFieldsAsObject (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
-        readExpecting JsonTokenType.StartObject "object" &reader
+        readExpecting JsonTokenType.StartObject "object" &reader ty
         readFieldsAsRestOfObject &reader case false options
 
     let readFields (reader: byref<Utf8JsonReader>) case options =
@@ -215,42 +198,42 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
             readFieldsAsArray &reader case options
 
     let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        expectAlreadyRead JsonTokenType.StartObject "object" &reader
-        readExpectingPropertyNamed "Case" &reader
-        readExpecting JsonTokenType.String "case name" &reader
+        expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
+        readExpectingPropertyNamed "Case" &reader ty
+        readExpecting JsonTokenType.String "case name" &reader ty
         let case = getCaseByTag &reader
         let res =
             if case.Fields.Length > 0 then
-                readExpectingPropertyNamed "Fields" &reader
+                readExpectingPropertyNamed "Fields" &reader ty
                 readFields &reader case options
             else
                 case.Ctor [||] :?> 'T
-        readExpecting JsonTokenType.EndObject "end of object" &reader
+        readExpecting JsonTokenType.EndObject "end of object" &reader ty
         res
 
     let readExternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        expectAlreadyRead JsonTokenType.StartObject "object" &reader
-        readExpecting JsonTokenType.PropertyName "case name" &reader
+        expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
+        readExpecting JsonTokenType.PropertyName "case name" &reader ty
         let case = getCaseByTag &reader
         let res = readFields &reader case options
-        readExpecting JsonTokenType.EndObject "end of object" &reader
+        readExpecting JsonTokenType.EndObject "end of object" &reader ty
         res
 
     let readInternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if namedFields then
-            expectAlreadyRead JsonTokenType.StartObject "object" &reader
-            readExpectingPropertyNamed "Case" &reader
-            readExpecting JsonTokenType.String "case name" &reader
+            expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
+            readExpectingPropertyNamed "Case" &reader ty
+            readExpecting JsonTokenType.String "case name" &reader ty
             let case = getCaseByTag &reader
             readFieldsAsRestOfObject &reader case false options
         else
-            expectAlreadyRead JsonTokenType.StartArray "array" &reader
-            readExpecting JsonTokenType.String "case name" &reader
+            expectAlreadyRead JsonTokenType.StartArray "array" &reader ty
+            readExpecting JsonTokenType.String "case name" &reader ty
             let case = getCaseByTag &reader
             readFieldsAsRestOfArray &reader case options
 
     let readUntagged (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        expectAlreadyRead JsonTokenType.StartObject "object" &reader
+        expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
         reader.Read() |> ignore
         match reader.TokenType with
         | JsonTokenType.PropertyName ->
@@ -259,9 +242,9 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
         | JsonTokenType.EndObject ->
             match fieldlessCase with
             | ValueSome case -> case.Ctor [||] :?> 'T
-            | ValueNone -> fail "case field" &reader
+            | ValueNone -> fail "case field" &reader ty
         | _ ->
-            fail "case field" &reader
+            fail "case field" &reader ty
 
     static let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         for field in case.Dector value do
