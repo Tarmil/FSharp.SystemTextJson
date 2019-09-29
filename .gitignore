@@ -1,7 +1,6 @@
 ﻿.paket/*
 !.paket/Paket.Restore.targets
 !.paket/paket.bootstrapper.proj
-!.paket/paket.bootstrapper.props
 paket-files/
 .fake/*
 **/[Oo]bj/
