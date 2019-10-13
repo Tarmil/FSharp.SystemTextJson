@@ -47,6 +47,8 @@ type JsonUnionEncoding =
     | ThothLike         = 0x02_04
 
 
+type JsonUnionInternalTagName = string
+
 type private Case =
     {
         Info: UnionCaseInfo
@@ -55,7 +57,7 @@ type private Case =
         Dector: obj -> obj[]
     }
 
-type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
+type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, internalTagName: JsonUnionInternalTagName) =
     inherit JsonConverter<'T>()
 
     let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
@@ -103,9 +105,9 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
                 if hasDuplicateFieldNames then
                     foundFieldNames
                 else
-                    if foundFieldNames |> Map.containsKey fieldName then
-                        hasDuplicateFieldNames <- true
-                    Map.add fieldName case foundFieldNames)
+                if foundFieldNames |> Map.containsKey fieldName then
+                    hasDuplicateFieldNames <- true
+                Map.add fieldName case foundFieldNames)
         let fields = [| for KeyValue(k, v) in fields -> struct (k, v) |]
         not hasDuplicateFieldNames, fieldlessCase, fields
 
@@ -158,7 +160,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
             fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].PropertyType, options)
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
-    
+
     static let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         readExpecting JsonTokenType.StartArray "array" &reader ty
         readFieldsAsRestOfArray &reader case options
@@ -199,7 +201,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
 
     let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-        readExpectingPropertyNamed "Case" &reader ty
+        readExpectingPropertyNamed internalTagName &reader ty
         readExpecting JsonTokenType.String "case name" &reader ty
         let case = getCaseByTag &reader
         let res =
@@ -222,7 +224,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
     let readInternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if namedFields then
             expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-            readExpectingPropertyNamed "Case" &reader ty
+            readExpectingPropertyNamed internalTagName &reader ty
             readExpecting JsonTokenType.String "case name" &reader ty
             let case = getCaseByTag &reader
             readFieldsAsRestOfObject &reader case false options
@@ -275,7 +277,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
 
     let writeAdjacentTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WriteString("Case", case.Info.Name)
+        writer.WriteString(internalTagName, case.Info.Name)
         if case.Fields.Length > 0 then
             writer.WritePropertyName("Fields")
             writeFields writer case value options
@@ -290,7 +292,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
     let writeInternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         if namedFields then
             writer.WriteStartObject()
-            writer.WriteString("Case", case.Info.Name)
+            writer.WriteString(internalTagName, case.Info.Name)
             writeFieldsAsRestOfObject writer case value options
         else
             writer.WriteStartArray()
@@ -338,25 +340,28 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding) =
 type JsonUnionConverter
     (
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
-        encoding: JsonUnionEncoding
+        encoding: JsonUnionEncoding,
+        [<Optional; DefaultParameterValue("Case")>]
+        internalTagName: JsonUnionInternalTagName
     ) =
     inherit JsonConverterFactory()
 
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let jsonUnionEncodingTy = typeof<JsonUnionEncoding>
+    static let internalTagNameTy = typeof<JsonUnionInternalTagName>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
 
-    static member internal CreateConverter(typeToConvert, encoding: JsonUnionEncoding) =
+    static member internal CreateConverter(typeToConvert, encoding: JsonUnionEncoding, internalTagName: JsonUnionInternalTagName) =
         jsonUnionConverterTy
             .MakeGenericType([|typeToConvert|])
-            .GetConstructor([|jsonUnionEncodingTy|])
-            .Invoke([|encoding|])
+            .GetConstructor([|jsonUnionEncodingTy; internalTagNameTy|])
+            .Invoke([|encoding; internalTagName|])
         :?> JsonConverter
 
     override this.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
     override this.CreateConverter(typeToConvert, _options) =
-        JsonUnionConverter.CreateConverter(typeToConvert, encoding)
+        JsonUnionConverter.CreateConverter(typeToConvert, encoding, internalTagName)
