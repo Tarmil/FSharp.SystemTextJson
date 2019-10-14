@@ -306,8 +306,8 @@ Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/3), [is
 
 * Does FSharp.SystemTextJson allocate memory?
 
-As little as possible, but unfortunately the `FSharp.Reflection` API it uses requires some allocations. In particular, an array is allocated for as many items as the record fields or union arguments, and structs are boxed. There is [work in progress](https://github.com/Tarmil/FSharp.SystemTextJson/pull/15) to improve this.
+As little as possible, but unfortunately the `FSharp.Reflection` API requires some allocations. In particular, an array is allocated for as many items as the record fields or union arguments, and structs are boxed. There is [work in progress](https://github.com/Tarmil/FSharp.SystemTextJson/pull/15) to improve this.
 
-* Are there any benchmarks, eg. against Newtonsoft.Json?
+* Are there any benchmarks, e.g. against Newtonsoft.Json?
 
 [Yes!](https://github.com/Tarmil/FSharp.SystemTextJson/pull/11)
