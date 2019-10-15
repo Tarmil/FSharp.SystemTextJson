@@ -8,7 +8,7 @@ type JsonFSharpConverter
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
         unionEncoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue("Case")>]
-        unionInternalTagName: JsonUnionInternalTagName
+        unionTagName: JsonUnionTagName
     ) =
     inherit JsonConverterFactory()
 
@@ -20,7 +20,7 @@ type JsonFSharpConverter
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    static member internal CreateConverter(typeToConvert, unionEncoding, unionInternalTagName) =
+    static member internal CreateConverter(typeToConvert, unionEncoding, unionTagName) =
         if JsonListConverter.CanConvert(typeToConvert) then
             JsonListConverter.CreateConverter(typeToConvert)
         elif JsonSetConverter.CanConvert(typeToConvert) then
@@ -32,12 +32,12 @@ type JsonFSharpConverter
         elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
-            JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding, unionInternalTagName)
+            JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
     override this.CreateConverter(typeToConvert, _options) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionInternalTagName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute
@@ -45,9 +45,9 @@ type JsonFSharpConverterAttribute
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
         unionEncoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue("Case")>]
-        unionInternalTagName: JsonUnionInternalTagName
+        unionTagName: JsonUnionTagName
     ) =
     inherit JsonConverterAttribute()
 
     override __.CreateConverter(typeToConvert) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionInternalTagName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
