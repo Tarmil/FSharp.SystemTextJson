@@ -180,11 +180,30 @@ options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| Jso
 type MyUnion = // ...
 ```
 
+Some of the encoding styles for Unions write their union case name to a configurable tag. To configure this, `JsonFSharpConverter` accepts an argument called `unionTagName`. This tag defaults to `"Case"`, and can be configured like so:
+
+```fsharp
+// Using options:
+let options = JsonSerializerOptions()
+options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields, "alternative-case-tag"))
+
+// Using attributes:
+[<JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields, "alternative-case-tag")>]
+type MyUnion = // ...
+```
+
+Note that when using the default `JsonUnionEncoding`, `unionTagName` needs to be passed by key, rather than by position, e.g.:
+
+``` fsharp
+[<JsonFSharpConverter(unionTagName="alternative-case-tag")>]
+type MyUnion = // ...
+```
+
 Here are the possible values:
 
 * `JsonUnionEncoding.AdjacentTag` is the default format. It represents unions as a JSON object with two fields:
 
-    * `"Case"`: a string whose value is the name of the union case.
+    * A tag, defaulting to `"Case"`: a string whose value is the name of the union case.
     * `"Fields"`: an array whose items are the arguments of the union case. This field is absent if the union case has no arguments.
 
     This is the same format used by Newtonsoft.Json.
@@ -245,7 +264,7 @@ Here are the possible values:
     // --> ["WithArgs",123,"Hello world!"]
     ```
 
-* `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` represents unions as an object whose first field has name `"Case"` and value the name of the case, and the rest of the fields have the names and values of the arguments.
+* `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` represents unions as an object whose first field is `unionTagName` (defaulting to  `"Case"`), and whose value is the name of the case. The rest of the fields have the names and values of the arguments.
 
     ```fsharp
     JsonSerializer.Serialize(NoArgs, options)

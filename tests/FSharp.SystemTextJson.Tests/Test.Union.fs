@@ -149,6 +149,21 @@ module NonStruct =
         Assert.Equal("""{"Case":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsOptions))
 
+    let internalTagNamedFieldsConfiguredTagOptions = JsonSerializerOptions()
+    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, "type"))
+
+    [<Fact>]
+    let ``deserialize InternalTag NamedFields alternative Tag`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","Item":32}""", internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","x":"test","Item2":true}""", internalTagNamedFieldsConfiguredTagOptions))
+
+    [<Fact>]
+    let ``serialize InternalTag NamedFields alternative Tag`` () =
+        Assert.Equal("""{"type":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal("""{"type":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
+
     let bareFieldlessTagsOptions = JsonSerializerOptions()
     bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
 
@@ -296,6 +311,21 @@ module Struct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsOptions))
+
+    let internalTagNamedFieldsConfiguredTagOptions = JsonSerializerOptions()
+    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, "type"))
+
+    [<Fact>]
+    let ``deserialize InternalTag NamedFields alternative Tag`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","Item":32}""", internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","x":"test","Item2":true}""", internalTagNamedFieldsConfiguredTagOptions))
+
+    [<Fact>]
+    let ``serialize InternalTag NamedFields alternative Tag`` () =
+        Assert.Equal("""{"type":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal("""{"type":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
 
     let bareFieldlessTagsOptions = JsonSerializerOptions()
     bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
