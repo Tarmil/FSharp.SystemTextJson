@@ -22,6 +22,12 @@ type TestRecord =
       thing: bool option
       time: System.DateTimeOffset }
 
+[<Struct>]
+type TestStructRecord = 
+    { name: string
+      thing: bool voption
+      time: System.DateTimeOffset }
+
 type SimpleClass() =
     member val Name: string = null with get, set
     member val Thing: bool option = None with get, set
@@ -34,22 +40,31 @@ type ArrayTestBase<'t>(instance: 't) =
         options
 
 
-    [<Params(10,100)>]
+    [<Params(10,100,1000)>]
     member val ArrayLength = 0 with get, set
     
     member val InstanceArray = [||] with get, set
+
+    member val Serialized = "" with get, set
     
     [<GlobalSetup>]
     member this.InitArray () = 
         this.InstanceArray <- Array.replicate this.ArrayLength instance
+        this.Serialized <- this.InstanceArray |> JsonConvert.SerializeObject
 
     [<Benchmark>]
-    member this.Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray
+    member this.Serialize_Newtonsoft () = JsonConvert.SerializeObject this.InstanceArray
 
     [<Benchmark>]
-    member this.SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions)
+    member this.Serialize_SystemTextJson () = System.Text.Json.JsonSerializer.Serialize(this.InstanceArray, systemTextOptions)
 
-let recordInstance = 
+    [<Benchmark>]
+    member this.Deserialize_Newtonsoft () = JsonConvert.DeserializeObject<'t[]> this.Serialized
+
+    [<Benchmark>]
+    member this.Deserialize_SystemTextJson () = System.Text.Json.JsonSerializer.Deserialize<'t[]>(this.Serialized, systemTextOptions)
+
+let recordInstance : TestRecord = 
     { name = "sample"
       thing = Some true
       time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
@@ -57,6 +72,14 @@ let recordInstance =
 
 type Records () =
     inherit ArrayTestBase<TestRecord>(recordInstance)
+
+let recordStructInstance : TestStructRecord = 
+    { name = "sample"
+      thing = ValueSome true
+      time = System.DateTimeOffset.UnixEpoch.AddDays(200.) }
+
+type StructRecords () =
+    inherit ArrayTestBase<TestStructRecord>(recordStructInstance)
 
 type Classes() =
     inherit ArrayTestBase<SimpleClass>(SimpleClass(Name = "sample", Thing = Some true, Time = DateTimeOffset.UnixEpoch.AddDays(200.)))
@@ -97,7 +120,7 @@ let config =
             .With(ExecutionValidator.FailOnError)
 
 let defaultSwitch () =
-    BenchmarkSwitcher([| typeof<Records>; typeof<Classes>; typeof<ReflectionComparison> |])
+    BenchmarkSwitcher([| typeof<Records>; typeof<StructRecords>; typeof<Classes>; typeof<ReflectionComparison> |])
 
 
 [<EntryPoint>]

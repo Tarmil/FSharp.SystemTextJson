@@ -25,7 +25,7 @@ module NonStruct =
 
     type B =
         {
-            bx: int
+            bx: uint32
             by: string
         }
 
@@ -35,11 +35,11 @@ module NonStruct =
     [<Fact>]
     let ``deserialize via options`` () =
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":"b"}""", options)
-        Assert.Equal({bx=1;by="b"}, actual)
+        Assert.Equal({bx=1u;by="b"}, actual)
 
     [<Fact>]
     let ``serialize via options`` () =
-        let actual = JsonSerializer.Serialize({bx=1;by="b"}, options)
+        let actual = JsonSerializer.Serialize({bx=1u;by="b"}, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
 
     type C =
@@ -50,7 +50,7 @@ module NonStruct =
     [<Fact>]
     let ``deserialize nested`` () =
         let actual = JsonSerializer.Deserialize("""{"cx":{"bx":1,"by":"b"}}""", options)
-        Assert.Equal({cx={bx=1;by="b"}}, actual)
+        Assert.Equal({cx={bx=1u;by="b"}}, actual)
 
     [<Fact>]
     let ``deserialize anonymous`` () =

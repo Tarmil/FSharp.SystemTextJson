@@ -73,13 +73,19 @@ Target.create "Test" (fun _ ->
 
 /// This target doesn't need a dependency chain, because the benchmarks actually wrap and build the referenced
 /// project(s) as part of the run.
-Target.create "Benchmark" (fun _ ->
-    DotNet.exec (fun o -> { o with 
-                                WorkingDirectory = Paths.benchmarks } ) "run" "-c release --filter \"*\""
+Target.create "Benchmark" (fun p ->
+    let args = p.Context.Arguments
+    seq {
+        yield! ["-p"; Paths.benchmarks; "-c"; "release"; "--"]
+        if not (List.contains "-f" args || List.contains "--filter" args) then
+            yield! ["--filter"; "*"]
+        yield! args
+    }
+    |> Args.toWindowsCommandLine
+    |> DotNet.exec id "run"
     |> fun r -> 
-        if r.OK 
-        then () 
-        else failwithf "Benchmarks failed with code %d:\n%A" r.ExitCode r.Errors
+        if not r.OK then
+            failwithf "Benchmarks failed with code %d:\n%A" r.ExitCode r.Errors
 )
 
 Target.create "All" ignore
