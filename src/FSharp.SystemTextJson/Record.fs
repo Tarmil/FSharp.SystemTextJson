@@ -3,6 +3,7 @@
 open System
 open System.Text.Json
 open FSharp.Reflection
+open System.Text.Json.Serialization.Helpers
 
 type internal RecordProperty =
     {
@@ -28,6 +29,7 @@ type JsonRecordConverter<'T>() =
             { Name = name; Type = p.PropertyType; Ignore = ignore }
         )
 
+    static let fieldCount = fieldProps.Length
     static let expectedFieldCount =
         fieldProps
         |> Seq.filter (fun p -> not p.Ignore)
@@ -40,9 +42,9 @@ type JsonRecordConverter<'T>() =
     static let fieldIndex (reader: byref<Utf8JsonReader>) =
         let mutable found = ValueNone
         let mutable i = 0
-        while found.IsNone && i < fieldProps.Length do
+        while found.IsNone && i < fieldCount do
             let p = fieldProps.[i]
-            if reader.ValueTextEquals(p.Name.AsSpan()) then
+            if reader.ValueTextEquals(p.Name) then
                 found <- ValueSome (struct (i, p))
             else
                 i <- i + 1
@@ -52,7 +54,7 @@ type JsonRecordConverter<'T>() =
         if reader.TokenType <> JsonTokenType.StartObject then
             raise (JsonException("Failed to parse record type " + typeToConvert.FullName + ", expected JSON object, found " + string reader.TokenType))
 
-        let fields = Array.zeroCreate fieldProps.Length
+        let fields = Array.zeroCreate fieldCount
         let mutable cont = true
         let mutable fieldsFound = 0
         while cont && reader.Read() do
@@ -68,7 +70,7 @@ type JsonRecordConverter<'T>() =
                     reader.Skip()
             | _ -> ()
 
-        if fieldsFound < expectedFieldCount then
+        if fieldsFound < expectedFieldCount && not options.IgnoreNullValues then
             raise (JsonException("Missing field for record type " + typeToConvert.FullName))
         ctor fields :?> 'T
 
@@ -76,7 +78,7 @@ type JsonRecordConverter<'T>() =
         writer.WriteStartObject()
         (fieldProps, dector value)
         ||> Array.iter2 (fun p v ->
-            if not p.Ignore then
+            if not p.Ignore && not (options.IgnoreNullValues && isNull v) then
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, options))
         writer.WriteEndObject()

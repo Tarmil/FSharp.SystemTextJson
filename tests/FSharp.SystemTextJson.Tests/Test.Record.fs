@@ -94,6 +94,28 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({unignoredX = 1; ignoredY = "b"}, options)
         Assert.Equal("""{"unignoredX":1}""", actual)
 
+    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
+    ignoreNullOptions.Converters.Add(JsonFSharpConverter())
+
+    [<AllowNullLiteral>]
+    type Cls() = class end
+
+    type RecordWithNullableField =
+        {
+            cls: Cls
+            y: int
+        }
+
+    [<Fact>]
+    let ``deserialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Deserialize("""{"y":1}""", ignoreNullOptions)
+        Assert.Equal({cls = null; y = 1}, actual)
+
+    [<Fact>]
+    let ``serialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Serialize({cls = null; y = 1}, ignoreNullOptions)
+        Assert.Equal("""{"y":1}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -187,3 +209,26 @@ module Struct =
     let ``serialize with JsonIgnore`` () =
         let actual = JsonSerializer.Serialize({unignoredX = 1; ignoredY = "b"}, options)
         Assert.Equal("""{"unignoredX":1}""", actual)
+
+    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
+    ignoreNullOptions.Converters.Add(JsonFSharpConverter())
+
+    [<AllowNullLiteral>]
+    type Cls() = class end
+
+    [<Struct>]
+    type RecordWithNullableField =
+        {
+            cls: Cls
+            y: int
+        }
+
+    [<Fact>]
+    let ``deserialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Deserialize("""{"y":1}""", ignoreNullOptions)
+        Assert.Equal({cls = null; y = 1}, actual)
+
+    [<Fact>]
+    let ``serialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Serialize({cls = null; y = 1}, ignoreNullOptions)
+        Assert.Equal("""{"y":1}""", actual)
