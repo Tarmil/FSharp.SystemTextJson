@@ -7,11 +7,11 @@ open System.Text.Json.Serialization.Helpers
 type JsonListConverter<'T>() =
     inherit JsonConverter<list<'T>>()
 
-    override __.Read(reader, _typeToConvert, options) =
+    override _.Read(reader, _typeToConvert, options) =
         JsonSerializer.Deserialize<'T[]>(&reader, options)
         |> List.ofArray
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
 type JsonListConverter() =
@@ -27,10 +27,10 @@ type JsonListConverter() =
             .Invoke([||])
         :?> JsonConverter
 
-    override __.CanConvert(typeToConvert) =
+    override _.CanConvert(typeToConvert) =
         JsonListConverter.CanConvert(typeToConvert)
 
-    override __.CreateConverter(typeToConvert, _options) =
+    override _.CreateConverter(typeToConvert, _options) =
         JsonListConverter.CreateConverter(typeToConvert)
 
 type JsonSetConverter<'T when 'T : comparison>() =
@@ -44,11 +44,11 @@ type JsonSetConverter<'T when 'T : comparison>() =
             let elt = JsonSerializer.Deserialize<'T>(&reader, options)
             read (Set.add elt acc) &reader options
 
-    override __.Read(reader, typeToConvert, options) =
+    override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
         read Set.empty &reader options
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
 type JsonSetConverter() =
@@ -64,10 +64,10 @@ type JsonSetConverter() =
             .Invoke([||])
         :?> JsonConverter
 
-    override __.CanConvert(typeToConvert) =
+    override _.CanConvert(typeToConvert) =
         JsonSetConverter.CanConvert(typeToConvert)
 
-    override __.CreateConverter(typeToConvert, _options) =
+    override _.CreateConverter(typeToConvert, _options) =
         JsonSetConverter.CreateConverter(typeToConvert)
 
 type JsonStringMapConverter<'V>() =
@@ -86,11 +86,11 @@ type JsonStringMapConverter<'V>() =
         | _ ->
             fail "JSON field" &reader ty
 
-    override __.Read(reader, _typeToConvert, options) =
+    override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
         read Map.empty &reader options
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         writer.WriteStartObject()
         for kv in value do
             writer.WritePropertyName(kv.Key)
@@ -116,11 +116,11 @@ type JsonMapConverter<'K, 'V when 'K : comparison>() =
         | _ ->
             fail "JSON array" &reader ty
 
-    override __.Read(reader, _typeToConvert, options) =
+    override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader ty
         read Map.empty &reader options
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         writer.WriteStartArray()
         for kv in value do
             writer.WriteStartArray()
@@ -148,8 +148,8 @@ type JsonMapConverter() =
             .Invoke([||])
         :?> JsonConverter
 
-    override __.CanConvert(typeToConvert) =
+    override _.CanConvert(typeToConvert) =
         JsonMapConverter.CanConvert(typeToConvert)
 
-    override __.CreateConverter(typeToConvert, _options) =
+    override _.CreateConverter(typeToConvert, _options) =
         JsonMapConverter.CreateConverter(typeToConvert)

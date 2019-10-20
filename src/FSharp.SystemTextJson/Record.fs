@@ -48,7 +48,7 @@ type JsonRecordConverter<'T>() =
                 i <- i + 1
         found
 
-    override __.Read(reader, typeToConvert, options) =
+    override _.Read(reader, typeToConvert, options) =
         if reader.TokenType <> JsonTokenType.StartObject then
             raise (JsonException("Failed to parse record type " + typeToConvert.FullName + ", expected JSON object, found " + string reader.TokenType))
 
@@ -72,7 +72,7 @@ type JsonRecordConverter<'T>() =
             raise (JsonException("Missing field for record type " + typeToConvert.FullName))
         ctor fields :?> 'T
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         writer.WriteStartObject()
         (fieldProps, dector value)
         ||> Array.iter2 (fun p v ->
@@ -94,8 +94,8 @@ type JsonRecordConverter() =
             .Invoke([||])
         :?> JsonConverter
 
-    override __.CanConvert(typeToConvert) =
+    override _.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
-    override __.CreateConverter(typeToConvert, _options) =
+    override _.CreateConverter(typeToConvert, _options) =
         JsonRecordConverter.CreateConverter(typeToConvert)

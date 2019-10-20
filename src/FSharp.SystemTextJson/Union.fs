@@ -308,7 +308,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
     let writeUntagged (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writeFieldsAsObject writer case value options
 
-    override __.Read(reader, _typeToConvert, options) =
+    override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
         | JsonTokenType.Null when usesNull ->
             (null : obj) :?> 'T
@@ -327,7 +327,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
                 readUntagged &reader options
             | _ -> raise (JsonException("Invalid union encoding: " + string encoding))
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         let value = box value
         if isNull value then writer.WriteNullValue() else
 
@@ -346,12 +346,12 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
 type JsonSuccintOptionConverter<'T>() =
     inherit JsonConverter<option<'T>>()
 
-    override __.Read(reader, _typeToConvert, options) =
+    override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
         | JsonTokenType.Null -> None
         | _ -> Some <| JsonSerializer.Deserialize<'T>(&reader, options)
 
-    override __.Write(writer, value, options) =
+    override _.Write(writer, value, options) =
         match value with
         | None -> writer.WriteNullValue()
         | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
@@ -390,8 +390,8 @@ type JsonUnionConverter
                 .Invoke([|encoding; internalTagName|])
             :?> JsonConverter
 
-    override this.CanConvert(typeToConvert) =
+    override _.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    override this.CreateConverter(typeToConvert, _options) =
+    override _.CreateConverter(typeToConvert, _options) =
         JsonUnionConverter.CreateConverter(typeToConvert, encoding, unionTagName)

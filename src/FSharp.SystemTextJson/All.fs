@@ -12,7 +12,7 @@ type JsonFSharpConverter
     ) =
     inherit JsonConverterFactory()
 
-    override this.CanConvert(typeToConvert) =
+    override _.CanConvert(typeToConvert) =
         JsonListConverter.CanConvert(typeToConvert) ||
         JsonSetConverter.CanConvert(typeToConvert) ||
         JsonMapConverter.CanConvert(typeToConvert) ||
@@ -36,7 +36,7 @@ type JsonFSharpConverter
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
-    override this.CreateConverter(typeToConvert, _options) =
+    override _.CreateConverter(typeToConvert, _options) =
         JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
@@ -49,5 +49,5 @@ type JsonFSharpConverterAttribute
     ) =
     inherit JsonConverterAttribute()
 
-    override __.CreateConverter(typeToConvert) =
+    override _.CreateConverter(typeToConvert) =
         JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
