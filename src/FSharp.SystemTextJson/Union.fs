@@ -46,6 +46,7 @@ type JsonUnionEncoding =
     | Default           = 0x00_01
     | NewtonsoftLike    = 0x00_01
     | ThothLike         = 0x02_04
+    | FSharpLuLike      = 0x02_02
 
 
 type JsonUnionTagName = string
