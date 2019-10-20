@@ -297,6 +297,16 @@ Here are the possible values:
 
 Union cases that are represented as `null` in .NET using `CompilationRepresentationFlags.UseNullAsTrueValue`, such as `Option.None`, are serialized as `null`.
 
+### Options
+
+By default, the type `'T option` is treated specially.
+
+* The value `None`, as mentioned above, is represented as `null`.
+
+* The value `Some x` is represented the same as `x`, without wrapping it in the union representation for `Some`.
+
+When using a custom `JsonUnionEncoding`, this behavior is enabled by or-ing `||| JsonUnionEncoding.SuccintOption`.
+
 ## FAQ
 
 * Does FSharp.SystemTextJson support struct records and unions?
@@ -313,7 +323,8 @@ Yes!
 
 * Does FSharp.SystemTextJson support representing `'T option` as either just `'T` or `null` (or an absent field)?
 
-Not yet: `None` is represented as `null`, but `Some` is represented like any other union case. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/16))
+Yes! Starting with v0.6, this is the default behavior.
+To supersede it, use an explicit `JsonUnionEncoding` that does not include `SuccintOption`.
 
 * Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute` on record fields?
 

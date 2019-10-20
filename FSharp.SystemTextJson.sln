@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{CB1D50
 		build.fsx = build.fsx
 		CHANGELOG.md = CHANGELOG.md
 		paket.dependencies = paket.dependencies
+		README.md = README.md
 		version.json = version.json
 	EndProjectSection
 EndProject

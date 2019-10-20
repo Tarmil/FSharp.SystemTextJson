@@ -164,6 +164,18 @@ module NonStruct =
         Assert.Equal("""{"type":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
 
+    type O = { x: option<int> }
+
+    [<Fact>]
+    let ``deserialize SuccintOption`` () =
+        Assert.Equal("""{"x":123}""", JsonSerializer.Serialize({x=Some 123}, options))
+        Assert.Equal("""{"x":null}""", JsonSerializer.Serialize({x=None}, options))
+
+    [<Fact>]
+    let ``serialize SuccintOption`` () =
+        Assert.Equal({x=Some 123}, JsonSerializer.Deserialize("""{"x":123}""", options))
+        Assert.Equal({x=None}, JsonSerializer.Deserialize("""{"x":null}""", options))
+
     let bareFieldlessTagsOptions = JsonSerializerOptions()
     bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
 

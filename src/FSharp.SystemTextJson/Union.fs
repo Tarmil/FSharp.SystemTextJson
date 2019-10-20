@@ -40,13 +40,17 @@ type JsonUnionEncoding =
     /// If set, union cases that don't have fields are encoded as a bare string.
     | BareFieldlessTags = 0x02_00
 
+    /// If set, `None` is represented as null,
+    /// and `Some x`  is represented the same as `x`.
+    | SuccintOption     = 0x04_00
+
 
     //// Specific formats
 
-    | Default           = 0x00_01
+    | Default           = 0x04_01
     | NewtonsoftLike    = 0x00_01
     | ThothLike         = 0x02_04
-    | FSharpLuLike      = 0x02_02
+    | FSharpLuLike      = 0x06_02
 
 
 type JsonUnionTagName = string
@@ -339,6 +343,19 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         | UntaggedBit -> writeUntagged writer case value options
         | _ -> raise (JsonException("Invalid union encoding: " + string encoding))
 
+type JsonSuccintOptionConverter<'T>() =
+    inherit JsonConverter<option<'T>>()
+
+    override __.Read(reader, _typeToConvert, options) =
+        match reader.TokenType with
+        | JsonTokenType.Null -> None
+        | _ -> Some <| JsonSerializer.Deserialize<'T>(&reader, options)
+
+    override __.Write(writer, value, options) =
+        match value with
+        | None -> writer.WriteNullValue()
+        | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
+
 type JsonUnionConverter
     (
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
@@ -351,16 +368,27 @@ type JsonUnionConverter
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let jsonUnionEncodingTy = typeof<JsonUnionEncoding>
     static let unionTagNameTy = typeof<JsonUnionTagName>
+    static let optionTy = typedefof<option<_>>
+    static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
 
-    static member internal CreateConverter(typeToConvert, encoding: JsonUnionEncoding, internalTagName: JsonUnionTagName) =
-        jsonUnionConverterTy
-            .MakeGenericType([|typeToConvert|])
-            .GetConstructor([|jsonUnionEncodingTy; unionTagNameTy|])
-            .Invoke([|encoding; internalTagName|])
-        :?> JsonConverter
+    static member internal CreateConverter(typeToConvert: Type, encoding: JsonUnionEncoding, internalTagName: JsonUnionTagName) =
+        if encoding.HasFlag JsonUnionEncoding.SuccintOption
+            && typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() = optionTy then
+            jsonSuccintOptionConverterTy
+                .MakeGenericType(typeToConvert.GetGenericArguments())
+                .GetConstructor([||])
+                .Invoke([||])
+            :?> JsonConverter
+        else
+            jsonUnionConverterTy
+                .MakeGenericType([|typeToConvert|])
+                .GetConstructor([|jsonUnionEncodingTy; unionTagNameTy|])
+                .Invoke([|encoding; internalTagName|])
+            :?> JsonConverter
 
     override this.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
