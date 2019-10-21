@@ -164,6 +164,21 @@ module NonStruct =
         Assert.Equal("""{"type":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
 
+    let adjacentTagNamedFieldsConfiguredFieldsOptions = JsonSerializerOptions()
+    adjacentTagNamedFieldsConfiguredFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag, "type", "args"))
+
+    [<Fact>]
+    let ``deserialize AdjacentTag NamedFields alternative Fields`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","args":[32]}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","args":["test",true]}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
+
+    [<Fact>]
+    let ``serialize AdjacentTag NamedFields alternative Fields`` () =
+        Assert.Equal("""{"type":"Ba"}""", JsonSerializer.Serialize(Ba, adjacentTagNamedFieldsConfiguredFieldsOptions))
+        Assert.Equal("""{"type":"Bb","args":[32]}""", JsonSerializer.Serialize(Bb 32, adjacentTagNamedFieldsConfiguredFieldsOptions))
+        Assert.Equal("""{"type":"Bc","args":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsConfiguredFieldsOptions))
+
     type O = { o: option<int> }
 
     [<Fact>]
@@ -352,6 +367,21 @@ module Struct =
         Assert.Equal("""{"type":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal("""{"type":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
+
+    let adjacentTagConfiguredFieldsOptions = JsonSerializerOptions()
+    adjacentTagConfiguredFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag, "type", "args"))
+
+    [<Fact>]
+    let ``deserialize AdjacentTag NamedFields alternative Fields`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", adjacentTagConfiguredFieldsOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","args":[32]}""", adjacentTagConfiguredFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","args":["test",true]}""", adjacentTagConfiguredFieldsOptions))
+
+    [<Fact>]
+    let ``serialize AdjacentTag NamedFields alternative Fields`` () =
+        Assert.Equal("""{"type":"Ba"}""", JsonSerializer.Serialize(Ba, adjacentTagConfiguredFieldsOptions))
+        Assert.Equal("""{"type":"Bb","args":[32]}""", JsonSerializer.Serialize(Bb 32, adjacentTagConfiguredFieldsOptions))
+        Assert.Equal("""{"type":"Bc","args":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), adjacentTagConfiguredFieldsOptions))
 
     let bareFieldlessTagsOptions = JsonSerializerOptions()
     bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))

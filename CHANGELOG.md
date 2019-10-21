@@ -2,7 +2,7 @@
 
 ## 0.6
 
-* Add `unionTagName` option to customize the `"Case"` tag for unions.
+* Add `unionTagName` and `unionFieldsName` option to customize the `"Case"` and `"Fields"` tags for unions.
 * Add `JsonUnionEncoding.FSharpLuLike`, which is equivalent to `ExternalTag ||| BareFieldlessTags`.
 
 ## 0.5

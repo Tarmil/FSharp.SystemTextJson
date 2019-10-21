@@ -54,6 +54,7 @@ type JsonUnionEncoding =
 
 
 type JsonUnionTagName = string
+type JsonUnionFieldsName = string
 
 type private Case =
     {
@@ -63,7 +64,7 @@ type private Case =
         Dector: obj -> obj[]
     }
 
-type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName) =
+type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
     inherit JsonConverter<'T>()
 
     let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
@@ -212,7 +213,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         let case = getCaseByTag &reader
         let res =
             if case.Fields.Length > 0 then
-                readExpectingPropertyNamed "Fields" &reader ty
+                readExpectingPropertyNamed unionFieldsName &reader ty
                 readFields &reader case options
             else
                 case.Ctor [||] :?> 'T
@@ -285,7 +286,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         writer.WriteStartObject()
         writer.WriteString(unionTagName, case.Info.Name)
         if case.Fields.Length > 0 then
-            writer.WritePropertyName("Fields")
+            writer.WritePropertyName(unionFieldsName)
             writeFields writer case value options
         writer.WriteEndObject()
 
@@ -361,20 +362,23 @@ type JsonUnionConverter
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
         encoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue("Case")>]
-        unionTagName: JsonUnionTagName
+        unionTagName: JsonUnionTagName,
+        [<Optional; DefaultParameterValue("Fields")>]
+        unionFieldsName: JsonUnionFieldsName
     ) =
     inherit JsonConverterFactory()
 
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let jsonUnionEncodingTy = typeof<JsonUnionEncoding>
     static let unionTagNameTy = typeof<JsonUnionTagName>
+    static let unionFieldsNameTy = typeof<JsonUnionFieldsName>
     static let optionTy = typedefof<option<_>>
     static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type, encoding: JsonUnionEncoding, internalTagName: JsonUnionTagName) =
+    static member internal CreateConverter(typeToConvert: Type, encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
         if encoding.HasFlag JsonUnionEncoding.SuccintOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
@@ -386,12 +390,12 @@ type JsonUnionConverter
         else
             jsonUnionConverterTy
                 .MakeGenericType([|typeToConvert|])
-                .GetConstructor([|jsonUnionEncodingTy; unionTagNameTy|])
-                .Invoke([|encoding; internalTagName|])
+                .GetConstructor([|jsonUnionEncodingTy; unionTagNameTy; unionFieldsNameTy|])
+                .Invoke([|encoding; unionTagName; unionFieldsName|])
             :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, _options) =
-        JsonUnionConverter.CreateConverter(typeToConvert, encoding, unionTagName)
+        JsonUnionConverter.CreateConverter(typeToConvert, encoding, unionTagName, unionFieldsName)

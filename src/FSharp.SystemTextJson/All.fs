@@ -8,7 +8,9 @@ type JsonFSharpConverter
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
         unionEncoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue("Case")>]
-        unionTagName: JsonUnionTagName
+        unionTagName: JsonUnionTagName,
+        [<Optional; DefaultParameterValue("Fields")>]
+        unionFieldsName: JsonUnionFieldsName
     ) =
     inherit JsonConverterFactory()
 
@@ -20,7 +22,7 @@ type JsonFSharpConverter
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    static member internal CreateConverter(typeToConvert, unionEncoding, unionTagName) =
+    static member internal CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName) =
         if JsonListConverter.CanConvert(typeToConvert) then
             JsonListConverter.CreateConverter(typeToConvert)
         elif JsonSetConverter.CanConvert(typeToConvert) then
@@ -32,12 +34,12 @@ type JsonFSharpConverter
         elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
-            JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
+            JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
     override _.CreateConverter(typeToConvert, _options) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute
@@ -45,9 +47,11 @@ type JsonFSharpConverterAttribute
         [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
         unionEncoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue("Case")>]
-        unionTagName: JsonUnionTagName
+        unionTagName: JsonUnionTagName,
+        [<Optional; DefaultParameterValue("Fields")>]
+        unionFieldsName: JsonUnionFieldsName
     ) =
     inherit JsonConverterAttribute()
 
     override _.CreateConverter(typeToConvert) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
