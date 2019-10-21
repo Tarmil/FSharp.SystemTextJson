@@ -221,6 +221,25 @@ module NonStruct =
         Assert.Equal({o=Some 123}, JsonSerializer.Deserialize("""{"o":{"Case":"Some","Fields":[123]}}""", nonSuccintOptionOptions))
         Assert.Equal({o=None}, JsonSerializer.Deserialize("""{"o":null}""", nonSuccintOptionOptions))
 
+    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
+    ignoreNullOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+
+    [<AllowNullLiteral>]
+    type Cls() = class end
+
+    type UnionWithNullableArgument =
+        | Foo of x: int * y: Cls
+
+    [<Fact>]
+    let ``deserialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Deserialize("""{"Case":"Foo","x":1}""", ignoreNullOptions)
+        Assert.Equal(Foo(1, null), actual)
+
+    [<Fact>]
+    let ``serialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Serialize(Foo(1, null), ignoreNullOptions)
+        Assert.Equal("""{"Case":"Foo","x":1}""", actual)
+
 
 module Struct =
 
@@ -396,3 +415,23 @@ module Struct =
     [<Fact>]
     let ``serialize BareFieldlessTags`` () =
         Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsOptions))
+
+    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
+    ignoreNullOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+
+    [<AllowNullLiteral>]
+    type Cls() = class end
+
+    [<Struct>]
+    type UnionWithNullableArgument =
+        | Foo of x: int * y: Cls
+
+    [<Fact>]
+    let ``deserialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Deserialize("""{"Case":"Foo","x":1}""", ignoreNullOptions)
+        Assert.Equal(Foo(1, null), actual)
+
+    [<Fact>]
+    let ``serialize with IgnoreNullValues`` () =
+        let actual = JsonSerializer.Serialize(Foo(1, null), ignoreNullOptions)
+        Assert.Equal("""{"Case":"Foo","x":1}""", actual)

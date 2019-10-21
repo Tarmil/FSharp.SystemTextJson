@@ -192,7 +192,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
                     reader.Skip()
             | _ -> ()
 
-        if fieldsFound < expectedFieldCount then
+        if fieldsFound < expectedFieldCount && not options.IgnoreNullValues then
             raise (JsonException("Missing field for record type " + ty.FullName))
         case.Ctor fields :?> 'T
 
@@ -267,8 +267,9 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
     let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         (case.Fields, case.Dector value)
         ||> Array.iter2 (fun field value ->
-            writer.WritePropertyName(field.Name)
-            JsonSerializer.Serialize(writer, value, options)
+            if not (options.IgnoreNullValues && isNull value) then
+                writer.WritePropertyName(field.Name)
+                JsonSerializer.Serialize(writer, value, options)
         )
         writer.WriteEndObject()
 

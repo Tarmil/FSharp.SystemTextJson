@@ -2,12 +2,15 @@
 
 ## 0.6
 
+* [#4](https://github.com/tarmil/FSharp.SystemTextJson/issues/4): Add support for standard option `IgnoreNullValues` on record and union fields.
+* [#16](https://github.com/tarmil/FSharp.SystemTextJson/issues/16): Add `JsonUnionEncoding.SuccintOption`, which encodes `Some x` the same as `x`.  
+    **BREAKING CHANGE**: This is now the default option.
 * Add `unionTagName` and `unionFieldsName` option to customize the `"Case"` and `"Fields"` tags for unions.
-* Add `JsonUnionEncoding.FSharpLuLike`, which is equivalent to `ExternalTag ||| BareFieldlessTags`.
+* Add `JsonUnionEncoding.FSharpLuLike`, which is equivalent to `ExternalTag ||| BareFieldlessTags ||| SuccintOption`.
 
 ## 0.5
 
-* [#17](https://github.com/tarmil/FSharp.SystemTextJson/issues/17) Add encoding of collections:
+* [#17](https://github.com/tarmil/FSharp.SystemTextJson/issues/17): Add encoding of collections:
     * `'T list` encoded as JSON array.
     * `Set<'T>` encoded as JSON array.
     * `Map<string, 'T>` encoded as JSON object with map keys as field names.
@@ -16,7 +19,7 @@
 
 ## 0.4
 
-* [#6](https://github.com/tarmil/FSharp.SystemTextJson/issues/6) Add different encodings for F# unions.
+* [#6](https://github.com/tarmil/FSharp.SystemTextJson/issues/6): Add different encodings for F# unions.
     * `JsonFSharpConverter` and `JsonFSharpConverterAttribute` now take `JsonUnionEncoding` as optional argument.
     * Unions are encoded depending on the `JsonUnionEncoding` as detailed in [the documentation](README.md#unions).
 
