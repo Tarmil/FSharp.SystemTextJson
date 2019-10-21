@@ -15,7 +15,7 @@ type internal RecordProperty =
 type JsonRecordConverter<'T>() =
     inherit JsonConverter<'T>()
 
-    static let fieldProps =
+    let fieldProps =
         FSharpType.GetRecordFields(typeof<'T>, true)
         |> Array.map (fun p ->
             let name =
@@ -29,17 +29,17 @@ type JsonRecordConverter<'T>() =
             { Name = name; Type = p.PropertyType; Ignore = ignore }
         )
 
-    static let fieldCount = fieldProps.Length
-    static let expectedFieldCount =
+    let fieldCount = fieldProps.Length
+    let expectedFieldCount =
         fieldProps
         |> Seq.filter (fun p -> not p.Ignore)
         |> Seq.length
 
-    static let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
+    let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
 
-    static let dector = FSharpValue.PreComputeRecordReader(typeof<'T>, true)
+    let dector = FSharpValue.PreComputeRecordReader(typeof<'T>, true)
 
-    static let fieldIndex (reader: byref<Utf8JsonReader>) =
+    let fieldIndex (reader: byref<Utf8JsonReader>) =
         let mutable found = ValueNone
         let mutable i = 0
         while found.IsNone && i < fieldCount do
@@ -51,8 +51,7 @@ type JsonRecordConverter<'T>() =
         found
 
     override _.Read(reader, typeToConvert, options) =
-        if reader.TokenType <> JsonTokenType.StartObject then
-            raise (JsonException("Failed to parse record type " + typeToConvert.FullName + ", expected JSON object, found " + string reader.TokenType))
+        expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader typeToConvert
 
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true

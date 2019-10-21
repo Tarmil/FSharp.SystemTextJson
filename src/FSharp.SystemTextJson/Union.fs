@@ -74,9 +74,9 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
     let namedFields = encoding.HasFlag JsonUnionEncoding.NamedFields
     let bareFieldlessTags = encoding.HasFlag JsonUnionEncoding.BareFieldlessTags
 
-    static let ty = typeof<'T>
+    let ty = typeof<'T>
 
-    static let cases =
+    let cases =
         FSharpType.GetUnionCases(ty, true)
         |> Array.map (fun uci ->
             {
@@ -86,9 +86,9 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
             })
 
-    static let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
+    let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
 
-    static let usesNull =
+    let usesNull =
         ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, false)
         |> Array.exists (fun x ->
             let x = (x :?> CompilationRepresentationAttribute)
@@ -118,7 +118,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         let fields = [| for KeyValue(k, v) in fields -> struct (k, v) |]
         not hasDuplicateFieldNames, fieldlessCase, fields
 
-    static let getCaseByTag (reader: byref<Utf8JsonReader>) =
+    let getCaseByTag (reader: byref<Utf8JsonReader>) =
         let mutable found = ValueNone
         let mutable i = 0
         while found.IsNone && i < cases.Length do
@@ -148,7 +148,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         | ValueSome case ->
             case
 
-    static let fieldIndexByName (reader: byref<Utf8JsonReader>) (case: Case) =
+    let fieldIndexByName (reader: byref<Utf8JsonReader>) (case: Case) =
         let mutable found = ValueNone
         let mutable i = 0
         while found.IsNone && i < cases.Length do
@@ -159,7 +159,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
                 i <- i + 1
         found
 
-    static let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
+    let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.zeroCreate fieldCount
         for i in 0..fieldCount-1 do
@@ -168,11 +168,11 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
 
-    static let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
+    let readFieldsAsArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         readExpecting JsonTokenType.StartArray "array" &reader ty
         readFieldsAsRestOfArray &reader case options
 
-    static let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
+    let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
         let expectedFieldCount = case.Fields.Length
         let fields = Array.zeroCreate expectedFieldCount
         let mutable cont = true
@@ -196,7 +196,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
             raise (JsonException("Missing field for record type " + ty.FullName))
         case.Ctor fields :?> 'T
 
-    static let readFieldsAsObject (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
+    let readFieldsAsObject (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         readExpecting JsonTokenType.StartObject "object" &reader ty
         readFieldsAsRestOfObject &reader case false options
 
@@ -255,16 +255,16 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         | _ ->
             fail "case field" &reader ty
 
-    static let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+    let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         for field in case.Dector value do
             JsonSerializer.Serialize(writer, field, options)
         writer.WriteEndArray()
 
-    static let writeFieldsAsArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+    let writeFieldsAsArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartArray()
         writeFieldsAsRestOfArray writer case value options
 
-    static let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+    let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         (case.Fields, case.Dector value)
         ||> Array.iter2 (fun field value ->
             writer.WritePropertyName(field.Name)
@@ -272,7 +272,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         )
         writer.WriteEndObject()
 
-    static let writeFieldsAsObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+    let writeFieldsAsObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
         writeFieldsAsRestOfObject writer case value options
 
