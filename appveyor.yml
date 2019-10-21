@@ -10,8 +10,8 @@ skip_tags: true
 
 before_build:
 - ps: |
-    dotnet tool install nbgv --tool-path .paket
-    $env:SEMVER = .paket/nbgv get-version -v SemVer2
+    dotnet tool restore
+    $env:SEMVER = dotnet nbgv get-version -v SemVer2
     Update-AppveyorBuild -Version "$env:SEMVER ($env:APPVEYOR_BUILD_ID)"
 
 build_script:
