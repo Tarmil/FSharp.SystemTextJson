@@ -3,6 +3,7 @@
 ## 0.6
 
 * [#4](https://github.com/tarmil/FSharp.SystemTextJson/issues/4): Add support for standard option `IgnoreNullValues` on record and union fields.
+* [#13](https://github.com/tarmil/FSharp.SystemTextJson/issues/14): Add support for `JsonPropertyNameAttribute` on union cases to set the tag name to use for this case.
 * [#16](https://github.com/tarmil/FSharp.SystemTextJson/issues/16): Add `JsonUnionEncoding.SuccintOption`, which encodes `Some x` the same as `x`.  
     **BREAKING CHANGE**: This is now the default option.
 * Add `unionTagName` and `unionFieldsName` option to customize the `"Case"` and `"Fields"` tags for unions.

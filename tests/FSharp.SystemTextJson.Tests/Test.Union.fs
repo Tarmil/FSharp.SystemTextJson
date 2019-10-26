@@ -208,6 +208,20 @@ module NonStruct =
         Assert.Equal("""{"Case":"Ab","Fields":[32]}""", JsonSerializer.Serialize(Ab 32))
         Assert.Equal("""{"Case":"Ac","Fields":["test",true]}""", JsonSerializer.Serialize(Ac("test", true)))
 
+    type UnionWithPropertyNames =
+        | [<JsonPropertyName "nullary">] NamedNullary
+        | [<JsonPropertyName "withArgs">] NamedWithArgs of int
+
+    [<Fact>]
+    let ``deserialize with JsonPropertyName on case`` () =
+        Assert.Equal(NamedNullary, JsonSerializer.Deserialize("\"nullary\"", bareFieldlessTagsOptions))
+        Assert.Equal(NamedWithArgs 42, JsonSerializer.Deserialize("""{"Case":"withArgs","Fields":[42]}""", bareFieldlessTagsOptions))
+
+    [<Fact>]
+    let ``serialize with JsonPropertyName on case`` () =
+        Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, bareFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, bareFieldlessTagsOptions))
+
     let nonSuccintOptionOptions = JsonSerializerOptions()
     nonSuccintOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
 
@@ -415,6 +429,21 @@ module Struct =
     [<Fact>]
     let ``serialize BareFieldlessTags`` () =
         Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsOptions))
+
+    [<Struct>]
+    type UnionWithPropertyNames =
+        | [<JsonPropertyName "nullary">] NamedNullary
+        | [<JsonPropertyName "withArgs">] NamedWithArgs of int
+
+    [<Fact>]
+    let ``deserialize with JsonPropertyName on case`` () =
+        Assert.Equal(NamedNullary, JsonSerializer.Deserialize("\"nullary\"", bareFieldlessTagsOptions))
+        Assert.Equal(NamedWithArgs 42, JsonSerializer.Deserialize("""{"Case":"withArgs","Fields":[42]}""", bareFieldlessTagsOptions))
+
+    [<Fact>]
+    let ``serialize with JsonPropertyName on case`` () =
+        Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, bareFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, bareFieldlessTagsOptions))
 
     let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
     ignoreNullOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))

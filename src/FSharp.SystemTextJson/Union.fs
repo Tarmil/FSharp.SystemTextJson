@@ -62,6 +62,7 @@ type private Case =
         Fields: PropertyInfo[]
         Ctor: obj[] -> obj
         Dector: obj -> obj[]
+        Name: string
     }
 
 type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
@@ -79,11 +80,16 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
     let cases =
         FSharpType.GetUnionCases(ty, true)
         |> Array.map (fun uci ->
+            let name =
+                match uci.GetCustomAttributes(typeof<JsonPropertyNameAttribute>) with
+                | [| :? JsonPropertyNameAttribute as name |] -> name.Name
+                | _ -> uci.Name
             {
                 Info = uci
                 Fields = uci.GetFields()
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
+                Name = name
             })
 
     let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
@@ -123,7 +129,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         let mutable i = 0
         while found.IsNone && i < cases.Length do
             let case = cases.[i]
-            if reader.ValueTextEquals(case.Info.Name.AsSpan()) then
+            if reader.ValueTextEquals(case.Name) then
                 found <- ValueSome case
             else
                 i <- i + 1
@@ -153,7 +159,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         let mutable i = 0
         while found.IsNone && i < cases.Length do
             let field = case.Fields.[i]
-            if reader.ValueTextEquals(field.Name.AsSpan()) then
+            if reader.ValueTextEquals(field.Name) then
                 found <- ValueSome (struct (i, field))
             else
                 i <- i + 1
@@ -285,7 +291,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
 
     let writeAdjacentTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WriteString(unionTagName, case.Info.Name)
+        writer.WriteString(unionTagName, case.Name)
         if case.Fields.Length > 0 then
             writer.WritePropertyName(unionFieldsName)
             writeFields writer case value options
@@ -293,18 +299,18 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
 
     let writeExternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WritePropertyName(case.Info.Name)
+        writer.WritePropertyName(case.Name)
         writeFields writer case value options
         writer.WriteEndObject()
 
     let writeInternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         if namedFields then
             writer.WriteStartObject()
-            writer.WriteString(unionTagName, case.Info.Name)
+            writer.WriteString(unionTagName, case.Name)
             writeFieldsAsRestOfObject writer case value options
         else
             writer.WriteStartArray()
-            writer.WriteStringValue(case.Info.Name)
+            writer.WriteStringValue(case.Name)
             writeFieldsAsRestOfArray writer case value options
 
     let writeUntagged (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
@@ -336,7 +342,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         let tag = tagReader value
         let case = cases.[tag]
         if bareFieldlessTags && case.Fields.Length = 0 then
-            writer.WriteStringValue(case.Info.Name)
+            writer.WriteStringValue(case.Name)
         else
         match baseFormat with
         | JsonUnionEncoding.AdjacentTag -> writeAdjacentTag writer case value options
