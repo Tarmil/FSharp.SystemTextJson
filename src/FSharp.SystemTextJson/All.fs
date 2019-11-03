@@ -35,7 +35,7 @@ type JsonFSharpConverter
         elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert, options)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
-            JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
+            JsonUnionConverter.CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName)
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 

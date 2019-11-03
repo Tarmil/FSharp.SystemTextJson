@@ -1,4 +1,4 @@
-﻿namespace System.Text.Json.Serialization
+namespace System.Text.Json.Serialization
 
 open System
 open System.Reflection
@@ -56,16 +56,21 @@ type JsonUnionEncoding =
 type JsonUnionTagName = string
 type JsonUnionFieldsName = string
 
+type private Field =
+    {
+        Type: Type
+        Name: string
+    }
+
 type private Case =
     {
-        Info: UnionCaseInfo
-        Fields: PropertyInfo[]
+        Fields: Field[]
         Ctor: obj[] -> obj
         Dector: obj -> obj[]
         Name: string
     }
 
-type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
+type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
     inherit JsonConverter<'T>()
 
     let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
@@ -84,9 +89,18 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
                 match uci.GetCustomAttributes(typeof<JsonPropertyNameAttribute>) with
                 | [| :? JsonPropertyNameAttribute as name |] -> name.Name
                 | _ -> uci.Name
+            let fields =
+                uci.GetFields()
+                |> Array.map (fun p ->
+                    {
+                        Type = p.PropertyType
+                        Name =
+                            match options.PropertyNamingPolicy with
+                            | null -> p.Name
+                            | policy -> policy.ConvertName p.Name
+                    })
             {
-                Info = uci
-                Fields = uci.GetFields()
+                Fields = fields
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
                 Name = name
@@ -157,7 +171,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
     let fieldIndexByName (reader: byref<Utf8JsonReader>) (case: Case) =
         let mutable found = ValueNone
         let mutable i = 0
-        while found.IsNone && i < cases.Length do
+        while found.IsNone && i < case.Fields.Length do
             let field = case.Fields.[i]
             if reader.ValueTextEquals(field.Name) then
                 found <- ValueSome (struct (i, field))
@@ -170,7 +184,7 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
         let fields = Array.zeroCreate fieldCount
         for i in 0..fieldCount-1 do
             reader.Read() |> ignore
-            fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].PropertyType, options)
+            fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].Type, options)
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
 
@@ -193,13 +207,13 @@ type JsonUnionConverter<'T>(encoding: JsonUnionEncoding, unionTagName: JsonUnion
                 match fieldIndexByName &reader case with
                 | ValueSome (i, f) ->
                     fieldsFound <- fieldsFound + 1
-                    fields.[i] <- JsonSerializer.Deserialize(&reader, f.PropertyType, options)
+                    fields.[i] <- JsonSerializer.Deserialize(&reader, f.Type, options)
                 | _ ->
                     reader.Skip()
             | _ -> ()
 
         if fieldsFound < expectedFieldCount && not options.IgnoreNullValues then
-            raise (JsonException("Missing field for record type " + ty.FullName))
+            raise (JsonException("Missing field for union type " + ty.FullName))
         case.Ctor fields :?> 'T
 
     let readFieldsAsObject (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
@@ -381,11 +395,12 @@ type JsonUnionConverter
     static let unionFieldsNameTy = typeof<JsonUnionFieldsName>
     static let optionTy = typedefof<option<_>>
     static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
+    static let optionsTy = typeof<JsonSerializerOptions>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type, encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
+    static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
         if encoding.HasFlag JsonUnionEncoding.SuccintOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
@@ -397,12 +412,12 @@ type JsonUnionConverter
         else
             jsonUnionConverterTy
                 .MakeGenericType([|typeToConvert|])
-                .GetConstructor([|jsonUnionEncodingTy; unionTagNameTy; unionFieldsNameTy|])
-                .Invoke([|encoding; unionTagName; unionFieldsName|])
+                .GetConstructor([|optionsTy; jsonUnionEncodingTy; unionTagNameTy; unionFieldsNameTy|])
+                .Invoke([|options; encoding; unionTagName; unionFieldsName|])
             :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    override _.CreateConverter(typeToConvert, _options) =
-        JsonUnionConverter.CreateConverter(typeToConvert, encoding, unionTagName, unionFieldsName)
+    override _.CreateConverter(typeToConvert, options) =
+        JsonUnionConverter.CreateConverter(typeToConvert, options, encoding, unionTagName, unionFieldsName)

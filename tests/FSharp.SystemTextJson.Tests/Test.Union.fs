@@ -254,6 +254,22 @@ module NonStruct =
         let actual = JsonSerializer.Serialize(Foo(1, null), ignoreNullOptions)
         Assert.Equal("""{"Case":"Foo","x":1}""", actual)
 
+    let propertyNamingPolicyOptions = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+
+    type CamelCase =
+        | CCA of CcFirst: int * CcSecond: string
+
+    [<Fact>]
+    let ``deserialize with property naming policy`` () =
+        let actual = JsonSerializer.Deserialize("""{"ccFirst":1,"ccSecond":"a"}""", propertyNamingPolicyOptions)
+        Assert.Equal(CCA(1, "a"), actual)
+
+    [<Fact>]
+    let ``serialize with property naming policy`` () =
+        let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNamingPolicyOptions)
+        Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
+
 
 module Struct =
 
@@ -464,3 +480,20 @@ module Struct =
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize(Foo(1, null), ignoreNullOptions)
         Assert.Equal("""{"Case":"Foo","x":1}""", actual)
+
+    let propertyNamingPolicyOptions = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+
+    [<Struct>]
+    type CamelCase =
+        | CCA of CcFirst: int * CcSecond: string
+
+    [<Fact>]
+    let ``deserialize with property naming policy`` () =
+        let actual = JsonSerializer.Deserialize("""{"ccFirst":1,"ccSecond":"a"}""", propertyNamingPolicyOptions)
+        Assert.Equal(CCA(1, "a"), actual)
+
+    [<Fact>]
+    let ``serialize with property naming policy`` () =
+        let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNamingPolicyOptions)
+        Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
