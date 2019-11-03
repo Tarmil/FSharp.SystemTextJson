@@ -3,8 +3,13 @@ module Tests.Record
 open Xunit
 open System.Text.Json.Serialization
 open System.Text.Json
+open System.Linq.Expressions
 
 module NonStruct =
+
+    type Foo() =
+        [<JsonPropertyName "Baz">]
+        member val FooBar = 1 with get, set
 
     [<JsonFSharpConverter>]
     type A =
@@ -115,6 +120,25 @@ module NonStruct =
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize({cls = null; y = 1}, ignoreNullOptions)
         Assert.Equal("""{"y":1}""", actual)
+
+    let propertyNamingPolicyOptions = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter())
+
+    type CamelCase =
+        {
+            CcFirst: int
+            CcSecond: string
+        }
+
+    [<Fact>]
+    let ``deserialize with property naming policy`` () =
+        let actual = JsonSerializer.Deserialize("""{"ccFirst":1,"ccSecond":"a"}""", propertyNamingPolicyOptions)
+        Assert.Equal({CcFirst = 1; CcSecond = "a"}, actual)
+
+    [<Fact>]
+    let ``serialize with property naming policy`` () =
+        let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNamingPolicyOptions)
+        Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
 module Struct =
 
@@ -232,3 +256,23 @@ module Struct =
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize({cls = null; y = 1}, ignoreNullOptions)
         Assert.Equal("""{"y":1}""", actual)
+
+    let propertyNamingPolicyOptions = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter())
+
+    [<Struct>]
+    type CamelCase =
+        {
+            CcFirst: int
+            CcSecond: string
+        }
+
+    [<Fact>]
+    let ``deserialize with property naming policy`` () =
+        let actual = JsonSerializer.Deserialize("""{"ccFirst":1,"ccSecond":"a"}""", propertyNamingPolicyOptions)
+        Assert.Equal({CcFirst = 1; CcSecond = "a"}, actual)
+
+    [<Fact>]
+    let ``serialize with property naming policy`` () =
+        let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNamingPolicyOptions)
+        Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)

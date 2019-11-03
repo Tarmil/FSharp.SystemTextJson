@@ -1,7 +1,8 @@
-﻿namespace System.Text.Json.Serialization
+namespace System.Text.Json.Serialization
 
 open System
 open System.Runtime.InteropServices
+open System.Text.Json
 
 type JsonFSharpConverter
     (
@@ -22,7 +23,7 @@ type JsonFSharpConverter
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    static member internal CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName) =
+    static member internal CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName) =
         if JsonListConverter.CanConvert(typeToConvert) then
             JsonListConverter.CreateConverter(typeToConvert)
         elif JsonSetConverter.CanConvert(typeToConvert) then
@@ -32,14 +33,14 @@ type JsonFSharpConverter
         elif JsonTupleConverter.CanConvert(typeToConvert) then
             JsonTupleConverter.CreateConverter(typeToConvert)
         elif JsonRecordConverter.CanConvert(typeToConvert) then
-            JsonRecordConverter.CreateConverter(typeToConvert)
+            JsonRecordConverter.CreateConverter(typeToConvert, options)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
             JsonUnionConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
-    override _.CreateConverter(typeToConvert, _options) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
+    override _.CreateConverter(typeToConvert, options) =
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName)
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute
@@ -53,5 +54,7 @@ type JsonFSharpConverterAttribute
     ) =
     inherit JsonConverterAttribute()
 
+    let options = JsonSerializerOptions()
+
     override _.CreateConverter(typeToConvert) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, unionEncoding, unionTagName, unionFieldsName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName)

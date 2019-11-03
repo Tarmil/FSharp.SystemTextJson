@@ -1,4 +1,4 @@
-﻿namespace System.Text.Json.Serialization
+namespace System.Text.Json.Serialization
 
 open System
 open System.Text.Json
@@ -12,7 +12,7 @@ type internal RecordProperty =
         Ignore: bool
     }
 
-type JsonRecordConverter<'T>() =
+type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
     inherit JsonConverter<'T>()
 
     let fieldProps =
@@ -21,7 +21,10 @@ type JsonRecordConverter<'T>() =
             let name =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
                 | [| :? JsonPropertyNameAttribute as name |] -> name.Name
-                | _ -> p.Name
+                | _ ->
+                    match options.PropertyNamingPolicy with
+                    | null -> p.Name
+                    | policy -> policy.ConvertName p.Name
             let ignore =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
                 |> Array.isEmpty
@@ -88,15 +91,15 @@ type JsonRecordConverter() =
     static member internal CanConvert(typeToConvert) =
         TypeCache.isRecord typeToConvert
 
-    static member internal CreateConverter(typeToConvert) =
+    static member internal CreateConverter(typeToConvert, options: JsonSerializerOptions) =
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([|typeToConvert|])
-            .GetConstructor([||])
-            .Invoke([||])
+            .GetConstructor([|typeof<JsonSerializerOptions>|])
+            .Invoke([|options|])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
-    override _.CreateConverter(typeToConvert, _options) =
-        JsonRecordConverter.CreateConverter(typeToConvert)
+    override _.CreateConverter(typeToConvert, options) =
+        JsonRecordConverter.CreateConverter(typeToConvert, options)
