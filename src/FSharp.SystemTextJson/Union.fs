@@ -1,57 +1,9 @@
 namespace System.Text.Json.Serialization
 
 open System
-open System.Reflection
 open System.Text.Json
 open FSharp.Reflection
-open System.Runtime.InteropServices
 open System.Text.Json.Serialization.Helpers
-
-type JsonUnionEncoding =
-
-    //// General base format
-
-    /// Encode unions as a 2-valued object:
-    /// `unionTagName` (defaults to "Case") contains the union tag, and "Fields" contains the union fields.
-    /// If the case doesn't have fields, "Fields": [] is omitted.
-    | AdjacentTag       = 0x00_01
-
-    /// Encode unions as a 1-valued object:
-    /// The field name is the union tag, and the value is the union fields.
-    | ExternalTag       = 0x00_02
-
-    /// Encode unions as a (n+1)-valued object or array (depending on NamedFields):
-    /// the first value (named `unionTagName`, defaulting to "Case", if NamedFields is set)
-    /// is the union tag, the rest are the union fields.
-    | InternalTag       = 0x00_04
-
-    /// Encode unions as a n-valued object:
-    /// the union tag is not encoded, only the union fields are.
-    /// Deserialization is only possible if the fields of all cases have different names.
-    | Untagged          = 0x01_08
-
-
-    //// Additional options
-
-    /// If unset, union fields are encoded as an array.
-    /// If set, union fields are encoded as an object using their field names.
-    | NamedFields       = 0x01_00
-
-    /// If set, union cases that don't have fields are encoded as a bare string.
-    | BareFieldlessTags = 0x02_00
-
-    /// If set, `None` is represented as null,
-    /// and `Some x`  is represented the same as `x`.
-    | SuccintOption     = 0x04_00
-
-
-    //// Specific formats
-
-    | Default           = 0x04_01
-    | NewtonsoftLike    = 0x00_01
-    | ThothLike         = 0x02_04
-    | FSharpLuLike      = 0x06_02
-
 
 type JsonUnionTagName = string
 type JsonUnionFieldsName = string
@@ -70,15 +22,15 @@ type private Case =
         Name: string
     }
 
-type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
+type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
     inherit JsonConverter<'T>()
 
     let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
     let baseFormat =
-        let given = encoding &&& enum<JsonUnionEncoding> 0x00_ff
+        let given = fsOptions.UnionEncoding &&& enum<JsonUnionEncoding> 0x00_ff
         if given = enum 0 then JsonUnionEncoding.AdjacentTag else given
-    let namedFields = encoding.HasFlag JsonUnionEncoding.NamedFields
-    let bareFieldlessTags = encoding.HasFlag JsonUnionEncoding.BareFieldlessTags
+    let namedFields = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.NamedFields
+    let bareFieldlessTags = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.BareFieldlessTags
 
     let ty = typeof<'T>
 
@@ -228,12 +180,12 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionE
 
     let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-        readExpectingPropertyNamed unionTagName &reader ty
+        readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
         readExpecting JsonTokenType.String "case name" &reader ty
         let case = getCaseByTag &reader
         let res =
             if case.Fields.Length > 0 then
-                readExpectingPropertyNamed unionFieldsName &reader ty
+                readExpectingPropertyNamed fsOptions.UnionFieldsName &reader ty
                 readFields &reader case options
             else
                 case.Ctor [||] :?> 'T
@@ -251,7 +203,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionE
     let readInternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if namedFields then
             expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-            readExpectingPropertyNamed unionTagName &reader ty
+            readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
             readExpecting JsonTokenType.String "case name" &reader ty
             let case = getCaseByTag &reader
             readFieldsAsRestOfObject &reader case false options
@@ -305,9 +257,9 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionE
 
     let writeAdjacentTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WriteString(unionTagName, case.Name)
+        writer.WriteString(fsOptions.UnionTagName, case.Name)
         if case.Fields.Length > 0 then
-            writer.WritePropertyName(unionFieldsName)
+            writer.WritePropertyName(fsOptions.UnionFieldsName)
             writeFields writer case value options
         writer.WriteEndObject()
 
@@ -320,7 +272,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionE
     let writeInternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         if namedFields then
             writer.WriteStartObject()
-            writer.WriteString(unionTagName, case.Name)
+            writer.WriteString(fsOptions.UnionTagName, case.Name)
             writeFieldsAsRestOfObject writer case value options
         else
             writer.WriteStartArray()
@@ -347,7 +299,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionE
                 if not hasDistinctFieldNames then
                     raise (JsonException(sprintf "Union %s can't be deserialized as Untagged because it has duplicate field names across unions" ty.FullName))
                 readUntagged &reader options
-            | _ -> raise (JsonException("Invalid union encoding: " + string encoding))
+            | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
     override _.Write(writer, value, options) =
         let value = box value
@@ -363,7 +315,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, encoding: JsonUnionE
         | JsonUnionEncoding.ExternalTag -> writeExternalTag writer case value options
         | JsonUnionEncoding.InternalTag -> writeInternalTag writer case value options
         | UntaggedBit -> writeUntagged writer case value options
-        | _ -> raise (JsonException("Invalid union encoding: " + string encoding))
+        | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
 type JsonSuccintOptionConverter<'T>() =
     inherit JsonConverter<option<'T>>()
@@ -378,30 +330,20 @@ type JsonSuccintOptionConverter<'T>() =
         | None -> writer.WriteNullValue()
         | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
-type JsonUnionConverter
-    (
-        [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
-        encoding: JsonUnionEncoding,
-        [<Optional; DefaultParameterValue("Case")>]
-        unionTagName: JsonUnionTagName,
-        [<Optional; DefaultParameterValue("Fields")>]
-        unionFieldsName: JsonUnionFieldsName
-    ) =
+type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
-    static let jsonUnionEncodingTy = typeof<JsonUnionEncoding>
-    static let unionTagNameTy = typeof<JsonUnionTagName>
-    static let unionFieldsNameTy = typeof<JsonUnionFieldsName>
     static let optionTy = typedefof<option<_>>
     static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
     static let optionsTy = typeof<JsonSerializerOptions>
+    static let fsOptionsTy = typeof<JsonFSharpOptions>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, encoding: JsonUnionEncoding, unionTagName: JsonUnionTagName, unionFieldsName: JsonUnionFieldsName) =
-        if encoding.HasFlag JsonUnionEncoding.SuccintOption
+    static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
+        if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccintOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
             jsonSuccintOptionConverterTy
@@ -412,12 +354,12 @@ type JsonUnionConverter
         else
             jsonUnionConverterTy
                 .MakeGenericType([|typeToConvert|])
-                .GetConstructor([|optionsTy; jsonUnionEncodingTy; unionTagNameTy; unionFieldsNameTy|])
-                .Invoke([|options; encoding; unionTagName; unionFieldsName|])
+                .GetConstructor([|optionsTy; fsOptionsTy|])
+                .Invoke([|options; fsOptions|])
             :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonUnionConverter.CreateConverter(typeToConvert, options, encoding, unionTagName, unionFieldsName)
+        JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)

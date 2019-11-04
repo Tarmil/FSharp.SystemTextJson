@@ -4,15 +4,7 @@ open System
 open System.Runtime.InteropServices
 open System.Text.Json
 
-type JsonFSharpConverter
-    (
-        [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
-        unionEncoding: JsonUnionEncoding,
-        [<Optional; DefaultParameterValue("Case")>]
-        unionTagName: JsonUnionTagName,
-        [<Optional; DefaultParameterValue("Fields")>]
-        unionFieldsName: JsonUnionFieldsName
-    ) =
+type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
     override _.CanConvert(typeToConvert) =
@@ -23,7 +15,7 @@ type JsonFSharpConverter
         JsonRecordConverter.CanConvert(typeToConvert) ||
         JsonUnionConverter.CanConvert(typeToConvert)
 
-    static member internal CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName) =
+    static member internal CreateConverter(typeToConvert, options, fsOptions) =
         if JsonListConverter.CanConvert(typeToConvert) then
             JsonListConverter.CreateConverter(typeToConvert)
         elif JsonSetConverter.CanConvert(typeToConvert) then
@@ -35,26 +27,38 @@ type JsonFSharpConverter
         elif JsonRecordConverter.CanConvert(typeToConvert) then
             JsonRecordConverter.CreateConverter(typeToConvert, options)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
-            JsonUnionConverter.CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName)
+            JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)
         else
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
+
+    new (
+            [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
+            unionEncoding: JsonUnionEncoding,
+            [<Optional; DefaultParameterValue(Default.UnionTagName)>]
+            unionTagName: JsonUnionTagName,
+            [<Optional; DefaultParameterValue(Default.UnionFieldsName)>]
+            unionFieldsName: JsonUnionFieldsName
+        ) =
+        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName))
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute
     (
-        [<Optional; DefaultParameterValue(JsonUnionEncoding.Default)>]
+        [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
         unionEncoding: JsonUnionEncoding,
-        [<Optional; DefaultParameterValue("Case")>]
+        [<Optional; DefaultParameterValue(Default.UnionTagName)>]
         unionTagName: JsonUnionTagName,
-        [<Optional; DefaultParameterValue("Fields")>]
+        [<Optional; DefaultParameterValue(Default.UnionFieldsName)>]
         unionFieldsName: JsonUnionFieldsName
     ) =
     inherit JsonConverterAttribute()
 
     let options = JsonSerializerOptions()
 
+    let fsOptions = JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName)
+
     override _.CreateConverter(typeToConvert) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, options, unionEncoding, unionTagName, unionFieldsName)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
