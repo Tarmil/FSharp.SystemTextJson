@@ -5,9 +5,6 @@ open System.Text.Json
 open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
 
-type JsonUnionTagName = string
-type JsonUnionFieldsName = string
-
 type private Field =
     {
         Type: Type
@@ -40,7 +37,10 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             let name =
                 match uci.GetCustomAttributes(typeof<JsonPropertyNameAttribute>) with
                 | [| :? JsonPropertyNameAttribute as name |] -> name.Name
-                | _ -> uci.Name
+                | _ ->
+                    match fsOptions.UnionTagNamingPolicy with
+                    | null -> uci.Name
+                    | policy -> policy.ConvertName uci.Name
             let fields =
                 uci.GetFields()
                 |> Array.map (fun p ->

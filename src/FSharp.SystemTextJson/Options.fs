@@ -1,5 +1,8 @@
 namespace System.Text.Json.Serialization
 
+open System.Runtime.InteropServices
+open System.Text.Json
+
 type JsonUnionEncoding =
 
     //// General base format
@@ -45,6 +48,9 @@ type JsonUnionEncoding =
     | ThothLike         = 0x02_04
     | FSharpLuLike      = 0x06_02
 
+type JsonUnionTagName = string
+type JsonUnionFieldsName = string
+
 module internal Default =
 
     let [<Literal>] UnionEncoding = JsonUnionEncoding.Default
@@ -53,13 +59,24 @@ module internal Default =
 
     let [<Literal>] UnionFieldsName = "Fields"
 
-type JsonFSharpOptions internal (unionEncoding, unionTagName, unionFieldsName) =
+    let [<Literal>] UnionTagNamingPolicy = null : JsonNamingPolicy
 
-    member val UnionEncoding = unionEncoding with get, set
+type JsonFSharpOptions
+    (
+        [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
+        unionEncoding: JsonUnionEncoding,
+        [<Optional; DefaultParameterValue(Default.UnionTagName)>]
+        unionTagName: JsonUnionTagName,
+        [<Optional; DefaultParameterValue(Default.UnionFieldsName)>]
+        unionFieldsName: JsonUnionFieldsName,
+        [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>]
+        unionTagNamingPolicy: JsonNamingPolicy
+    ) =
 
-    member val UnionTagName = unionTagName with get, set
+    member this.UnionEncoding = unionEncoding
 
-    member val UnionFieldsName = unionFieldsName with get, set
+    member this.UnionTagName = unionTagName
 
-    new() =
-        JsonFSharpOptions(Default.UnionEncoding, Default.UnionTagName, Default.UnionFieldsName)
+    member this.UnionFieldsName = unionFieldsName
+
+    member this.UnionTagNamingPolicy = unionTagNamingPolicy

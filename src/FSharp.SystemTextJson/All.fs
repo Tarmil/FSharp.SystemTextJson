@@ -40,9 +40,11 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
             [<Optional; DefaultParameterValue(Default.UnionTagName)>]
             unionTagName: JsonUnionTagName,
             [<Optional; DefaultParameterValue(Default.UnionFieldsName)>]
-            unionFieldsName: JsonUnionFieldsName
+            unionFieldsName: JsonUnionFieldsName,
+            [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>]
+            unionTagNamingPolicy: JsonNamingPolicy
         ) =
-        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName))
+        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy))
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute
@@ -58,7 +60,7 @@ type JsonFSharpConverterAttribute
 
     let options = JsonSerializerOptions()
 
-    let fsOptions = JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName)
+    let fsOptions = JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, Default.UnionTagNamingPolicy)
 
     override _.CreateConverter(typeToConvert) =
         JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
