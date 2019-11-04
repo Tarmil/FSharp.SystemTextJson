@@ -375,6 +375,27 @@ module NonStruct =
         let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNamingPolicyOptions)
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
+    type Erased = Erased of string
+
+    [<Fact>]
+    let ``deserialize erased single-case`` () =
+        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("\"foo\"", options))
+
+    [<Fact>]
+    let ``serialize erased single-case`` () =
+        Assert.Equal("\"foo\"", JsonSerializer.Serialize(Erased "foo", options))
+
+    let noNewtypeOptions = JsonSerializerOptions()
+    noNewtypeOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.EraseSingleCaseUnions))
+
+    [<Fact>]
+    let ``deserialize non-erased single-case`` () =
+        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("""{"Case":"Erased","Fields":["foo"]}""", noNewtypeOptions))
+
+    [<Fact>]
+    let ``serialize non-erased single-case`` () =
+        Assert.Equal("""{"Case":"Erased","Fields":["foo"]}""", JsonSerializer.Serialize(Erased "foo", noNewtypeOptions))
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -710,3 +731,25 @@ module Struct =
     let ``serialize with property naming policy`` () =
         let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNamingPolicyOptions)
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
+
+    [<Struct>]
+    type Erased = Erased of string
+
+    [<Fact>]
+    let ``deserialize erased single-case`` () =
+        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("\"foo\"", options))
+
+    [<Fact>]
+    let ``serialize erased single-case`` () =
+        Assert.Equal("\"foo\"", JsonSerializer.Serialize(Erased "foo", options))
+
+    let noNewtypeOptions = JsonSerializerOptions()
+    noNewtypeOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.EraseSingleCaseUnions))
+
+    [<Fact>]
+    let ``deserialize non-erased single-case`` () =
+        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("""{"Case":"Erased","Fields":["foo"]}""", noNewtypeOptions))
+
+    [<Fact>]
+    let ``serialize non-erased single-case`` () =
+        Assert.Equal("""{"Case":"Erased","Fields":["foo"]}""", JsonSerializer.Serialize(Erased "foo", noNewtypeOptions))

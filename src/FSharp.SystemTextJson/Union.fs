@@ -19,7 +19,7 @@ type private Case =
         Name: string
     }
 
-type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
+type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions, cases: UnionCaseInfo[]) =
     inherit JsonConverter<'T>()
 
     let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
@@ -32,7 +32,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
     let ty = typeof<'T>
 
     let cases =
-        FSharpType.GetUnionCases(ty, true)
+        cases
         |> Array.map (fun uci ->
             let name =
                 match uci.GetCustomAttributes(typeof<JsonPropertyNameAttribute>) with
@@ -330,14 +330,30 @@ type JsonSuccintOptionConverter<'T>() =
         | None -> writer.WriteNullValue()
         | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
+type JsonErasedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
+    inherit JsonConverter<'T>()
+
+    let ctor = FSharpValue.PreComputeUnionConstructor(case, true)
+    let getter = FSharpValue.PreComputeUnionReader(case, true)
+
+    override _.Read(reader, _typeToConvert, options) =
+        ctor [| box (JsonSerializer.Deserialize<'FieldT>(&reader, options)) |]
+        :?> 'T
+
+    override _.Write(writer, value, options) =
+        JsonSerializer.Serialize(writer, (getter value).[0] :?> 'FieldT, options)
+
 type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let optionTy = typedefof<option<_>>
     static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
+    static let jsonErasedUnionConverterTy = typedefof<JsonErasedUnionConverter<_, _>>
     static let optionsTy = typeof<JsonSerializerOptions>
     static let fsOptionsTy = typeof<JsonFSharpOptions>
+    static let caseTy = typeof<UnionCaseInfo>
+    static let casesTy = typeof<UnionCaseInfo[]>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
@@ -352,11 +368,25 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
                 .Invoke([||])
             :?> JsonConverter
         else
-            jsonUnionConverterTy
-                .MakeGenericType([|typeToConvert|])
-                .GetConstructor([|optionsTy; fsOptionsTy|])
-                .Invoke([|options; fsOptions|])
-            :?> JsonConverter
+            let cases = FSharpType.GetUnionCases(typeToConvert, true)
+            let mutable fields = Unchecked.defaultof<_>
+            let isErasedSingleCase =
+                fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.EraseSingleCaseUnions
+                && cases.Length = 1
+                && (fields <- cases.[0].GetFields(); fields.Length = 1)
+            if isErasedSingleCase then
+                let case = cases.[0]
+                jsonErasedUnionConverterTy
+                    .MakeGenericType([|typeToConvert; fields.[0].PropertyType|])
+                    .GetConstructor([|caseTy|])
+                    .Invoke([|case|])
+                :?> JsonConverter
+            else
+                jsonUnionConverterTy
+                    .MakeGenericType([|typeToConvert|])
+                    .GetConstructor([|optionsTy; fsOptionsTy; casesTy|])
+                    .Invoke([|options; fsOptions; cases|])
+                :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)

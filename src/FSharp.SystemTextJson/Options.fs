@@ -40,10 +40,13 @@ type JsonUnionEncoding =
     /// and `Some x`  is represented the same as `x`.
     | SuccintOption     = 0x04_00
 
+    /// If set, single-case single-field unions are serialized as the single field's value.
+    | EraseSingleCaseUnions = 0x08_00
+
 
     //// Specific formats
 
-    | Default           = 0x04_01
+    | Default           = 0x0C_01
     | NewtonsoftLike    = 0x00_01
     | ThothLike         = 0x02_04
     | FSharpLuLike      = 0x06_02
