@@ -1,5 +1,6 @@
-﻿module Tests.Collection
+module Tests.Collection
 
+open System.Collections.Generic
 open System.Text.Json.Serialization
 open System.Text.Json
 open Xunit
@@ -48,6 +49,24 @@ let ``serialize string-keyed map`` (m: Map<NonNull<string>, int>) =
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
     let expected = "{" + String.concat "," (Seq.map serKV1 m) + "}"
     let actual = JsonSerializer.Serialize(m, options)
+    Assert.Equal(expected, actual)
+
+let keyPolicyOptions = JsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
+keyPolicyOptions.Converters.Add(JsonFSharpConverter())
+
+[<Property>]
+let ``deserialize string-keyed map with key policy`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
+    let ser = "{" + String.concat "," (Seq.map serKV1 m) + "}"
+    let actual = JsonSerializer.Deserialize<Map<string, int>>(ser, keyPolicyOptions)
+    Assert.Equal<Map<string, int>>(m, actual)
+
+[<Property>]
+let ``serialize string-keyed map with key policy`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
+    let ccm = m |> Seq.map (fun (KeyValue(k, v)) -> KeyValuePair(JsonNamingPolicy.CamelCase.ConvertName k, v))
+    let expected = "{" + String.concat "," (Seq.map serKV1 ccm) + "}"
+    let actual = JsonSerializer.Serialize(m, keyPolicyOptions)
     Assert.Equal(expected, actual)
 
 let serKV2 (KeyValue (k: int, v: string)) =

@@ -1,4 +1,4 @@
-﻿namespace System.Text.Json.Serialization
+namespace System.Text.Json.Serialization
 
 open System
 open System.Text.Json
@@ -93,7 +93,11 @@ type JsonStringMapConverter<'V>() =
     override _.Write(writer, value, options) =
         writer.WriteStartObject()
         for kv in value do
-            writer.WritePropertyName(kv.Key)
+            let k =
+                match options.DictionaryKeyPolicy with
+                | null -> kv.Key
+                | p -> p.ConvertName kv.Key
+            writer.WritePropertyName(k)
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
