@@ -375,6 +375,32 @@ module NonStruct =
         let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNamingPolicyOptions)
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
+    let propertyNameCaseInsensitiveOptions = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+
+    [<Fact>]
+    let ``deserialize with property case insensitive`` () =
+        let actual = JsonSerializer.Deserialize("""{"Case":"CCA","cCfIrSt":1,"cCsEcOnD":"a"}""", propertyNameCaseInsensitiveOptions)
+        Assert.Equal(CCA(1, "a"), actual)
+
+    [<Fact>]
+    let ``serialize with property case insensitive`` () =
+        let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"Case":"CCA","CcFirst":1,"CcSecond":"a"}""", actual)
+
+    let propertyNameCaseInsensitiveUntaggedOptions = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    propertyNameCaseInsensitiveUntaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+
+    [<Fact>]
+    let ``deserialize untagged with property case insensitive`` () =
+        let actual = JsonSerializer.Deserialize("""{"cCfIrSt":1,"cCsEcOnD":"a"}""", propertyNameCaseInsensitiveUntaggedOptions)
+        Assert.Equal(CCA(1, "a"), actual)
+
+    [<Fact>]
+    let ``serialize untagged with property case insensitive`` () =
+        let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNameCaseInsensitiveUntaggedOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
     type Erased = Erased of string
 
     [<Fact>]
@@ -731,6 +757,32 @@ module Struct =
     let ``serialize with property naming policy`` () =
         let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNamingPolicyOptions)
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
+
+    let propertyNameCaseInsensitiveOptions = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+
+    [<Fact>]
+    let ``deserialize with property case insensitive`` () =
+        let actual = JsonSerializer.Deserialize("""{"Case":"CCA","cCfIrSt":1,"cCsEcOnD":"a"}""", propertyNameCaseInsensitiveOptions)
+        Assert.Equal(CCA(1, "a"), actual)
+
+    [<Fact>]
+    let ``serialize with property case insensitive`` () =
+        let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"Case":"CCA","CcFirst":1,"CcSecond":"a"}""", actual)
+
+    let propertyNameCaseInsensitiveUntaggedOptions = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    propertyNameCaseInsensitiveUntaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+
+    [<Fact>]
+    let ``deserialize untagged with property case insensitive`` () =
+        let actual = JsonSerializer.Deserialize("""{"cCfIrSt":1,"cCsEcOnD":"a"}""", propertyNameCaseInsensitiveUntaggedOptions)
+        Assert.Equal(CCA(1, "a"), actual)
+
+    [<Fact>]
+    let ``serialize untagged with property case insensitive`` () =
+        let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNameCaseInsensitiveUntaggedOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
 
     [<Struct>]
     type Erased = Erased of string

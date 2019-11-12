@@ -1,6 +1,7 @@
 namespace System.Text.Json.Serialization
 
 open System
+open System.Collections.Generic
 open System.Text.Json
 open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
@@ -14,6 +15,7 @@ type private Field =
 type private Case =
     {
         Fields: Field[]
+        FieldsByName: Dictionary<string, struct (int * Field)> voption
         Ctor: obj[] -> obj
         Dector: obj -> obj[]
         Name: string
@@ -51,8 +53,17 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                             | null -> p.Name
                             | policy -> policy.ConvertName p.Name
                     })
+            let fieldsByName =
+                if options.PropertyNameCaseInsensitive then
+                    let d = Dictionary(StringComparer.OrdinalIgnoreCase)
+                    fields |> Array.iteri (fun i f ->
+                        d.[f.Name] <- struct (i, f))
+                    ValueSome d
+                else
+                    ValueNone
             {
                 Fields = fields
+                FieldsByName = fieldsByName
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
                 Name = name
@@ -90,6 +101,19 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         let fields = [| for KeyValue(k, v) in fields -> struct (k, v) |]
         not hasDuplicateFieldNames, fieldlessCase, fields
 
+    let allFieldsByName =
+        if hasDistinctFieldNames && options.PropertyNameCaseInsensitive then
+            let dict = Dictionary(StringComparer.OrdinalIgnoreCase)
+            for _, c in allFields do
+                match c.FieldsByName with
+                | ValueNone -> ()
+                | ValueSome fields ->
+                    for KeyValue(n, _) in fields do
+                        dict.[n] <- c
+            ValueSome dict
+        else
+            ValueNone
+
     let getCaseByTag (reader: byref<Utf8JsonReader>) =
         let mutable found = ValueNone
         let mutable i = 0
@@ -106,14 +130,22 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             case
 
     let getCaseByFieldName (reader: byref<Utf8JsonReader>) =
-        let mutable found = ValueNone
-        let mutable i = 0
-        while found.IsNone && i < allFields.Length do
-            let struct (fieldName, case) = allFields.[i]
-            if reader.ValueTextEquals(fieldName) then
-                found <- ValueSome case
-            else
-                i <- i + 1
+        let found =
+            match allFieldsByName with
+            | ValueNone ->
+                let mutable found = ValueNone
+                let mutable i = 0
+                while found.IsNone && i < allFields.Length do
+                    let struct (fieldName, case) = allFields.[i]
+                    if reader.ValueTextEquals(fieldName) then
+                        found <- ValueSome case
+                    else
+                        i <- i + 1
+                found
+            | ValueSome d ->
+                match d.TryGetValue(reader.GetString()) with
+                | true, p -> ValueSome p
+                | false, _ -> ValueNone
         match found with
         | ValueNone ->
             raise (JsonException("Unknow case for union type " + ty.FullName + " due to unknown field: " + reader.GetString()))
@@ -121,15 +153,21 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             case
 
     let fieldIndexByName (reader: byref<Utf8JsonReader>) (case: Case) =
-        let mutable found = ValueNone
-        let mutable i = 0
-        while found.IsNone && i < case.Fields.Length do
-            let field = case.Fields.[i]
-            if reader.ValueTextEquals(field.Name) then
-                found <- ValueSome (struct (i, field))
-            else
-                i <- i + 1
-        found
+        match case.FieldsByName with
+        | ValueNone ->
+            let mutable found = ValueNone
+            let mutable i = 0
+            while found.IsNone && i < case.Fields.Length do
+                let field = case.Fields.[i]
+                if reader.ValueTextEquals(field.Name) then
+                    found <- ValueSome (struct (i, field))
+                else
+                    i <- i + 1
+            found
+        | ValueSome d ->
+            match d.TryGetValue(reader.GetString()) with
+            | true, p -> ValueSome p
+            | false, _ -> ValueNone
 
     let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
