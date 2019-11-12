@@ -1,6 +1,7 @@
 namespace System.Text.Json.Serialization
 
 open System
+open System.Collections.Generic
 open System.Text.Json
 open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
@@ -42,16 +43,32 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
 
     let dector = FSharpValue.PreComputeRecordReader(typeof<'T>, true)
 
+    let propertiesByName =
+        if options.PropertyNameCaseInsensitive then
+            let d = Dictionary(StringComparer.OrdinalIgnoreCase)
+            fieldProps |> Array.iteri (fun i f ->
+                if not f.Ignore then
+                    d.[f.Name] <- struct (i, f))
+            ValueSome d
+        else
+            ValueNone
+
     let fieldIndex (reader: byref<Utf8JsonReader>) =
-        let mutable found = ValueNone
-        let mutable i = 0
-        while found.IsNone && i < fieldCount do
-            let p = fieldProps.[i]
-            if reader.ValueTextEquals(p.Name) then
-                found <- ValueSome (struct (i, p))
-            else
-                i <- i + 1
-        found
+        match propertiesByName with
+        | ValueNone ->
+            let mutable found = ValueNone
+            let mutable i = 0
+            while found.IsNone && i < fieldCount do
+                let p = fieldProps.[i]
+                if reader.ValueTextEquals(p.Name) then
+                    found <- ValueSome (struct (i, p))
+                else
+                    i <- i + 1
+            found
+        | ValueSome d ->
+            match d.TryGetValue(reader.GetString()) with
+            | true, p -> ValueSome p
+            | false, _ -> ValueNone
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader typeToConvert

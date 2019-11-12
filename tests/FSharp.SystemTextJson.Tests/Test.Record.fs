@@ -140,6 +140,19 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNamingPolicyOptions)
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
+    let propertyNameCaseInsensitiveOptions = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter())
+
+    [<Fact>]
+    let ``deserialize with property case insensitive`` () =
+        let actual = JsonSerializer.Deserialize("""{"ccfIRst":1,"cCsEcOnD":"a"}""", propertyNameCaseInsensitiveOptions)
+        Assert.Equal({CcFirst = 1; CcSecond = "a"}, actual)
+
+    [<Fact>]
+    let ``serialize with property case insensitive`` () =
+        let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -276,3 +289,16 @@ module Struct =
     let ``serialize with property naming policy`` () =
         let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNamingPolicyOptions)
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
+
+    let propertyNameCaseInsensitiveOptions = JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter())
+
+    [<Fact>]
+    let ``deserialize with property case insensitive`` () =
+        let actual = JsonSerializer.Deserialize("""{"ccfIRst":1,"cCsEcOnD":"a"}""", propertyNameCaseInsensitiveOptions)
+        Assert.Equal({CcFirst = 1; CcSecond = "a"}, actual)
+
+    [<Fact>]
+    let ``serialize with property case insensitive`` () =
+        let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
