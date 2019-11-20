@@ -98,7 +98,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
         (fieldProps, dector value)
         ||> Array.iter2 (fun p v ->
             if not p.Ignore && not (options.IgnoreNullValues && isNull v) then
-                writer.WritePropertyName(p.Name)
+                p.Name |> writePropertyName writer options
                 JsonSerializer.Serialize(writer, v, options))
         writer.WriteEndObject()
 

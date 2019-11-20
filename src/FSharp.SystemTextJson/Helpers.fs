@@ -20,3 +20,6 @@ let readExpecting expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>
 let readExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
     if not (reader.Read()) || reader.TokenType <> JsonTokenType.PropertyName || not (reader.ValueTextEquals expectedPropertyName) then
         fail ("\"" + expectedPropertyName + "\"") &reader ty
+
+let writePropertyName (writer: Utf8JsonWriter) (options: JsonSerializerOptions) propertyName =
+    propertyName |> options.PropertyNamingPolicy.ConvertName |> writer.WritePropertyName

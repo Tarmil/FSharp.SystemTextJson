@@ -278,7 +278,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         (case.Fields, case.Dector value)
         ||> Array.iter2 (fun field value ->
             if not (options.IgnoreNullValues && isNull value) then
-                writer.WritePropertyName(field.Name)
+                field.Name |> writePropertyName writer options
                 JsonSerializer.Serialize(writer, value, options)
         )
         writer.WriteEndObject()
@@ -297,13 +297,13 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         writer.WriteStartObject()
         writer.WriteString(fsOptions.UnionTagName, case.Name)
         if case.Fields.Length > 0 then
-            writer.WritePropertyName(fsOptions.UnionFieldsName)
+            fsOptions.UnionFieldsName |> writePropertyName writer options
             writeFields writer case value options
         writer.WriteEndObject()
 
     let writeExternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WritePropertyName(case.Name)
+        case.Name |> writePropertyName writer options
         writeFields writer case value options
         writer.WriteEndObject()
 

@@ -93,11 +93,10 @@ type JsonStringMapConverter<'V>() =
     override _.Write(writer, value, options) =
         writer.WriteStartObject()
         for kv in value do
-            let k =
-                match options.DictionaryKeyPolicy with
-                | null -> kv.Key
-                | p -> p.ConvertName kv.Key
-            writer.WritePropertyName(k)
+            match options.DictionaryKeyPolicy with
+            | null -> kv.Key
+            | p -> p.ConvertName kv.Key
+            |> writePropertyName writer options
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
