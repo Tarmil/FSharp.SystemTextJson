@@ -22,4 +22,5 @@ let readExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf
         fail ("\"" + expectedPropertyName + "\"") &reader ty
 
 let writePropertyName (writer: Utf8JsonWriter) (options: JsonSerializerOptions) propertyName =
-    propertyName |> options.PropertyNamingPolicy.ConvertName |> writer.WritePropertyName
+    let convert = if options.PropertyNamingPolicy = null then id else options.PropertyNamingPolicy.ConvertName
+    propertyName |> convert |> writer.WritePropertyName
