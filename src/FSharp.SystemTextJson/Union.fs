@@ -114,15 +114,32 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         else
             ValueNone
 
+    let casesByName =
+        if fsOptions.UnionTagCaseInsensitive then
+            let dict = Dictionary(StringComparer.OrdinalIgnoreCase)
+            for c in cases do
+                dict.[c.Name] <- c
+            ValueSome dict
+        else
+            ValueNone
+
     let getCaseByTag (reader: byref<Utf8JsonReader>) =
-        let mutable found = ValueNone
-        let mutable i = 0
-        while found.IsNone && i < cases.Length do
-            let case = cases.[i]
-            if reader.ValueTextEquals(case.Name) then
-                found <- ValueSome case
-            else
-                i <- i + 1
+        let found =
+            match casesByName with
+            | ValueNone ->
+                let mutable found = ValueNone
+                let mutable i = 0
+                while found.IsNone && i < cases.Length do
+                    let case = cases.[i]
+                    if reader.ValueTextEquals(case.Name) then
+                        found <- ValueSome case
+                    else
+                        i <- i + 1
+                found
+            | ValueSome d ->
+                match d.TryGetValue(reader.GetString()) with
+                | true, c -> ValueSome c
+                | false, _ -> ValueNone
         match found with
         | ValueNone ->
             raise (JsonException("Unknow case for union type " + ty.FullName + ": " + reader.GetString()))

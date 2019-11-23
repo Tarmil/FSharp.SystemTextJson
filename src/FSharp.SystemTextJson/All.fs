@@ -37,9 +37,11 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
             [<Optional; DefaultParameterValue(Default.UnionFieldsName)>]
             unionFieldsName: JsonUnionFieldsName,
             [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>]
-            unionTagNamingPolicy: JsonNamingPolicy
+            unionTagNamingPolicy: JsonNamingPolicy,
+            [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>]
+            unionTagCaseInsensitive: bool
         ) =
-        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy))
+        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy, unionTagCaseInsensitive))
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute

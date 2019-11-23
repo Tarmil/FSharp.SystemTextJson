@@ -59,6 +59,21 @@ module NonStruct =
         Assert.Equal("""{"Case":"bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, tagPolicyOptions))
         Assert.Equal("""{"Case":"bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), tagPolicyOptions))
 
+    let tagCaseInsensitiveOptions = JsonSerializerOptions()
+    tagCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter(unionTagCaseInsensitive = true))
+
+    [<Fact>]
+    let ``deserialize AdjacentTag with case insensitive tag`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"bA"}""", tagCaseInsensitiveOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bB", "Fields":[32]}""", tagCaseInsensitiveOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bC", "Fields":["test",true]}""", tagCaseInsensitiveOptions))
+
+    [<Fact>]
+    let ``serialize AdjacentTag with case insensitive tag`` () =
+        Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, tagCaseInsensitiveOptions))
+        Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, tagCaseInsensitiveOptions))
+        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), tagCaseInsensitiveOptions))
+
     [<CompilationRepresentation(CompilationRepresentationFlags.UseNullAsTrueValue)>]
     type C =
         | Ca
@@ -477,6 +492,21 @@ module Struct =
         Assert.Equal("""{"Case":"ba"}""", JsonSerializer.Serialize(Ba, tagPolicyOptions))
         Assert.Equal("""{"Case":"bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, tagPolicyOptions))
         Assert.Equal("""{"Case":"bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), tagPolicyOptions))
+
+    let tagCaseInsensitiveOptions = JsonSerializerOptions()
+    tagCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter(unionTagCaseInsensitive = true))
+
+    [<Fact>]
+    let ``deserialize AdjacentTag with case insensitive tag`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"bA"}""", tagCaseInsensitiveOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bB", "Fields":[32]}""", tagCaseInsensitiveOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bC", "Fields":["test",true]}""", tagCaseInsensitiveOptions))
+
+    [<Fact>]
+    let ``serialize AdjacentTag with case insensitive tag`` () =
+        Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, tagCaseInsensitiveOptions))
+        Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, tagCaseInsensitiveOptions))
+        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), tagCaseInsensitiveOptions))
 
     let externalTagOptions = JsonSerializerOptions()
     externalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.ExternalTag))
