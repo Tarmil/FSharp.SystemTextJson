@@ -8,12 +8,7 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
     override _.CanConvert(typeToConvert) =
-        JsonListConverter.CanConvert(typeToConvert) ||
-        JsonSetConverter.CanConvert(typeToConvert) ||
-        JsonMapConverter.CanConvert(typeToConvert) ||
-        JsonTupleConverter.CanConvert(typeToConvert) ||
-        JsonRecordConverter.CanConvert(typeToConvert) ||
-        JsonUnionConverter.CanConvert(typeToConvert)
+        TypeCache.getKind typeToConvert <> TypeCache.TypeKind.Other
 
     static member internal CreateConverter(typeToConvert, options, fsOptions) =
         if JsonListConverter.CanConvert(typeToConvert) then
