@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7
+
+* [#3](https://github.com/tarmil/FSharp.SystemTextJson/issues/3): Add support for `PropertyNamingPolicy` on record and union fields.
+* [#22](https://github.com/tarmil/FSharp.SystemTextJson/issues/22): Add support for `DictionaryKeyPolicy` for `Map<string, 'T>`.
+* [#27](https://github.com/tarmil/FSharp.SystemTextJson/issues/27): Add `unionTagNamingPolicy` option to `JsonFSharpConverter` and `JsonFSharpConverterAttribute` to customize the naming policy for union tag names.
+* [#26](https://github.com/tarmil/FSharp.SystemTextJson/issues/26): Add `JsonUnionEncoding.EraseSingleCaseUnions`, which encodes single-case single-field unions the same as the value in the field.  
+    **BREAKING CHANGE**: This is now the default option.
+* [#5](https://github.com/tarmil/FSharp.SystemTextJson/issues/5): Add support for `PropertyNameCaseInsensitive` on record and union fields.  
+    Add `unionTagCaseInsensitive` option to `JsonFSharpConverter` and `JsonFSharpConverterAttribute` to customize the case sensitivity for union tag names.
+
 ## 0.6
 
 * [#4](https://github.com/tarmil/FSharp.SystemTextJson/issues/4): Add support for standard option `IgnoreNullValues` on record and union fields.
