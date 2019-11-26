@@ -337,7 +337,7 @@ Yes!
 
 * Does FSharp.SystemTextJson support options such as `PropertyNamingPolicy` and `IgnoreNullValues`?
 
-Not yet. ([issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/3), [issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/4), [issue](https://github.com/Tarmil/FSharp.SystemTextJson/issues/5))
+Yes!
 
 * Does FSharp.SystemTextJson allocate memory?
 
