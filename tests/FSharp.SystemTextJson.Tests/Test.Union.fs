@@ -296,6 +296,18 @@ module NonStruct =
         Assert.Equal({o=Some 123}, JsonSerializer.Deserialize("""{"o":123}""", options))
         Assert.Equal({o=None}, JsonSerializer.Deserialize("""{"o":null}""", options))
 
+    type VO = { vo: voption<int> }
+
+    [<Fact>]
+    let ``deserialize voption with SuccintOption`` () =
+        Assert.Equal("""{"vo":123}""", JsonSerializer.Serialize({vo=ValueSome 123}, options))
+        Assert.Equal("""{"vo":null}""", JsonSerializer.Serialize({vo=ValueNone}, options))
+
+    [<Fact>]
+    let ``serialize voption with SuccintOption`` () =
+        Assert.Equal({vo=ValueSome 123}, JsonSerializer.Deserialize("""{"vo":123}""", options))
+        Assert.Equal({vo=ValueNone}, JsonSerializer.Deserialize("""{"vo":null}""", options))
+
     let bareFieldlessTagsOptions = JsonSerializerOptions()
     bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
 
