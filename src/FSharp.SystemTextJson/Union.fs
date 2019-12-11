@@ -385,6 +385,19 @@ type JsonSuccintOptionConverter<'T>() =
         | None -> writer.WriteNullValue()
         | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
+type JsonSuccintValueOptionConverter<'T>() =
+    inherit JsonConverter<voption<'T>>()
+
+    override _.Read(reader, _typeToConvert, options) =
+        match reader.TokenType with
+        | JsonTokenType.Null -> ValueNone
+        | _ -> ValueSome <| JsonSerializer.Deserialize<'T>(&reader, options)
+
+    override _.Write(writer, value, options) =
+        match value with
+        | ValueNone -> writer.WriteNullValue()
+        | ValueSome x -> JsonSerializer.Serialize<'T>(writer, x, options)
+
 type JsonErasedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
     inherit JsonConverter<'T>()
 
@@ -403,7 +416,9 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
 
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let optionTy = typedefof<option<_>>
+    static let voptionTy = typedefof<voption<_>>
     static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
+    static let jsonSuccintValueOptionConverterTy = typedefof<JsonSuccintValueOptionConverter<_>>
     static let jsonErasedUnionConverterTy = typedefof<JsonErasedUnionConverter<_, _>>
     static let optionsTy = typeof<JsonSerializerOptions>
     static let fsOptionsTy = typeof<JsonFSharpOptions>
@@ -418,6 +433,14 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
             jsonSuccintOptionConverterTy
+                .MakeGenericType(typeToConvert.GetGenericArguments())
+                .GetConstructor([||])
+                .Invoke([||])
+            :?> JsonConverter
+        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccintOption
+            && typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() = voptionTy then
+            jsonSuccintValueOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
