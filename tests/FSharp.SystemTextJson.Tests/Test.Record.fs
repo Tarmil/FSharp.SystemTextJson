@@ -47,6 +47,14 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({bx=1;by="b"}, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
 
+    [<Fact>]
+    let ``not fill in nulls`` () =
+        try
+            JsonSerializer.Deserialize<B>("""{"bx": 1, "by": null}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("Record field 'by' is a non-optional field.", e.Message)
+
     type C =
         {
             cx: B

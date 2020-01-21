@@ -85,6 +85,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 | ValueSome (i, p) when not p.Ignore ->
                     fieldsFound <- fieldsFound + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
+                    if fields.[i] = null && not (p.Type.Name.StartsWith("FSharpOption")) then
+                        let msg = sprintf "Record field '%s' is a non-optional field." p.Name
+                        raise (JsonException msg)
                 | _ ->
                     reader.Skip()
             | _ -> ()
