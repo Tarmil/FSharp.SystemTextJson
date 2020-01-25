@@ -38,7 +38,7 @@ type JsonUnionEncoding =
 
     /// If set, `None` is represented as null,
     /// and `Some x`  is represented the same as `x`.
-    | SuccintOption     = 0x04_00
+    | SuccinctOption     = 0x04_00
 
     /// If set, single-case single-field unions are serialized as the single field's value.
     | EraseSingleCaseUnions = 0x08_00

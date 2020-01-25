@@ -372,7 +372,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         | UntaggedBit -> writeUntagged writer case value options
         | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
-type JsonSuccintOptionConverter<'T>() =
+type JsonSuccinctOptionConverter<'T>() =
     inherit JsonConverter<option<'T>>()
 
     override _.Read(reader, _typeToConvert, options) =
@@ -385,7 +385,7 @@ type JsonSuccintOptionConverter<'T>() =
         | None -> writer.WriteNullValue()
         | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
-type JsonSuccintValueOptionConverter<'T>() =
+type JsonSuccinctValueOptionConverter<'T>() =
     inherit JsonConverter<voption<'T>>()
 
     override _.Read(reader, _typeToConvert, options) =
@@ -417,8 +417,8 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let optionTy = typedefof<option<_>>
     static let voptionTy = typedefof<voption<_>>
-    static let jsonSuccintOptionConverterTy = typedefof<JsonSuccintOptionConverter<_>>
-    static let jsonSuccintValueOptionConverterTy = typedefof<JsonSuccintValueOptionConverter<_>>
+    static let jsonSuccinctOptionConverterTy = typedefof<JsonSuccinctOptionConverter<_>>
+    static let jsonSuccinctValueOptionConverterTy = typedefof<JsonSuccinctValueOptionConverter<_>>
     static let jsonErasedUnionConverterTy = typedefof<JsonErasedUnionConverter<_, _>>
     static let optionsTy = typeof<JsonSerializerOptions>
     static let fsOptionsTy = typeof<JsonFSharpOptions>
@@ -429,18 +429,18 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         TypeCache.isUnion typeToConvert
 
     static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
-        if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccintOption
+        if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
-            jsonSuccintOptionConverterTy
+            jsonSuccinctOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
             :?> JsonConverter
-        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccintOption
+        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = voptionTy then
-            jsonSuccintValueOptionConverterTy
+            jsonSuccinctValueOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
