@@ -19,6 +19,7 @@ type private Case =
         Ctor: obj[] -> obj
         Dector: obj -> obj[]
         Name: string
+        UnwrappedSingleField: bool
     }
 
 type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions, cases: UnionCaseInfo[]) =
@@ -67,6 +68,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
                 Name = name
+                UnwrappedSingleField = fields.Length = 1 && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases
             })
 
     let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
@@ -228,7 +230,10 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         readFieldsAsRestOfObject &reader case false options
 
     let readFields (reader: byref<Utf8JsonReader>) case options =
-        if namedFields then
+        if case.UnwrappedSingleField then
+            let field = JsonSerializer.Deserialize(&reader, case.Fields.[0].Type, options)
+            case.Ctor [| field |] :?> 'T
+        elif namedFields then
             readFieldsAsObject &reader case options
         else
             readFieldsAsArray &reader case options
@@ -305,7 +310,9 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         writeFieldsAsRestOfObject writer case value options
 
     let writeFields writer case value options =
-        if namedFields then
+        if case.UnwrappedSingleField then
+            JsonSerializer.Serialize(writer, (case.Dector value).[0], case.Fields.[0].Type, options)
+        elif namedFields then
             writeFieldsAsObject writer case value options
         else
             writeFieldsAsArray writer case value options

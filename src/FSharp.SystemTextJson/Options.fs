@@ -43,13 +43,17 @@ type JsonUnionEncoding =
     /// If set, single-case single-field unions are serialized as the single field's value.
     | EraseSingleCaseUnions = 0x08_00
 
+    /// If set, the field of a single-field union case is encoded as just the value
+    /// rather than a single-value array or object.
+    | UnwrapSingleFieldCases = 0x10_00
+
 
     //// Specific formats
 
     | Default           = 0x0C_01
     | NewtonsoftLike    = 0x00_01
     | ThothLike         = 0x02_04
-    | FSharpLuLike      = 0x06_02
+    | FSharpLuLike      = 0x16_02
 
 type JsonUnionTagName = string
 type JsonUnionFieldsName = string

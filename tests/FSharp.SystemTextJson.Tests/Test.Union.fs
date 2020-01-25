@@ -284,6 +284,21 @@ module NonStruct =
         Assert.Equal("""{"type":"Bb","args":[32]}""", JsonSerializer.Serialize(Bb 32, adjacentTagNamedFieldsConfiguredFieldsOptions))
         Assert.Equal("""{"type":"Bc","args":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsConfiguredFieldsOptions))
 
+    let unwrapSingleFieldCasesOptions = JsonSerializerOptions()
+    unwrapSingleFieldCasesOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default ||| JsonUnionEncoding.UnwrapSingleFieldCases))
+
+    [<Fact>]
+    let ``deserialize unwrapped single-field cases`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", unwrapSingleFieldCasesOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":32}""", unwrapSingleFieldCasesOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", unwrapSingleFieldCasesOptions))
+
+    [<Fact>]
+    let ``serialize unwrapped single-field cases`` () =
+        Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, unwrapSingleFieldCasesOptions))
+        Assert.Equal("""{"Case":"Bb","Fields":32}""", JsonSerializer.Serialize(Bb 32, unwrapSingleFieldCasesOptions))
+        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapSingleFieldCasesOptions))
+
     type O = { o: option<int> }
 
     [<Fact>]
@@ -715,6 +730,21 @@ module Struct =
         Assert.Equal("""{"type":"Ba"}""", JsonSerializer.Serialize(Ba, adjacentTagConfiguredFieldsOptions))
         Assert.Equal("""{"type":"Bb","args":[32]}""", JsonSerializer.Serialize(Bb 32, adjacentTagConfiguredFieldsOptions))
         Assert.Equal("""{"type":"Bc","args":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), adjacentTagConfiguredFieldsOptions))
+
+    let unwrapSingleFieldCasesOptions = JsonSerializerOptions()
+    unwrapSingleFieldCasesOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default ||| JsonUnionEncoding.UnwrapSingleFieldCases))
+
+    [<Fact>]
+    let ``deserialize unwrapped single-field cases`` () =
+        Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", unwrapSingleFieldCasesOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":32}""", unwrapSingleFieldCasesOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", unwrapSingleFieldCasesOptions))
+
+    [<Fact>]
+    let ``serialize unwrapped single-field cases`` () =
+        Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, unwrapSingleFieldCasesOptions))
+        Assert.Equal("""{"Case":"Bb","Fields":32}""", JsonSerializer.Serialize(Bb 32, unwrapSingleFieldCasesOptions))
+        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapSingleFieldCasesOptions))
 
     let bareFieldlessTagsOptions = JsonSerializerOptions()
     bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
