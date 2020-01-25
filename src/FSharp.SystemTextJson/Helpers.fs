@@ -30,6 +30,6 @@ let isNullableUnion (ty: Type) =
 let isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     fsOptions.AllowNullFields
     || isNullableUnion ty
-    || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
+    || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
         && ty.IsGenericType
         && ty.GetGenericTypeDefinition() = typedefof<voption<_>>)

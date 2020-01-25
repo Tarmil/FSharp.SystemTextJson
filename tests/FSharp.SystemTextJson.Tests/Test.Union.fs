@@ -317,46 +317,46 @@ module NonStruct =
     type O = { o: option<int> }
 
     [<Fact>]
-    let ``deserialize SuccintOption`` () =
+    let ``deserialize UnwrapOption`` () =
         Assert.Equal("""{"o":123}""", JsonSerializer.Serialize({o=Some 123}, options))
         Assert.Equal("""{"o":null}""", JsonSerializer.Serialize({o=None}, options))
 
     [<Fact>]
-    let ``serialize SuccintOption`` () =
+    let ``serialize UnwrapOption`` () =
         Assert.Equal({o=Some 123}, JsonSerializer.Deserialize("""{"o":123}""", options))
         Assert.Equal({o=None}, JsonSerializer.Deserialize("""{"o":null}""", options))
 
-    let bareFieldlessTagsOptions = JsonSerializerOptions()
-    bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
+    let unwrapFieldlessTagsOptions = JsonSerializerOptions()
+    unwrapFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags))
 
     type S = { b: B }
 
     [<Fact>]
-    let ``deserialize BareFieldlessTags`` () =
-        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"Ba"}""", bareFieldlessTagsOptions))
-        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":[32]}""", bareFieldlessTagsOptions))
-        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", bareFieldlessTagsOptions))
+    let ``deserialize UnwrapFieldlessTags`` () =
+        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"Ba"}""", unwrapFieldlessTagsOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":[32]}""", unwrapFieldlessTagsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", unwrapFieldlessTagsOptions))
 
     [<Fact>]
-    let ``serialize BareFieldlessTags`` () =
-        Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsOptions))
-        Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, bareFieldlessTagsOptions))
-        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), bareFieldlessTagsOptions))
+    let ``serialize UnwrapFieldlessTags`` () =
+        Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, unwrapFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, unwrapFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapFieldlessTagsOptions))
 
-    let bareFieldlessTagsTagPolicyOptions = JsonSerializerOptions()
-    bareFieldlessTagsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
-
-    [<Fact>]
-    let ``deserialize BareFieldlessTags with tag policy`` () =
-        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"ba"}""", bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":[32]}""", bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":["test",true]}""", bareFieldlessTagsTagPolicyOptions))
+    let unwrapFieldlessTagsTagPolicyOptions = JsonSerializerOptions()
+    unwrapFieldlessTagsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
     [<Fact>]
-    let ``serialize BareFieldlessTags with tag policy`` () =
-        Assert.Equal("""{"b":"ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal("""{"Case":"bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal("""{"Case":"bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), bareFieldlessTagsTagPolicyOptions))
+    let ``deserialize UnwrapFieldlessTags with tag policy`` () =
+        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"ba"}""", unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":[32]}""", unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":["test",true]}""", unwrapFieldlessTagsTagPolicyOptions))
+
+    [<Fact>]
+    let ``serialize UnwrapFieldlessTags with tag policy`` () =
+        Assert.Equal("""{"b":"ba"}""", JsonSerializer.Serialize({b=Ba}, unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal("""{"Case":"bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal("""{"Case":"bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapFieldlessTagsTagPolicyOptions))
 
     type UnionWithPropertyNames =
         | [<JsonPropertyName "nullary">] NamedNullary
@@ -364,26 +364,26 @@ module NonStruct =
 
     [<Fact>]
     let ``deserialize with JsonPropertyName on case`` () =
-        Assert.Equal(NamedNullary, JsonSerializer.Deserialize("\"nullary\"", bareFieldlessTagsOptions))
-        Assert.Equal(NamedWithArgs 42, JsonSerializer.Deserialize("""{"Case":"withArgs","Fields":[42]}""", bareFieldlessTagsOptions))
+        Assert.Equal(NamedNullary, JsonSerializer.Deserialize("\"nullary\"", unwrapFieldlessTagsOptions))
+        Assert.Equal(NamedWithArgs 42, JsonSerializer.Deserialize("""{"Case":"withArgs","Fields":[42]}""", unwrapFieldlessTagsOptions))
 
     [<Fact>]
     let ``serialize with JsonPropertyName on case`` () =
-        Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, bareFieldlessTagsOptions))
-        Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, bareFieldlessTagsOptions))
+        Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, unwrapFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, unwrapFieldlessTagsOptions))
 
-    let nonSuccintOptionOptions = JsonSerializerOptions()
-    nonSuccintOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
-
-    [<Fact>]
-    let ``serialize non-SuccintOption`` () =
-        Assert.Equal("""{"o":{"Case":"Some","Fields":[123]}}""", JsonSerializer.Serialize({o=Some 123}, nonSuccintOptionOptions))
-        Assert.Equal("""{"o":null}""", JsonSerializer.Serialize({o=None}, nonSuccintOptionOptions))
+    let nonUnwrapOptionOptions = JsonSerializerOptions()
+    nonUnwrapOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
 
     [<Fact>]
-    let ``deserialize non-SuccintOption`` () =
-        Assert.Equal({o=Some 123}, JsonSerializer.Deserialize("""{"o":{"Case":"Some","Fields":[123]}}""", nonSuccintOptionOptions))
-        Assert.Equal({o=None}, JsonSerializer.Deserialize("""{"o":null}""", nonSuccintOptionOptions))
+    let ``serialize non-UnwrapOption`` () =
+        Assert.Equal("""{"o":{"Case":"Some","Fields":[123]}}""", JsonSerializer.Serialize({o=Some 123}, nonUnwrapOptionOptions))
+        Assert.Equal("""{"o":null}""", JsonSerializer.Serialize({o=None}, nonUnwrapOptionOptions))
+
+    [<Fact>]
+    let ``deserialize non-UnwrapOption`` () =
+        Assert.Equal({o=Some 123}, JsonSerializer.Deserialize("""{"o":{"Case":"Some","Fields":[123]}}""", nonUnwrapOptionOptions))
+        Assert.Equal({o=None}, JsonSerializer.Deserialize("""{"o":null}""", nonUnwrapOptionOptions))
 
     let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
     ignoreNullOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
@@ -446,26 +446,26 @@ module NonStruct =
         let actual = JsonSerializer.Serialize(CCA(1, "a"), propertyNameCaseInsensitiveUntaggedOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
 
-    type Erased = Erased of string
+    type Unwrapped = Unwrapped of string
 
     [<Fact>]
-    let ``deserialize erased single-case`` () =
-        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("\"foo\"", options))
+    let ``deserialize unwrapped single-case`` () =
+        Assert.Equal(Unwrapped "foo", JsonSerializer.Deserialize("\"foo\"", options))
 
     [<Fact>]
-    let ``serialize erased single-case`` () =
-        Assert.Equal("\"foo\"", JsonSerializer.Serialize(Erased "foo", options))
+    let ``serialize unwrapped single-case`` () =
+        Assert.Equal("\"foo\"", JsonSerializer.Serialize(Unwrapped "foo", options))
 
     let noNewtypeOptions = JsonSerializerOptions()
-    noNewtypeOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.EraseSingleCaseUnions))
+    noNewtypeOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.UnwrapSingleCaseUnions))
 
     [<Fact>]
-    let ``deserialize non-erased single-case`` () =
-        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("""{"Case":"Erased","Fields":["foo"]}""", noNewtypeOptions))
+    let ``deserialize non-unwrapped single-case`` () =
+        Assert.Equal(Unwrapped "foo", JsonSerializer.Deserialize("""{"Case":"Unwrapped","Fields":["foo"]}""", noNewtypeOptions))
 
     [<Fact>]
-    let ``serialize non-erased single-case`` () =
-        Assert.Equal("""{"Case":"Erased","Fields":["foo"]}""", JsonSerializer.Serialize(Erased "foo", noNewtypeOptions))
+    let ``serialize non-unwrapped single-case`` () =
+        Assert.Equal("""{"Case":"Unwrapped","Fields":["foo"]}""", JsonSerializer.Serialize(Unwrapped "foo", noNewtypeOptions))
 
 module Struct =
 
@@ -527,12 +527,12 @@ module Struct =
     type VO = { vo: voption<int> }
 
     [<Fact>]
-    let ``deserialize voption with SuccinctOption`` () =
+    let ``deserialize voption with UnwrapOption`` () =
         Assert.Equal("""{"vo":123}""", JsonSerializer.Serialize({vo=ValueSome 123}, options))
         Assert.Equal("""{"vo":null}""", JsonSerializer.Serialize({vo=ValueNone}, options))
 
     [<Fact>]
-    let ``serialize voption with SuccinctOption`` () =
+    let ``serialize voption with UnwrapOption`` () =
         Assert.Equal({vo=ValueSome 123}, JsonSerializer.Deserialize("""{"vo":123}""", options))
         Assert.Equal({vo=ValueNone}, JsonSerializer.Deserialize("""{"vo":null}""", options))
 
@@ -776,38 +776,38 @@ module Struct =
         Assert.Equal("""{"Case":"Bb","Fields":32}""", JsonSerializer.Serialize(Bb 32, unwrapSingleFieldCasesOptions))
         Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapSingleFieldCasesOptions))
 
-    let bareFieldlessTagsOptions = JsonSerializerOptions()
-    bareFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags))
+    let unwrapFieldlessTagsOptions = JsonSerializerOptions()
+    unwrapFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags))
 
     [<Struct>]
     type S = { b: B }
 
     [<Fact>]
-    let ``deserialize BareFieldlessTags`` () =
-        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"Ba"}""", bareFieldlessTagsOptions))
-        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":[32]}""", bareFieldlessTagsOptions))
-        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", bareFieldlessTagsOptions))
+    let ``deserialize UnwrapFieldlessTags`` () =
+        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"Ba"}""", unwrapFieldlessTagsOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":[32]}""", unwrapFieldlessTagsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", unwrapFieldlessTagsOptions))
 
     [<Fact>]
-    let ``serialize BareFieldlessTags`` () =
-        Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsOptions))
-        Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, bareFieldlessTagsOptions))
-        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), bareFieldlessTagsOptions))
+    let ``serialize UnwrapFieldlessTags`` () =
+        Assert.Equal("""{"b":"Ba"}""", JsonSerializer.Serialize({b=Ba}, unwrapFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, unwrapFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapFieldlessTagsOptions))
 
-    let bareFieldlessTagsTagPolicyOptions = JsonSerializerOptions()
-    bareFieldlessTagsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.BareFieldlessTags, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
-
-    [<Fact>]
-    let ``deserialize BareFieldlessTags with tag policy`` () =
-        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"ba"}""", bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":[32]}""", bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":["test",true]}""", bareFieldlessTagsTagPolicyOptions))
+    let unwrapFieldlessTagsTagPolicyOptions = JsonSerializerOptions()
+    unwrapFieldlessTagsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
     [<Fact>]
-    let ``serialize BareFieldlessTags with tag policy`` () =
-        Assert.Equal("""{"b":"ba"}""", JsonSerializer.Serialize({b=Ba}, bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal("""{"Case":"bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, bareFieldlessTagsTagPolicyOptions))
-        Assert.Equal("""{"Case":"bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), bareFieldlessTagsTagPolicyOptions))
+    let ``deserialize UnwrapFieldlessTags with tag policy`` () =
+        Assert.Equal({b=Ba}, JsonSerializer.Deserialize("""{"b":"ba"}""", unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":[32]}""", unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":["test",true]}""", unwrapFieldlessTagsTagPolicyOptions))
+
+    [<Fact>]
+    let ``serialize UnwrapFieldlessTags with tag policy`` () =
+        Assert.Equal("""{"b":"ba"}""", JsonSerializer.Serialize({b=Ba}, unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal("""{"Case":"bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, unwrapFieldlessTagsTagPolicyOptions))
+        Assert.Equal("""{"Case":"bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), unwrapFieldlessTagsTagPolicyOptions))
 
     [<Struct>]
     type UnionWithPropertyNames =
@@ -816,26 +816,26 @@ module Struct =
 
     [<Fact>]
     let ``deserialize with JsonPropertyName on case`` () =
-        Assert.Equal(NamedNullary, JsonSerializer.Deserialize("\"nullary\"", bareFieldlessTagsOptions))
-        Assert.Equal(NamedWithArgs 42, JsonSerializer.Deserialize("""{"Case":"withArgs","Fields":[42]}""", bareFieldlessTagsOptions))
+        Assert.Equal(NamedNullary, JsonSerializer.Deserialize("\"nullary\"", unwrapFieldlessTagsOptions))
+        Assert.Equal(NamedWithArgs 42, JsonSerializer.Deserialize("""{"Case":"withArgs","Fields":[42]}""", unwrapFieldlessTagsOptions))
 
     [<Fact>]
     let ``serialize with JsonPropertyName on case`` () =
-        Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, bareFieldlessTagsOptions))
-        Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, bareFieldlessTagsOptions))
+        Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, unwrapFieldlessTagsOptions))
+        Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, unwrapFieldlessTagsOptions))
 
-    let nonSuccintOptionOptions = JsonSerializerOptions()
-    nonSuccintOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
-
-    [<Fact>]
-    let ``serialize non-SuccintOption`` () =
-        Assert.Equal("""{"vo":{"Case":"ValueSome","Fields":[123]}}""", JsonSerializer.Serialize({vo=ValueSome 123}, nonSuccintOptionOptions))
-        Assert.Equal("""{"vo":{"Case":"ValueNone"}}""", JsonSerializer.Serialize({vo=ValueNone}, nonSuccintOptionOptions))
+    let nonUnwrapOptionOptions = JsonSerializerOptions()
+    nonUnwrapOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
 
     [<Fact>]
-    let ``deserialize non-SuccintOption`` () =
-        Assert.Equal({vo=ValueSome 123}, JsonSerializer.Deserialize("""{"vo":{"Case":"ValueSome","Fields":[123]}}""", nonSuccintOptionOptions))
-        Assert.Equal({vo=ValueNone}, JsonSerializer.Deserialize("""{"vo":{"Case":"ValueNone"}}""", nonSuccintOptionOptions))
+    let ``serialize non-UnwrapOption`` () =
+        Assert.Equal("""{"vo":{"Case":"ValueSome","Fields":[123]}}""", JsonSerializer.Serialize({vo=ValueSome 123}, nonUnwrapOptionOptions))
+        Assert.Equal("""{"vo":{"Case":"ValueNone"}}""", JsonSerializer.Serialize({vo=ValueNone}, nonUnwrapOptionOptions))
+
+    [<Fact>]
+    let ``deserialize non-UnwrapOption`` () =
+        Assert.Equal({vo=ValueSome 123}, JsonSerializer.Deserialize("""{"vo":{"Case":"ValueSome","Fields":[123]}}""", nonUnwrapOptionOptions))
+        Assert.Equal({vo=ValueNone}, JsonSerializer.Deserialize("""{"vo":{"Case":"ValueNone"}}""", nonUnwrapOptionOptions))
 
     let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
     ignoreNullOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
@@ -901,23 +901,23 @@ module Struct =
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
 
     [<Struct>]
-    type Erased = Erased of string
+    type Unwrapped = Unwrapped of string
 
     [<Fact>]
-    let ``deserialize erased single-case`` () =
-        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("\"foo\"", options))
+    let ``deserialize unwrapped single-case`` () =
+        Assert.Equal(Unwrapped "foo", JsonSerializer.Deserialize("\"foo\"", options))
 
     [<Fact>]
-    let ``serialize erased single-case`` () =
-        Assert.Equal("\"foo\"", JsonSerializer.Serialize(Erased "foo", options))
+    let ``serialize unwrapped single-case`` () =
+        Assert.Equal("\"foo\"", JsonSerializer.Serialize(Unwrapped "foo", options))
 
     let noNewtypeOptions = JsonSerializerOptions()
-    noNewtypeOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.EraseSingleCaseUnions))
+    noNewtypeOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.UnwrapSingleCaseUnions))
 
     [<Fact>]
-    let ``deserialize non-erased single-case`` () =
-        Assert.Equal(Erased "foo", JsonSerializer.Deserialize("""{"Case":"Erased","Fields":["foo"]}""", noNewtypeOptions))
+    let ``deserialize non-unwrapped single-case`` () =
+        Assert.Equal(Unwrapped "foo", JsonSerializer.Deserialize("""{"Case":"Unwrapped","Fields":["foo"]}""", noNewtypeOptions))
 
     [<Fact>]
-    let ``serialize non-erased single-case`` () =
-        Assert.Equal("""{"Case":"Erased","Fields":["foo"]}""", JsonSerializer.Serialize(Erased "foo", noNewtypeOptions))
+    let ``serialize non-unwrapped single-case`` () =
+        Assert.Equal("""{"Case":"Unwrapped","Fields":["foo"]}""", JsonSerializer.Serialize(Unwrapped "foo", noNewtypeOptions))

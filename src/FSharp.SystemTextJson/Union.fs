@@ -31,7 +31,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         let given = fsOptions.UnionEncoding &&& enum<JsonUnionEncoding> 0x00_ff
         if given = enum 0 then JsonUnionEncoding.AdjacentTag else given
     let namedFields = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.NamedFields
-    let bareFieldlessTags = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.BareFieldlessTags
+    let unwrapFieldlessTags = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags
 
     let ty = typeof<'T>
 
@@ -81,8 +81,8 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         let cases =
             cases
             |> Array.collect (fun case ->
-                // TODO: BareFieldlessTags should allow multiple fieldless cases
-                if not bareFieldlessTags && Array.isEmpty case.Fields then
+                // TODO: UnwrapFieldlessTags should allow multiple fieldless cases
+                if not unwrapFieldlessTags && Array.isEmpty case.Fields then
                     match fieldlessCase with
                     | ValueSome _ -> hasDuplicateFieldNames <- true
                     | ValueNone -> fieldlessCase <- ValueSome case
@@ -353,7 +353,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         match reader.TokenType with
         | JsonTokenType.Null when Helpers.isNullableUnion ty ->
             (null : obj) :?> 'T
-        | JsonTokenType.String when bareFieldlessTags ->
+        | JsonTokenType.String when unwrapFieldlessTags ->
             let case = getCaseByTag &reader
             reader.Read() |> ignore
             case.Ctor [||] :?> 'T
@@ -374,7 +374,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
 
         let tag = tagReader value
         let case = cases.[tag]
-        if bareFieldlessTags && case.Fields.Length = 0 then
+        if unwrapFieldlessTags && case.Fields.Length = 0 then
             writer.WriteStringValue(case.Name)
         else
         match baseFormat with
@@ -384,7 +384,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         | UntaggedBit -> writeUntagged writer case value options
         | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
-type JsonSuccinctOptionConverter<'T>() =
+type JsonUnwrapOptionConverter<'T>() =
     inherit JsonConverter<option<'T>>()
 
     override _.Read(reader, _typeToConvert, options) =
@@ -397,7 +397,7 @@ type JsonSuccinctOptionConverter<'T>() =
         | None -> writer.WriteNullValue()
         | Some x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
-type JsonSuccinctValueOptionConverter<'T>() =
+type JsonUnwrapValueOptionConverter<'T>() =
     inherit JsonConverter<voption<'T>>()
 
     override _.Read(reader, _typeToConvert, options) =
@@ -410,7 +410,7 @@ type JsonSuccinctValueOptionConverter<'T>() =
         | ValueNone -> writer.WriteNullValue()
         | ValueSome x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
-type JsonErasedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
+type JsonUnwrappedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
     inherit JsonConverter<'T>()
 
     let ctor = FSharpValue.PreComputeUnionConstructor(case, true)
@@ -429,9 +429,9 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let optionTy = typedefof<option<_>>
     static let voptionTy = typedefof<voption<_>>
-    static let jsonSuccinctOptionConverterTy = typedefof<JsonSuccinctOptionConverter<_>>
-    static let jsonSuccinctValueOptionConverterTy = typedefof<JsonSuccinctValueOptionConverter<_>>
-    static let jsonErasedUnionConverterTy = typedefof<JsonErasedUnionConverter<_, _>>
+    static let jsonUnwrapOptionConverterTy = typedefof<JsonUnwrapOptionConverter<_>>
+    static let jsonUnwrapValueOptionConverterTy = typedefof<JsonUnwrapValueOptionConverter<_>>
+    static let jsonUnwrappedUnionConverterTy = typedefof<JsonUnwrappedUnionConverter<_, _>>
     static let optionsTy = typeof<JsonSerializerOptions>
     static let fsOptionsTy = typeof<JsonFSharpOptions>
     static let caseTy = typeof<UnionCaseInfo>
@@ -441,18 +441,18 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         TypeCache.isUnion typeToConvert
 
     static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
-        if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
+        if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
-            jsonSuccinctOptionConverterTy
+            jsonUnwrapOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
             :?> JsonConverter
-        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
+        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = voptionTy then
-            jsonSuccinctValueOptionConverterTy
+            jsonUnwrapValueOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
@@ -460,13 +460,13 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         else
             let cases = FSharpType.GetUnionCases(typeToConvert, true)
             let mutable fields = Unchecked.defaultof<_>
-            let isErasedSingleCase =
-                fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.EraseSingleCaseUnions
+            let isUnwrappedSingleCase =
+                fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleCaseUnions
                 && cases.Length = 1
                 && (fields <- cases.[0].GetFields(); fields.Length = 1)
-            if isErasedSingleCase then
+            if isUnwrappedSingleCase then
                 let case = cases.[0]
-                jsonErasedUnionConverterTy
+                jsonUnwrappedUnionConverterTy
                     .MakeGenericType([|typeToConvert; fields.[0].PropertyType|])
                     .GetConstructor([|caseTy|])
                     .Invoke([|case|])
