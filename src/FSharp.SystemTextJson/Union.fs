@@ -288,8 +288,10 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             fail "case field" &reader ty
 
     let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
-        for field in case.Dector value do
-            JsonSerializer.Serialize(writer, field, options)
+        (case.Fields, case.Dector value)
+        ||> Array.iter2 (fun field value ->
+            JsonSerializer.Serialize(writer, value, field.Type, options)
+        )
         writer.WriteEndArray()
 
     let writeFieldsAsArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
@@ -301,7 +303,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         ||> Array.iter2 (fun field value ->
             if not (options.IgnoreNullValues && isNull value) then
                 writer.WritePropertyName(field.Name)
-                JsonSerializer.Serialize(writer, value, options)
+                JsonSerializer.Serialize(writer, value, field.Type, options)
         )
         writer.WriteEndObject()
 
