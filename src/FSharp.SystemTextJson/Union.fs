@@ -73,12 +73,6 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
 
     let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
 
-    let usesNull =
-        ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, false)
-        |> Array.exists (fun x ->
-            let x = (x :?> CompilationRepresentationAttribute)
-            x.Flags.HasFlag(CompilationRepresentationFlags.UseNullAsTrueValue))
-
     let hasDistinctFieldNames, fieldlessCase, allFields =
         let mutable fieldlessCase = ValueNone
         let mutable hasDuplicateFieldNames = false
@@ -348,7 +342,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
 
     override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
-        | JsonTokenType.Null when usesNull ->
+        | JsonTokenType.Null when Helpers.usesNull ty ->
             (null : obj) :?> 'T
         | JsonTokenType.String when bareFieldlessTags ->
             let case = getCaseByTag &reader
