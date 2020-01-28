@@ -16,8 +16,10 @@ type internal RecordProperty =
 type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
     inherit JsonConverter<'T>()
 
+    let recordType: Type = typeof<'T>
+
     let fieldProps =
-        FSharpType.GetRecordFields(typeof<'T>, true)
+        FSharpType.GetRecordFields(recordType, true)
         |> Array.map (fun p ->
             let name =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
@@ -39,9 +41,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
         |> Seq.filter (fun p -> not p.Ignore)
         |> Seq.length
 
-    let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
+    let ctor = FSharpValue.PreComputeRecordConstructor(recordType, true)
 
-    let dector = FSharpValue.PreComputeRecordReader(typeof<'T>, true)
+    let dector = FSharpValue.PreComputeRecordReader(recordType, true)
 
     let propertiesByName =
         if options.PropertyNameCaseInsensitive then
@@ -72,6 +74,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader typeToConvert
+        let doesAllowNullLiteral = not (isNull (Attribute.GetCustomAttribute(recordType, typeof<AllowNullLiteralAttribute>)))
 
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true
@@ -85,8 +88,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 | ValueSome (i, p) when not p.Ignore ->
                     fieldsFound <- fieldsFound + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
-                    if fields.[i] = null && not (p.Type.Name.StartsWith("FSharpOption")) then
-                        let msg = sprintf "Record field '%s' in type '%s' cannot be null." p.Name typeToConvert.Name
+
+                    if isNull fields.[i] && not (usesNull p.Type) && not doesAllowNullLiteral then
+                        let msg = sprintf "%s.%s was expected to be of type %s, but was null." typeToConvert.Name p.Name p.Type.Name
                         raise (JsonException msg)
                 | _ ->
                     reader.Skip()
