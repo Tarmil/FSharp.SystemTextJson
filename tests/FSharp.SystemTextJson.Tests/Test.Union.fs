@@ -376,12 +376,12 @@ module NonStruct =
     nonSuccintOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
 
     [<Fact>]
-    let ``deserialize non-SuccintOption`` () =
+    let ``serialize non-SuccintOption`` () =
         Assert.Equal("""{"o":{"Case":"Some","Fields":[123]}}""", JsonSerializer.Serialize({o=Some 123}, nonSuccintOptionOptions))
         Assert.Equal("""{"o":null}""", JsonSerializer.Serialize({o=None}, nonSuccintOptionOptions))
 
     [<Fact>]
-    let ``serialize non-SuccintOption`` () =
+    let ``deserialize non-SuccintOption`` () =
         Assert.Equal({o=Some 123}, JsonSerializer.Deserialize("""{"o":{"Case":"Some","Fields":[123]}}""", nonSuccintOptionOptions))
         Assert.Equal({o=None}, JsonSerializer.Deserialize("""{"o":null}""", nonSuccintOptionOptions))
 
@@ -823,6 +823,19 @@ module Struct =
     let ``serialize with JsonPropertyName on case`` () =
         Assert.Equal("\"nullary\"", JsonSerializer.Serialize(NamedNullary, bareFieldlessTagsOptions))
         Assert.Equal("""{"Case":"withArgs","Fields":[42]}""", JsonSerializer.Serialize(NamedWithArgs 42, bareFieldlessTagsOptions))
+
+    let nonSuccintOptionOptions = JsonSerializerOptions()
+    nonSuccintOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+
+    [<Fact>]
+    let ``serialize non-SuccintOption`` () =
+        Assert.Equal("""{"vo":{"Case":"ValueSome","Fields":[123]}}""", JsonSerializer.Serialize({vo=ValueSome 123}, nonSuccintOptionOptions))
+        Assert.Equal("""{"vo":{"Case":"ValueNone"}}""", JsonSerializer.Serialize({vo=ValueNone}, nonSuccintOptionOptions))
+
+    [<Fact>]
+    let ``deserialize non-SuccintOption`` () =
+        Assert.Equal({vo=ValueSome 123}, JsonSerializer.Deserialize("""{"vo":{"Case":"ValueSome","Fields":[123]}}""", nonSuccintOptionOptions))
+        Assert.Equal({vo=ValueNone}, JsonSerializer.Deserialize("""{"vo":{"Case":"ValueNone"}}""", nonSuccintOptionOptions))
 
     let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
     ignoreNullOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
