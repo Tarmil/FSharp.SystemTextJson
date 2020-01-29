@@ -70,6 +70,8 @@ module internal Default =
 
     let [<Literal>] UnionTagCaseInsensitive = false
 
+    let [<Literal>] AllowNullFields = false
+
 type JsonFSharpOptions
     (
         [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
@@ -81,7 +83,9 @@ type JsonFSharpOptions
         [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>]
         unionTagNamingPolicy: JsonNamingPolicy,
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>]
-        unionTagCaseInsensitive: bool
+        unionTagCaseInsensitive: bool,
+        [<Optional; DefaultParameterValue(Default.AllowNullFields)>]
+        allowNullFields: bool
     ) =
 
     member this.UnionEncoding = unionEncoding
@@ -93,3 +97,5 @@ type JsonFSharpOptions
     member this.UnionTagNamingPolicy = unionTagNamingPolicy
 
     member this.UnionTagCaseInsensitive = unionTagCaseInsensitive
+
+    member this.AllowNullFields = allowNullFields

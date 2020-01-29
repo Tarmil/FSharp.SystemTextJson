@@ -34,7 +34,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 |> Array.isEmpty
                 |> not
             let canBeNull =
-                isNullableUnion p.PropertyType
+                fsOptions.AllowNullFields
+                || isNullableUnion p.PropertyType
                 || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
                     && p.PropertyType.IsGenericType
                     && p.PropertyType.GetGenericTypeDefinition() = typedefof<voption<_>>)

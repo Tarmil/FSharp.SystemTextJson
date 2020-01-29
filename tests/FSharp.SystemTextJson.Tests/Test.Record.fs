@@ -55,6 +55,13 @@ module NonStruct =
         with
         | :? JsonException as e -> Assert.Equal("B.by was expected to be of type String, but was null.", e.Message)
 
+    [<Fact>]
+    let ``allowNullFields`` () =
+        let options = JsonSerializerOptions()
+        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
+        Assert.Equal({bx=1;by=null}, actual)
+
     type C =
         {
             cx: B
