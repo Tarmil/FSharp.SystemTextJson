@@ -11,6 +11,7 @@ type internal RecordProperty =
         Name: string
         Type: Type
         Ignore: bool
+        MustBeNonNull: bool
     }
 
 type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
@@ -32,7 +33,12 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
                 |> Array.isEmpty
                 |> not
-            { Name = name; Type = p.PropertyType; Ignore = ignore }
+            {
+                Name = name
+                Type = p.PropertyType
+                Ignore = ignore
+                MustBeNonNull = not (isNullableUnion p.PropertyType)
+            }
         )
 
     let fieldCount = fieldProps.Length
@@ -74,7 +80,6 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader typeToConvert
-        let doesAllowNullLiteral = not (isNull (Attribute.GetCustomAttribute(recordType, typeof<AllowNullLiteralAttribute>)))
 
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true
@@ -89,7 +94,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                     fieldsFound <- fieldsFound + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
 
-                    if isNull fields.[i] && not (usesNull p.Type) && not doesAllowNullLiteral then
+                    if isNull fields.[i] && p.MustBeNonNull then
                         let msg = sprintf "%s.%s was expected to be of type %s, but was null." typeToConvert.Name p.Name p.Type.Name
                         raise (JsonException msg)
                 | _ ->

@@ -342,7 +342,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
 
     override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
-        | JsonTokenType.Null when Helpers.usesNull ty ->
+        | JsonTokenType.Null when Helpers.isNullableUnion ty ->
             (null : obj) :?> 'T
         | JsonTokenType.String when bareFieldlessTags ->
             let case = getCaseByTag &reader
