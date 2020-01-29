@@ -20,7 +20,7 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
         elif JsonTupleConverter.CanConvert(typeToConvert) then
             JsonTupleConverter.CreateConverter(typeToConvert)
         elif JsonRecordConverter.CanConvert(typeToConvert) then
-            JsonRecordConverter.CreateConverter(typeToConvert, options)
+            JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
         elif JsonUnionConverter.CanConvert(typeToConvert) then
             JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)
         else

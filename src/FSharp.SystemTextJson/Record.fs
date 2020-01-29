@@ -14,7 +14,7 @@ type internal RecordProperty =
         MustBeNonNull: bool
     }
 
-type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
+type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
     inherit JsonConverter<'T>()
 
     let recordType: Type = typeof<'T>
@@ -33,11 +33,16 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
                 |> Array.isEmpty
                 |> not
+            let canBeNull =
+                isNullableUnion p.PropertyType
+                || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
+                    && p.PropertyType.IsGenericType
+                    && p.PropertyType.GetGenericTypeDefinition() = typedefof<voption<_>>)
             {
                 Name = name
                 Type = p.PropertyType
                 Ignore = ignore
-                MustBeNonNull = not (isNullableUnion p.PropertyType)
+                MustBeNonNull = not canBeNull
             }
         )
 
@@ -114,21 +119,24 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 JsonSerializer.Serialize(writer, v, options))
         writer.WriteEndObject()
 
-type JsonRecordConverter() =
+type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
+
+    new() =
+        JsonRecordConverter(JsonFSharpOptions())
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isRecord typeToConvert
 
-    static member internal CreateConverter(typeToConvert, options: JsonSerializerOptions) =
+    static member internal CreateConverter(typeToConvert, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([|typeToConvert|])
-            .GetConstructor([|typeof<JsonSerializerOptions>|])
-            .Invoke([|options|])
+            .GetConstructor([|typeof<JsonSerializerOptions>; typeof<JsonFSharpOptions>|])
+            .Invoke([|options; fsOptions|])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonRecordConverter.CreateConverter(typeToConvert, options)
+        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
