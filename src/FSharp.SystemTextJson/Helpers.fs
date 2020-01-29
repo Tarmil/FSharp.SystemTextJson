@@ -26,3 +26,10 @@ let isNullableUnion (ty: Type) =
     |> Array.exists (fun x ->
         let x = (x :?> CompilationRepresentationAttribute)
         x.Flags.HasFlag(CompilationRepresentationFlags.UseNullAsTrueValue))
+
+let isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
+    fsOptions.AllowNullFields
+    || isNullableUnion ty
+    || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
+        && ty.IsGenericType
+        && ty.GetGenericTypeDefinition() = typedefof<voption<_>>)

@@ -10,6 +10,7 @@ type private Field =
     {
         Type: Type
         Name: string
+        MustBeNonNull: bool
     }
 
 type private Case =
@@ -53,6 +54,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                             match options.PropertyNamingPolicy with
                             | null -> p.Name
                             | policy -> policy.ConvertName p.Name
+                        MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
                     })
             let fieldsByName =
                 if options.PropertyNameCaseInsensitive then
@@ -182,12 +184,19 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             | true, p -> ValueSome p
             | false, _ -> ValueNone
 
+    let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) options =
+        let v = JsonSerializer.Deserialize(&reader, f.Type, options)
+        if isNull v && f.MustBeNonNull then
+            let msg = sprintf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
+            raise (JsonException msg)
+        v
+
     let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.zeroCreate fieldCount
         for i in 0..fieldCount-1 do
             reader.Read() |> ignore
-            fields.[i] <- JsonSerializer.Deserialize(&reader, case.Fields.[i].Type, options)
+            fields.[i] <- readField &reader case case.Fields.[i] options
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
 
@@ -210,7 +219,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                 match fieldIndexByName &reader case with
                 | ValueSome (i, f) ->
                     fieldsFound <- fieldsFound + 1
-                    fields.[i] <- JsonSerializer.Deserialize(&reader, f.Type, options)
+                    fields.[i] <- readField &reader case f options
                 | _ ->
                     reader.Skip()
             | _ -> ()
@@ -225,7 +234,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
 
     let readFields (reader: byref<Utf8JsonReader>) case options =
         if case.UnwrappedSingleField then
-            let field = JsonSerializer.Deserialize(&reader, case.Fields.[0].Type, options)
+            let field = readField &reader case case.Fields.[0] options
             case.Ctor [| field |] :?> 'T
         elif namedFields then
             readFieldsAsObject &reader case options

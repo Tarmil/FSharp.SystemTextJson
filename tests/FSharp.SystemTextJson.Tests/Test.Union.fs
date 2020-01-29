@@ -44,6 +44,21 @@ module NonStruct =
         Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, options))
         Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), options))
 
+    [<Fact>]
+    let ``not fill in nulls`` () =
+        try
+            JsonSerializer.Deserialize<B>("""{"Case":"Bc","Fields":[null,true]}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("B.Bc(x) was expected to be of type String, but was null.", e.Message)
+
+    [<Fact>]
+    let ``allowNullFields`` () =
+        let options = JsonSerializerOptions()
+        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let actual = JsonSerializer.Deserialize("""{"Case":"Bc","Fields":[null,true]}""", options)
+        Assert.Equal(Bc(null, true), actual)
+
     let tagPolicyOptions = JsonSerializerOptions()
     tagPolicyOptions.Converters.Add(JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
@@ -492,6 +507,21 @@ module Struct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, options))
         Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, options))
         Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), options))
+
+    [<Fact>]
+    let ``not fill in nulls`` () =
+        try
+            JsonSerializer.Deserialize<B>("""{"Case":"Bc","Fields":[null,true]}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("B.Bc(x) was expected to be of type String, but was null.", e.Message)
+
+    [<Fact>]
+    let ``allowNullFields`` () =
+        let options = JsonSerializerOptions()
+        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let actual = JsonSerializer.Deserialize("""{"Case":"Bc","Fields":[null,true]}""", options)
+        Assert.Equal(Bc(null, true), actual)
 
     [<Struct>]
     type VO = { vo: voption<int> }

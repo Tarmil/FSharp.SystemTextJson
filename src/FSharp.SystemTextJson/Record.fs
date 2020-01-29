@@ -33,17 +33,11 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
                 |> Array.isEmpty
                 |> not
-            let canBeNull =
-                fsOptions.AllowNullFields
-                || isNullableUnion p.PropertyType
-                || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
-                    && p.PropertyType.IsGenericType
-                    && p.PropertyType.GetGenericTypeDefinition() = typedefof<voption<_>>)
             {
                 Name = name
                 Type = p.PropertyType
                 Ignore = ignore
-                MustBeNonNull = not canBeNull
+                MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
             }
         )
 
