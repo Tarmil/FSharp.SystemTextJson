@@ -11,13 +11,16 @@ type internal RecordProperty =
         Name: string
         Type: Type
         Ignore: bool
+        MustBeNonNull: bool
     }
 
-type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
+type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
     inherit JsonConverter<'T>()
 
+    let recordType: Type = typeof<'T>
+
     let fieldProps =
-        FSharpType.GetRecordFields(typeof<'T>, true)
+        FSharpType.GetRecordFields(recordType, true)
         |> Array.map (fun p ->
             let name =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
@@ -30,7 +33,18 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
                 |> Array.isEmpty
                 |> not
-            { Name = name; Type = p.PropertyType; Ignore = ignore }
+            let canBeNull =
+                fsOptions.AllowNullFields
+                || isNullableUnion p.PropertyType
+                || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.SuccinctOption
+                    && p.PropertyType.IsGenericType
+                    && p.PropertyType.GetGenericTypeDefinition() = typedefof<voption<_>>)
+            {
+                Name = name
+                Type = p.PropertyType
+                Ignore = ignore
+                MustBeNonNull = not canBeNull
+            }
         )
 
     let fieldCount = fieldProps.Length
@@ -39,9 +53,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
         |> Seq.filter (fun p -> not p.Ignore)
         |> Seq.length
 
-    let ctor = FSharpValue.PreComputeRecordConstructor(typeof<'T>, true)
+    let ctor = FSharpValue.PreComputeRecordConstructor(recordType, true)
 
-    let dector = FSharpValue.PreComputeRecordReader(typeof<'T>, true)
+    let dector = FSharpValue.PreComputeRecordReader(recordType, true)
 
     let propertiesByName =
         if options.PropertyNameCaseInsensitive then
@@ -85,6 +99,10 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 | ValueSome (i, p) when not p.Ignore ->
                     fieldsFound <- fieldsFound + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
+
+                    if isNull fields.[i] && p.MustBeNonNull then
+                        let msg = sprintf "%s.%s was expected to be of type %s, but was null." typeToConvert.Name p.Name p.Type.Name
+                        raise (JsonException msg)
                 | _ ->
                     reader.Skip()
             | _ -> ()
@@ -102,21 +120,24 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions) =
                 JsonSerializer.Serialize(writer, v, options))
         writer.WriteEndObject()
 
-type JsonRecordConverter() =
+type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
+
+    new() =
+        JsonRecordConverter(JsonFSharpOptions())
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isRecord typeToConvert
 
-    static member internal CreateConverter(typeToConvert, options: JsonSerializerOptions) =
+    static member internal CreateConverter(typeToConvert, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([|typeToConvert|])
-            .GetConstructor([|typeof<JsonSerializerOptions>|])
-            .Invoke([|options|])
+            .GetConstructor([|typeof<JsonSerializerOptions>; typeof<JsonFSharpOptions>|])
+            .Invoke([|options; fsOptions|])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonRecordConverter.CreateConverter(typeToConvert, options)
+        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
