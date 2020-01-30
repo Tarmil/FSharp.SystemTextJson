@@ -2,7 +2,9 @@
 
 ## 0.8
 
-* [#32](https://github.com/Tarmil/FSharp.SystemTextJson/issues/32): Add `JsonUnionEncoding.UnwrapSingleFieldCases`, which encodes the field of single-field cases as `x` instead of `[x]`.
+* [#30](https://github.com/Tarmil/FSharp.SystemTextJson/issues/30): Unwrap `'T voption` with `JsonUnionEncoding.UnwrapOption`.
+* [#32](https://github.com/Tarmil/FSharp.SystemTextJson/issues/32): Add `JsonUnionEncoding.UnwrapSingleFieldCases`, which encodes the field of single-field cases as `x` instead of `[x]`. Include it in `JsonUnionEncoding.FSharpLuLike`.
+* [#33](https://github.com/Tarmil/FSharp.SystemTextJson/issues/33): Fix "read too much or not enough" when parsing a list of unions with `JsonUnionEncoding.UnwrapFieldlessTags`.
 * [#38](https://github.com/Tarmil/FSharp.SystemTextJson/issues/38): Add more consistent names for options:
     * `BareFieldlessTags` becomes `UnwrapFieldlessTags`;
     * `SuccintOption` becomes `UnwrapOption`;
