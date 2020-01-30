@@ -355,7 +355,6 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             (null : obj) :?> 'T
         | JsonTokenType.String when unwrapFieldlessTags ->
             let case = getCaseByTag &reader
-            reader.Read() |> ignore
             case.Ctor [||] :?> 'T
         | _ ->
             match baseFormat with
