@@ -3,6 +3,12 @@
 ## 0.8
 
 * [#32](https://github.com/Tarmil/FSharp.SystemTextJson/issues/32): Add `JsonUnionEncoding.UnwrapSingleFieldCases`, which encodes the field of single-field cases as `x` instead of `[x]`.
+* [#38](https://github.com/Tarmil/FSharp.SystemTextJson/issues/38): Add more consistent names for options:
+    * `BareFieldlessTags` becomes `UnwrapFieldlessTags`;
+    * `SuccintOption` becomes `UnwrapOption`;
+    * `EraseSingleCaseUnions` becomes `UnwrapSingleCaseUnions`.
+
+    The previous names are marked `Obsolete`.
 
 ## 0.7
 

@@ -173,10 +173,10 @@ Unions can be serialized in a number of formats. The enum `JsonUnionEncoding` de
 ```fsharp
 // Using options:
 let options = JsonSerializerOptions()
-options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.BareFieldlessTags))
+options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapFieldlessTags))
 
 // Using attributes:
-[<JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.BareFieldlessTags)>]
+[<JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapFieldlessTags)>]
 type MyUnion = // ...
 ```
 
@@ -290,14 +290,14 @@ Here are the possible values:
     // --> {"anInt":123,"aString":"Hello world!"}
     ```
 
-* Additionally, or-ing `||| JsonUnionEncoding.BareFieldlessTags` to any of the previous formats represents cases that don't have any arguments as a simple string.
+* Additionally, or-ing `||| JsonUnionEncoding.UnwrapFieldlessTags` to any of the previous formats represents cases that don't have any arguments as a simple string.
 
     ```fsharp
     JsonSerializer.Serialize(NoArgs, options)
     // --> "NoArgs"
     
     JsonSerializer.Serialize(WithArgs (123, "HelloWorld!"), options)
-    // --> (same format as without BareFieldlessTags)
+    // --> (same format as without UnwrapFieldlessTags)
     ```
 
 Union cases that are represented as `null` in .NET using `CompilationRepresentationFlags.UseNullAsTrueValue`, such as `Option.None`, are serialized as `null`.
@@ -310,7 +310,7 @@ By default, the type `'T option` is treated specially.
 
 * The value `Some x` is represented the same as `x`, without wrapping it in the union representation for `Some`.
 
-When using a custom `JsonUnionEncoding`, this behavior is enabled by or-ing `||| JsonUnionEncoding.SuccintOption`.
+When using a custom `JsonUnionEncoding`, this behavior is enabled by or-ing `||| JsonUnionEncoding.UnwrapOption`.
 
 ## FAQ
 
@@ -329,7 +329,7 @@ Yes!
 * Does FSharp.SystemTextJson support representing `'T option` as either just `'T` or `null` (or an absent field)?
 
 Yes! Starting with v0.6, this is the default behavior.
-To supersede it, use an explicit `JsonUnionEncoding` that does not include `SuccintOption`.
+To supersede it, use an explicit `JsonUnionEncoding` that does not include `UnwrapOption`.
 
 * Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute` on record fields?
 

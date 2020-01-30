@@ -1,5 +1,6 @@
 namespace System.Text.Json.Serialization
 
+open System
 open System.Runtime.InteropServices
 open System.Text.Json
 
@@ -34,14 +35,26 @@ type JsonUnionEncoding =
     | NamedFields       = 0x01_00
 
     /// If set, union cases that don't have fields are encoded as a bare string.
-    | BareFieldlessTags = 0x02_00
+    | UnwrapFieldlessTags = 0x02_00
+
+    /// Obsolete: use UnwrapFieldlessTags instead.
+    | [<Obsolete "Use UnwrapFieldlessTags">]
+      BareFieldlessTags = 0x02_00
 
     /// If set, `None` is represented as null,
     /// and `Some x`  is represented the same as `x`.
-    | SuccinctOption     = 0x04_00
+    | UnwrapOption      = 0x04_00
+
+    /// Obsolete: use UnwrapOption instead.
+    | [<Obsolete "Use UnwrapOption">]
+      SuccintOption     = 0x04_00
 
     /// If set, single-case single-field unions are serialized as the single field's value.
-    | EraseSingleCaseUnions = 0x08_00
+    | UnwrapSingleCaseUnions = 0x08_00
+
+    /// Obsolete: use UnwrapSingleCaseUnions instead.
+    | [<Obsolete "Use UnwrapSingleCaseUnions">]
+      EraseSingleCaseUnions = 0x08_00
 
     /// If set, the field of a single-field union case is encoded as just the value
     /// rather than a single-value array or object.
