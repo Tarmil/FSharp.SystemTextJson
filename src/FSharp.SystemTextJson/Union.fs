@@ -420,7 +420,7 @@ type JsonUnwrappedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
         :?> 'T
 
     override _.Write(writer, value, options) =
-        JsonSerializer.Serialize(writer, (getter value).[0] :?> 'FieldT, options)
+        JsonSerializer.Serialize<'FieldT>(writer, (getter value).[0] :?> 'FieldT, options)
 
 type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()

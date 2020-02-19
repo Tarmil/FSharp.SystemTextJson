@@ -111,7 +111,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         ||> Array.iter2 (fun p v ->
             if not p.Ignore && not (options.IgnoreNullValues && isNull v) then
                 writer.WritePropertyName(p.Name)
-                JsonSerializer.Serialize(writer, v, options))
+                JsonSerializer.Serialize(writer, v, p.Type, options))
         writer.WriteEndObject()
 
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =

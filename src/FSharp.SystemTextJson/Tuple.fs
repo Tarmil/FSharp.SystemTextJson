@@ -24,8 +24,9 @@ type JsonTupleConverter<'T>() =
 
     override _.Write(writer, value, options) =
         writer.WriteStartArray()
-        for value in reader value do
-            JsonSerializer.Serialize(writer, value, options)
+        (types, reader value)
+        ||> Array.iter2 (fun ty value ->
+            JsonSerializer.Serialize(writer, value, ty, options))
         writer.WriteEndArray()
 
 type JsonTupleConverter() =
