@@ -107,11 +107,13 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     override _.Write(writer, value, options) =
         writer.WriteStartObject()
-        (fieldProps, dector value)
-        ||> Array.iter2 (fun p v ->
+        let values = dector value
+        for i in 0..fieldProps.Length-1 do
+            let v = values.[i]
+            let p = fieldProps.[i]
             if not p.Ignore && not (options.IgnoreNullValues && isNull v) then
                 writer.WritePropertyName(p.Name)
-                JsonSerializer.Serialize(writer, v, p.Type, options))
+                JsonSerializer.Serialize(writer, v, p.Type, options)
         writer.WriteEndObject()
 
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =

@@ -291,10 +291,10 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             fail "case field" &reader ty
 
     let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
-        (case.Fields, case.Dector value)
-        ||> Array.iter2 (fun field value ->
-            JsonSerializer.Serialize(writer, value, field.Type, options)
-        )
+        let fields = case.Fields
+        let values = case.Dector value
+        for i in 0..fields.Length-1 do
+            JsonSerializer.Serialize(writer, values.[i], fields.[i].Type, options)
         writer.WriteEndArray()
 
     let writeFieldsAsArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
@@ -302,12 +302,12 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         writeFieldsAsRestOfArray writer case value options
 
     let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
-        (case.Fields, case.Dector value)
-        ||> Array.iter2 (fun field value ->
-            if not (options.IgnoreNullValues && isNull value) then
-                writer.WritePropertyName(field.Name)
-                JsonSerializer.Serialize(writer, value, field.Type, options)
-        )
+        let fields = case.Fields
+        let values = case.Dector value
+        for i in 0..fields.Length-1 do
+            if not (options.IgnoreNullValues && isNull values.[i]) then
+                writer.WritePropertyName(fields.[i].Name)
+                JsonSerializer.Serialize(writer, values.[i], fields.[i].Type, options)
         writer.WriteEndObject()
 
     let writeFieldsAsObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
