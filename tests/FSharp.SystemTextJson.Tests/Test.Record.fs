@@ -56,6 +56,14 @@ module NonStruct =
         | :? JsonException as e -> Assert.Equal("B.by was expected to be of type String, but was null.", e.Message)
 
     [<Fact>]
+    let ``give too few fields should give error`` () =
+        try
+            JsonSerializer.Deserialize<B>("""{"bx": 1}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("Missing field(s) for record type Tests.Record+NonStruct+B. Got: bx, but required: bx, by", e.Message)
+
+    [<Fact>]
     let ``allowNullFields`` () =
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))

@@ -83,7 +83,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true
-        let mutable fieldsFound = 0
+        let mutable fieldsFound: string list = []
         while cont && reader.Read() do
             match reader.TokenType with
             | JsonTokenType.EndObject ->
@@ -91,7 +91,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             | JsonTokenType.PropertyName ->
                 match fieldIndex &reader with
                 | ValueSome (i, p) when not p.Ignore ->
-                    fieldsFound <- fieldsFound + 1
+                    fieldsFound <- p.Name :: fieldsFound
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
 
                     if isNull fields.[i] && p.MustBeNonNull then
@@ -101,8 +101,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     reader.Skip()
             | _ -> ()
 
-        if fieldsFound < expectedFieldCount && not options.IgnoreNullValues then
-            raise (JsonException("Missing field for record type " + typeToConvert.FullName))
+        if fieldsFound.Length < expectedFieldCount && not options.IgnoreNullValues then
+            let msg = sprintf "Missing field(s) for record type %s. Got: %s, but required: %s" typeToConvert.FullName (String.Join(", ", fieldsFound)) (String.Join(", ", [for p in fieldProps -> p.Name]))
+            raise (JsonException msg)
         ctor fields :?> 'T
 
     override _.Write(writer, value, options) =
