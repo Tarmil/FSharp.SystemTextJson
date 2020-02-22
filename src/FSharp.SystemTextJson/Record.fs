@@ -96,7 +96,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             | _ -> ()
 
         for i in 0..fieldCount-1 do
-            if fields.[i] = null && fieldProps.[i].MustBeNonNull && not fieldProps.[i].Ignore then
+            if isNull fields.[i] && fieldProps.[i].MustBeNonNull && not fieldProps.[i].Ignore then
                 raise (JsonException("Missing field for record type " + typeToConvert.FullName + ": " + fieldProps.[i].Name))
         ctor fields :?> 'T
 
