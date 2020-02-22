@@ -63,6 +63,19 @@ module NonStruct =
         with
         | :? JsonException as e -> Assert.Equal("Missing field for record type Tests.Record+NonStruct+B: by", e.Message)
 
+    type SomeSearchApi =
+        {
+            filter: string option
+            limit: int option
+            offset: int option
+        }
+
+    let ``allow omitting fields that are optional`` () =
+        let result  = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
+        Assert.Equal(result, {filter=None; limit=None; offset=None})
+        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+        Assert.Equal(result, {filter=None; limit=Some 50; offset=None})
+
     [<Fact>]
     let ``allowNullFields`` () =
         let options = JsonSerializerOptions()
