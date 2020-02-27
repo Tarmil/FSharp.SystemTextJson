@@ -37,14 +37,14 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 Name = name
                 Type = p.PropertyType
                 Ignore = ignore
-                MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
+                MustBeNonNull = not ignore && not options.IgnoreNullValues && not (isNullableFieldType fsOptions p.PropertyType)
             }
         )
 
     let fieldCount = fieldProps.Length
-    let expectedFieldCount =
+    let minExpectedFieldCount =
         fieldProps
-        |> Seq.filter (fun p -> not p.Ignore)
+        |> Seq.filter (fun p -> p.MustBeNonNull)
         |> Seq.length
 
     let ctor = FSharpValue.PreComputeRecordConstructor(recordType, true)
@@ -101,8 +101,10 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     reader.Skip()
             | _ -> ()
 
-        if fieldsFound < expectedFieldCount && not options.IgnoreNullValues then
-            raise (JsonException("Missing field for record type " + typeToConvert.FullName))
+        if fieldsFound < minExpectedFieldCount && not options.IgnoreNullValues then
+            for i in 0..fieldCount-1 do
+                if isNull fields.[i] && fieldProps.[i].MustBeNonNull && not fieldProps.[i].Ignore then
+                    raise (JsonException("Missing field for record type " + typeToConvert.FullName + ": " + fieldProps.[i].Name))
         ctor fields :?> 'T
 
     override _.Write(writer, value, options) =
