@@ -37,11 +37,15 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 Name = name
                 Type = p.PropertyType
                 Ignore = ignore
-                MustBeNonNull = not options.IgnoreNullValues && not (isNullableFieldType fsOptions p.PropertyType)
+                MustBeNonNull = not ignore && not options.IgnoreNullValues && not (isNullableFieldType fsOptions p.PropertyType)
             }
         )
 
     let fieldCount = fieldProps.Length
+    let minExpectedFieldCount =
+        fieldProps
+        |> Seq.filter (fun p -> p.MustBeNonNull)
+        |> Seq.length
 
     let ctor = FSharpValue.PreComputeRecordConstructor(recordType, true)
 
@@ -79,6 +83,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true
+        let mutable fieldsFound = 0
         while cont && reader.Read() do
             match reader.TokenType with
             | JsonTokenType.EndObject ->
@@ -86,6 +91,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             | JsonTokenType.PropertyName ->
                 match fieldIndex &reader with
                 | ValueSome (i, p) when not p.Ignore ->
+                    fieldsFound <- fieldsFound + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
 
                     if isNull fields.[i] && p.MustBeNonNull then
@@ -95,9 +101,10 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     reader.Skip()
             | _ -> ()
 
-        for i in 0..fieldCount-1 do
-            if isNull fields.[i] && fieldProps.[i].MustBeNonNull && not fieldProps.[i].Ignore then
-                raise (JsonException("Missing field for record type " + typeToConvert.FullName + ": " + fieldProps.[i].Name))
+        if fieldsFound < minExpectedFieldCount && not options.IgnoreNullValues then
+            for i in 0..fieldCount-1 do
+                if isNull fields.[i] && fieldProps.[i].MustBeNonNull && not fieldProps.[i].Ignore then
+                    raise (JsonException("Missing field for record type " + typeToConvert.FullName + ": " + fieldProps.[i].Name))
         ctor fields :?> 'T
 
     override _.Write(writer, value, options) =
