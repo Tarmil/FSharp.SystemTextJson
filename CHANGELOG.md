@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9
+
+* [#43](https://github.com/Tarmil/FSharp.SystemTextJson/issues/43): In deserialization, allow omitting fields that are optional.
+
 ## 0.8
 
 * [#30](https://github.com/Tarmil/FSharp.SystemTextJson/issues/30): Unwrap `'T voption` with `JsonUnionEncoding.UnwrapOption`.
