@@ -228,6 +228,43 @@ module Struct =
         let actual = JsonSerializer.Serialize({bx=1;by="b"}, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
 
+    [<Fact>]
+    let ``not fill in nulls`` () =
+        try
+            JsonSerializer.Deserialize<B>("""{"bx": 1, "by": null}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("B.by was expected to be of type String, but was null.", e.Message)
+
+    [<Fact>]
+    let ``get a good error message when omitting non-optional fields in a record`` () =
+        try
+            JsonSerializer.Deserialize<B>("""{"bx": 1}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("Missing field for record type Tests.Record+Struct+B: by", e.Message)
+
+    [<Struct>]
+    type SomeSearchApi =
+        {
+            filter: string option
+            limit: int option
+            offset: int option
+        }
+
+    let ``allow omitting fields that are optional`` () =
+        let result  = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
+        Assert.Equal(result, {filter=None; limit=None; offset=None})
+        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+        Assert.Equal(result, {filter=None; limit=Some 50; offset=None})
+
+    [<Fact>]
+    let ``allowNullFields`` () =
+        let options = JsonSerializerOptions()
+        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
+        Assert.Equal({bx=1;by=null}, actual)
+
     [<Struct>]
     type C =
         {
