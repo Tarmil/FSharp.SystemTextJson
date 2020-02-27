@@ -37,7 +37,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 Name = name
                 Type = p.PropertyType
                 Ignore = ignore
-                MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
+                MustBeNonNull = not options.IgnoreNullValues && not (isNullableFieldType fsOptions p.PropertyType)
             }
         )
 

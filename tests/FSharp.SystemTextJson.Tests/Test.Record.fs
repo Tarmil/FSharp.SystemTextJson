@@ -147,12 +147,10 @@ module NonStruct =
             y: int
         }
 
-    (* FIXME
     [<Fact>]
     let ``deserialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Deserialize("""{"y":1}""", ignoreNullOptions)
         Assert.Equal({cls = null; y = 1}, actual)
-    *)
 
     [<Fact>]
     let ``serialize with IgnoreNullValues`` () =
@@ -298,12 +296,10 @@ module Struct =
             y: int
         }
 
-    (* FIXME
     [<Fact>]
     let ``deserialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Deserialize("""{"y":1}""", ignoreNullOptions)
         Assert.Equal({cls = null; y = 1}, actual)
-    *)
 
     [<Fact>]
     let ``serialize with IgnoreNullValues`` () =
