@@ -19,12 +19,15 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('*.lock') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('.config/dotnet-tools.json') }}-${{ hashFiles('*.lock') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
+        id: cache
 
-      - run: dotnet tool restore &&
-             ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: dotnet tool restore
+
+      - run: ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
 
       - uses: actions/upload-artifact@v1
         with:
