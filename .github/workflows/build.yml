@@ -22,10 +22,8 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('.config/dotnet-tools.json') }}-${{ hashFiles('*.lock') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-        id: cache
 
-      - if: steps.cache.outputs.cache-hit != 'true'
-        run: dotnet tool restore
+      - run: dotnet tool restore
 
       - run: ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
 
