@@ -16,6 +16,13 @@ jobs:
         with:
           dotnet-version: '3.1.102'
 
+      - uses: actions/cache@v1
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('*.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - run: dotnet tool restore &&
              ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
 
