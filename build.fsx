@@ -33,6 +33,7 @@ module Paths =
     let root = __SOURCE_DIRECTORY__
     let sln = root </> "FSharp.SystemTextJson.sln"
     let out = root </> "bin"
+    let nugetOut = out </> "nuget"
     let benchmarks = root </> "benchmarks" </> "FSharp.SystemTextJson.Benchmarks"
 
 Target.create "Clean" (fun _ ->
@@ -47,7 +48,7 @@ Target.create "Build" (fun _ ->
 
 Target.create "Pack" (fun _ ->
     DotNet.pack (fun o ->
-        { o with OutputPath = Some Paths.out }
+        { o with OutputPath = Some Paths.nugetOut }
     ) Paths.sln
 )
 
