@@ -11,6 +11,8 @@ type private Field =
         Type: Type
         Name: string
         MustBeNonNull: bool
+        MustBePresent: bool
+        IsSkip: obj -> bool
     }
 
 type private Case =
@@ -21,6 +23,7 @@ type private Case =
         Dector: obj -> obj[]
         Name: string
         UnwrappedSingleField: bool
+        MinExpectedFieldCount: int
     }
 
 type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions, cases: UnionCaseInfo[]) =
@@ -55,6 +58,8 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                             | null -> p.Name
                             | policy -> policy.ConvertName p.Name
                         MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
+                        MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
+                        IsSkip = isSkip p.PropertyType
                     })
             let fieldsByName =
                 if options.PropertyNameCaseInsensitive then
@@ -71,6 +76,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
                 Name = name
                 UnwrappedSingleField = fields.Length = 1 && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases
+                MinExpectedFieldCount = fields |> Seq.filter (fun f -> f.MustBePresent) |> Seq.length
             })
 
     let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
@@ -205,8 +211,8 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         readFieldsAsRestOfArray &reader case options
 
     let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
-        let expectedFieldCount = case.Fields.Length
-        let fields = Array.zeroCreate expectedFieldCount
+        let fieldCount = case.Fields.Length
+        let fields = Array.zeroCreate fieldCount
         let mutable cont = true
         let mutable fieldsFound = 0
         let mutable skipFirstRead = skipFirstRead
@@ -224,7 +230,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                     reader.Skip()
             | _ -> ()
 
-        if fieldsFound < expectedFieldCount && not options.IgnoreNullValues then
+        if fieldsFound < case.MinExpectedFieldCount && not options.IgnoreNullValues then
             raise (JsonException("Missing field for union type " + ty.FullName))
         case.Ctor fields :?> 'T
 
@@ -305,9 +311,11 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         let fields = case.Fields
         let values = case.Dector value
         for i in 0..fields.Length-1 do
-            if not (options.IgnoreNullValues && isNull values.[i]) then
-                writer.WritePropertyName(fields.[i].Name)
-                JsonSerializer.Serialize(writer, values.[i], fields.[i].Type, options)
+            let f = fields.[i]
+            let v = values.[i]
+            if not (options.IgnoreNullValues && isNull v) && not (f.IsSkip v) then
+                writer.WritePropertyName(f.Name)
+                JsonSerializer.Serialize(writer, v, f.Type, options)
         writer.WriteEndObject()
 
     let writeFieldsAsObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
@@ -383,6 +391,17 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         | UntaggedBit -> writeUntagged writer case value options
         | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
+type JsonSkippableConverter<'T>() =
+    inherit JsonConverter<Skippable<'T>>()
+
+    override _.Read(reader, _typeToConvert, options) =
+        Include <| JsonSerializer.Deserialize<'T>(&reader, options)
+
+    override _.Write(writer, value, options) =
+        match value with
+        | Skip -> writer.WriteNullValue()
+        | Include x -> JsonSerializer.Serialize<'T>(writer, x, options)
+
 type JsonUnwrapOptionConverter<'T>() =
     inherit JsonConverter<option<'T>>()
 
@@ -428,9 +447,11 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     static let jsonUnionConverterTy = typedefof<JsonUnionConverter<_>>
     static let optionTy = typedefof<option<_>>
     static let voptionTy = typedefof<voption<_>>
+    static let skippableTy = typedefof<Skippable<_>>
     static let jsonUnwrapOptionConverterTy = typedefof<JsonUnwrapOptionConverter<_>>
     static let jsonUnwrapValueOptionConverterTy = typedefof<JsonUnwrapValueOptionConverter<_>>
     static let jsonUnwrappedUnionConverterTy = typedefof<JsonUnwrappedUnionConverter<_, _>>
+    static let jsonSkippableConverterTy = typedefof<JsonSkippableConverter<_>>
     static let optionsTy = typeof<JsonSerializerOptions>
     static let fsOptionsTy = typeof<JsonFSharpOptions>
     static let caseTy = typeof<UnionCaseInfo>
@@ -452,6 +473,13 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = voptionTy then
             jsonUnwrapValueOptionConverterTy
+                .MakeGenericType(typeToConvert.GetGenericArguments())
+                .GetConstructor([||])
+                .Invoke([||])
+            :?> JsonConverter
+        elif typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() = skippableTy then
+            jsonSkippableConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])

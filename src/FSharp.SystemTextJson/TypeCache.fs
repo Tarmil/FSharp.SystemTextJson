@@ -19,6 +19,7 @@ module TypeCache =
         | Tuple = 5
         | Other = 100
 
+    /// cached access to FSharpType.* and System.Type to prevent repeated access to reflection members
     let getKind =
         let cache = Dict<System.Type, TypeKind>()
         let listTy = typedefof<_ list>
@@ -35,11 +36,9 @@ module TypeCache =
                 elif FSharpType.IsRecord(ty, true) then TypeKind.Record
                 else TypeKind.Other)
 
-    /// cached access to FSharpType.IsUnion to prevent repeated access to reflection members
     let isUnion ty =
         getKind ty = TypeKind.Union
 
-    /// cached access to FSharpType.IsRecord to prevent repeated access to reflection members
     let isRecord ty =
         getKind ty = TypeKind.Record
 
