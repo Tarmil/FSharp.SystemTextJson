@@ -27,7 +27,6 @@ module Cli =
         | x :: y :: xs -> if List.contains x o then Some y else getOpt o xs
 
     let clean = hasFlag ["-c"; "--clean"] ctx.Arguments
-    let pushTestsUrl = getOpt ["--push-tests"] ctx.Arguments
 
 module Paths =
     let root = __SOURCE_DIRECTORY__
@@ -55,24 +54,14 @@ Target.create "Pack" (fun _ ->
     ) Paths.sln
 )
 
-let uploadTests (url: string) =
-    let resultsFile =
-        !! (Paths.out </> "*.trx")
-        |> Seq.maxBy File.GetCreationTimeUtc
-    use c = new WebClient()
-    c.UploadFile(url, resultsFile) |> ignore
-
 Target.create "Test" (fun _ ->
-    try
-        DotNet.test (fun o ->
-            { o with
-                Configuration = DotNet.BuildConfiguration.Release
-                Logger = Some "trx"
-                ResultsDirectory = Some Paths.out
-            }
-        ) Paths.sln
-    finally
-        Option.iter uploadTests Cli.pushTestsUrl
+    DotNet.test (fun o ->
+        { o with
+            Configuration = DotNet.BuildConfiguration.Release
+            Logger = Some "trx"
+            ResultsDirectory = Some Paths.out
+        }
+    ) Paths.sln
 )
 
 /// This target doesn't need a dependency chain, because the benchmarks actually wrap and build the referenced
