@@ -10,24 +10,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v1
 
-      - uses: actions/setup-dotnet@v1
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '3.1.102'
 
-      - uses: actions/cache@v1
+      - name: NuGet cache
+        uses: actions/cache@v1
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('.config/dotnet-tools.json') }}-${{ hashFiles('*.lock') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - run: dotnet tool restore
+      - name: Build
+        run: dotnet tool restore &&
+             ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
 
-      - run: ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
-
-      - uses: actions/upload-artifact@v1
+      - name: Upload nupkg
+        uses: actions/upload-artifact@v1
         with:
           name: nuget
           path: bin/nuget
@@ -37,15 +41,18 @@ jobs:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v1
+      - name: Download nupkg
+        uses: actions/download-artifact@v1
         with:
           name: nuget
 
-      - run: dotnet nuget push bin/nuget/*.nupkg
+      - name: Push to NuGet
+        run: dotnet nuget push bin/nuget/*.nupkg
                --api-key ${{ secrets.NUGET_API_KEY }}
                --source https://api.nuget.org/v3/index.json
 
-      - uses: svenstaro/upload-release-action@1.0.1
+      - name: Push to GitHub release
+        uses: svenstaro/upload-release-action@1.0.1
         with:
           tag: ${{ github.ref }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
