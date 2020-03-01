@@ -62,6 +62,7 @@ NUGET
       System.Memory (>= 4.5.3) - restriction: || (&& (== netcoreapp3.0) (< netcoreapp2.0)) (&& (== netcoreapp3.0) (< netcoreapp2.1)) (&& (== netcoreapp3.0) (>= uap10.1)) (== netstandard2.0)
       System.Security.AccessControl (>= 4.6)
       System.Security.Principal.Windows (>= 4.6)
+    Nerdbank.GitVersioning (3.0.50) - copy_local: true
     NETStandard.Library (2.0.3)
       Microsoft.NETCore.Platforms (>= 1.1)
     Newtonsoft.Json (12.0.2)
