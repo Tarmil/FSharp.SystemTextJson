@@ -48,7 +48,10 @@ Target.create "Build" (fun _ ->
 
 Target.create "Pack" (fun _ ->
     DotNet.pack (fun o ->
-        { o with OutputPath = Some Paths.nugetOut }
+        { o with
+            OutputPath = Some Paths.nugetOut
+            MSBuildParams = { o.MSBuildParams with NoWarn = Some ["NU5105"] }
+        }
     ) Paths.sln
 )
 
