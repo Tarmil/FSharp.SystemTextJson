@@ -1,6 +1,0 @@
-﻿<Project ToolsVersion="15.0">
-  <Target Name="Restore">
-    <Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildThisFileDirectory).."
-          StandardOutputImportance="low" />
-  </Target>
-</Project>
