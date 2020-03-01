@@ -11,19 +11,20 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
         TypeCache.getKind typeToConvert <> TypeCache.TypeKind.Other
 
     static member internal CreateConverter(typeToConvert, options, fsOptions) =
-        if JsonListConverter.CanConvert(typeToConvert) then
+        match TypeCache.getKind typeToConvert with
+        | TypeCache.TypeKind.List ->
             JsonListConverter.CreateConverter(typeToConvert)
-        elif JsonSetConverter.CanConvert(typeToConvert) then
+        | TypeCache.TypeKind.Set ->
             JsonSetConverter.CreateConverter(typeToConvert)
-        elif JsonMapConverter.CanConvert(typeToConvert) then
+        | TypeCache.TypeKind.Map ->
             JsonMapConverter.CreateConverter(typeToConvert)
-        elif JsonTupleConverter.CanConvert(typeToConvert) then
+        | TypeCache.TypeKind.Tuple ->
             JsonTupleConverter.CreateConverter(typeToConvert)
-        elif JsonRecordConverter.CanConvert(typeToConvert) then
+        | TypeCache.TypeKind.Record ->
             JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
-        elif JsonUnionConverter.CanConvert(typeToConvert) then
+        | TypeCache.TypeKind.Union ->
             JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)
-        else
+        | _ ->
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
     override _.CreateConverter(typeToConvert, options) =
