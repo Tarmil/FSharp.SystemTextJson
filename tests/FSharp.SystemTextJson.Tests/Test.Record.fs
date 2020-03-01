@@ -83,6 +83,32 @@ module NonStruct =
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({bx=1;by=null}, actual)
 
+    type S =
+        {
+            sa: int
+            sb: Skippable<int>
+            sc: Skippable<int option>
+            sd: Skippable<int voption>
+        }
+
+    [<Fact>]
+    let ``deserialize skippable field`` () =
+        let actual = JsonSerializer.Deserialize("""{"sa":1}""", options)
+        Assert.Equal({sa=1;sb=Skip;sc=Skip;sd=Skip}, actual)
+        let actual = JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":null,"sd":null}""", options)
+        Assert.Equal({sa=1;sb=Include 2;sc=Include None;sd=Include ValueNone}, actual)
+        let actual = JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":3,"sd":4}""", options)
+        Assert.Equal({sa=1;sb=Include 2;sc=Include(Some 3);sd=Include(ValueSome 4)}, actual)
+
+    [<Fact>]
+    let ``serialize skippable field`` () =
+        let actual = JsonSerializer.Serialize({sa=1;sb=Skip;sc=Skip;sd=Skip}, options)
+        Assert.Equal("""{"sa":1}""", actual)
+        let actual = JsonSerializer.Serialize({sa=1;sb=Include 2;sc=Include None;sd=Include ValueNone}, options)
+        Assert.Equal("""{"sa":1,"sb":2,"sc":null,"sd":null}""", actual)
+        let actual = JsonSerializer.Serialize({sa=1;sb=Include 2;sc=Include(Some 3);sd=Include(ValueSome 4)}, options)
+        Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
+
     type C =
         {
             cx: B
@@ -216,7 +242,7 @@ module Struct =
         }
 
     let options = JsonSerializerOptions()
-    options.Converters.Add(JsonRecordConverter())
+    options.Converters.Add(JsonFSharpConverter())
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -264,6 +290,33 @@ module Struct =
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({bx=1;by=null}, actual)
+       
+    [<Struct>]
+    type S =
+        {
+            sa: int
+            sb: Skippable<int>
+            sc: Skippable<int option>
+            sd: Skippable<int voption>
+        }
+
+    [<Fact>]
+    let ``deserialize skippable field`` () =
+        let actual = JsonSerializer.Deserialize("""{"sa":1}""", options)
+        Assert.Equal({sa=1;sb=Skip;sc=Skip;sd=Skip}, actual)
+        let actual = JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":null,"sd":null}""", options)
+        Assert.Equal({sa=1;sb=Include 2;sc=Include None;sd=Include ValueNone}, actual)
+        let actual = JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":3,"sd":4}""", options)
+        Assert.Equal({sa=1;sb=Include 2;sc=Include(Some 3);sd=Include(ValueSome 4)}, actual)
+
+    [<Fact>]
+    let ``serialize skippable field`` () =
+        let actual = JsonSerializer.Serialize({sa=1;sb=Skip;sc=Skip;sd=Skip}, options)
+        Assert.Equal("""{"sa":1}""", actual)
+        let actual = JsonSerializer.Serialize({sa=1;sb=Include 2;sc=Include None;sd=Include ValueNone}, options)
+        Assert.Equal("""{"sa":1,"sb":2,"sc":null,"sd":null}""", actual)
+        let actual = JsonSerializer.Serialize({sa=1;sb=Include 2;sc=Include(Some 3);sd=Include(ValueSome 4)}, options)
+        Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
 
     [<Struct>]
     type C =

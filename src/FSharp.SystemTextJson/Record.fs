@@ -12,6 +12,8 @@ type internal RecordProperty =
         Type: Type
         Ignore: bool
         MustBeNonNull: bool
+        MustBePresent: bool
+        IsSkip: obj -> bool
     }
 
 type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
@@ -33,18 +35,28 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
                 |> Array.isEmpty
                 |> not
+            let canBeNull =
+                ignore
+                || options.IgnoreNullValues
+                || isNullableFieldType fsOptions p.PropertyType
+            let canBeSkipped =
+                ignore
+                || options.IgnoreNullValues
+                || isSkippableFieldType fsOptions p.PropertyType
             {
                 Name = name
                 Type = p.PropertyType
                 Ignore = ignore
-                MustBeNonNull = not ignore && not options.IgnoreNullValues && not (isNullableFieldType fsOptions p.PropertyType)
+                MustBeNonNull = not canBeNull
+                MustBePresent = not canBeSkipped
+                IsSkip = isSkip p.PropertyType
             }
         )
 
     let fieldCount = fieldProps.Length
     let minExpectedFieldCount =
         fieldProps
-        |> Seq.filter (fun p -> p.MustBeNonNull)
+        |> Seq.filter (fun p -> p.MustBePresent)
         |> Seq.length
 
     let ctor = FSharpValue.PreComputeRecordConstructor(recordType, true)
@@ -103,7 +115,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
         if fieldsFound < minExpectedFieldCount && not options.IgnoreNullValues then
             for i in 0..fieldCount-1 do
-                if isNull fields.[i] && fieldProps.[i].MustBeNonNull && not fieldProps.[i].Ignore then
+                if isNull fields.[i] && fieldProps.[i].MustBePresent then
                     raise (JsonException("Missing field for record type " + typeToConvert.FullName + ": " + fieldProps.[i].Name))
         ctor fields :?> 'T
 
@@ -113,7 +125,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         for i in 0..fieldProps.Length-1 do
             let v = values.[i]
             let p = fieldProps.[i]
-            if not p.Ignore && not (options.IgnoreNullValues && isNull v) then
+            if not p.Ignore && not (options.IgnoreNullValues && isNull v) && not (p.IsSkip v) then
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)
         writer.WriteEndObject()

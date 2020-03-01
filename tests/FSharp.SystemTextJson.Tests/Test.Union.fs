@@ -240,7 +240,7 @@ module NonStruct =
         Assert.Equal("""{"bc":{"x":"test","Item2":true}}""", JsonSerializer.Serialize(Bc("test", true), externalTagNamedFieldsTagPolicyOptions))
 
     let internalTagNamedFieldsOptions = JsonSerializerOptions()
-    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnwrapOption))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields`` () =
@@ -253,6 +253,21 @@ module NonStruct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsOptions))
+
+    type Sk =
+        | S of a: int * b: Skippable<int> * c: Skippable<int option> * d: Skippable<int voption>
+
+    [<Fact>]
+    let ``deserialize InternalTag NamedFields with Skippable fields`` () =
+        Assert.Equal(S(1,Skip,Skip,Skip), JsonSerializer.Deserialize("""{"Case":"S","a":1}""", internalTagNamedFieldsOptions))
+        Assert.Equal(S(1,Include 2,Include None,Include ValueNone), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":null,"d":null}""", internalTagNamedFieldsOptions))
+        Assert.Equal(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", internalTagNamedFieldsOptions))
+
+    [<Fact>]
+    let ``serialize InternalTag NamedFields with Skippable fields`` () =
+        Assert.Equal("""{"Case":"S","a":1}""", JsonSerializer.Serialize(S(1,Skip,Skip,Skip), internalTagNamedFieldsOptions))
+        Assert.Equal("""{"Case":"S","a":1,"b":2,"c":null,"d":null}""", JsonSerializer.Serialize(S(1,Include 2,Include None,Include ValueNone), internalTagNamedFieldsOptions))
+        Assert.Equal("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", JsonSerializer.Serialize(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), internalTagNamedFieldsOptions))
 
     let internalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
     internalTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
@@ -713,7 +728,7 @@ module Struct =
         Assert.Equal("""{"bc":{"x":"test","Item2":true}}""", JsonSerializer.Serialize(Bc("test", true), externalTagNamedFieldsTagPolicyOptions))
 
     let internalTagNamedFieldsOptions = JsonSerializerOptions()
-    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields))
+    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnwrapOption))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields`` () =
@@ -726,6 +741,22 @@ module Struct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bb","Item":32}""", JsonSerializer.Serialize(Bb 32, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsOptions))
+
+    [<Struct>]
+    type Sk =
+        | S of a: int * b: Skippable<int> * c: Skippable<int option> * d: Skippable<int voption>
+
+    [<Fact>]
+    let ``deserialize InternalTag NamedFields with Skippable fields`` () =
+        Assert.Equal(S(1,Skip,Skip,Skip), JsonSerializer.Deserialize("""{"Case":"S","a":1}""", internalTagNamedFieldsOptions))
+        Assert.Equal(S(1,Include 2,Include None,Include ValueNone), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":null,"d":null}""", internalTagNamedFieldsOptions))
+        Assert.Equal(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", internalTagNamedFieldsOptions))
+
+    [<Fact>]
+    let ``serialize InternalTag NamedFields with Skippable fields`` () =
+        Assert.Equal("""{"Case":"S","a":1}""", JsonSerializer.Serialize(S(1,Skip,Skip,Skip), internalTagNamedFieldsOptions))
+        Assert.Equal("""{"Case":"S","a":1,"b":2,"c":null,"d":null}""", JsonSerializer.Serialize(S(1,Include 2,Include None,Include ValueNone), internalTagNamedFieldsOptions))
+        Assert.Equal("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", JsonSerializer.Serialize(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), internalTagNamedFieldsOptions))
 
     let internalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
     internalTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))

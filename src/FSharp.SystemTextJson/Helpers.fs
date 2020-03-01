@@ -2,6 +2,7 @@
 
 open System
 open System.Text.Json
+open FSharp.Reflection
 
 let fail expected (reader: byref<Utf8JsonReader>) (ty: Type) =
     sprintf "Failed to parse type %s: expected %s, found %A"
@@ -27,9 +28,25 @@ let isNullableUnion (ty: Type) =
         let x = (x :?> CompilationRepresentationAttribute)
         x.Flags.HasFlag(CompilationRepresentationFlags.UseNullAsTrueValue))
 
-let isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
+let isSkippableType (ty: Type) =
+    ty.IsGenericType
+    && ty.GetGenericTypeDefinition() = typedefof<Skippable<_>>
+
+let isSkip (ty: Type) =
+    if isSkippableType ty then
+        let getTag = FSharpValue.PreComputeUnionTagReader(ty)
+        fun x -> getTag x = 0
+    else
+        fun _ -> false
+
+let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     fsOptions.AllowNullFields
     || isNullableUnion ty
     || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
         && ty.IsGenericType
         && ty.GetGenericTypeDefinition() = typedefof<voption<_>>)
+    || (isSkippableType ty && isNullableFieldType fsOptions (ty.GetGenericArguments().[0]))
+
+let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
+    isNullableFieldType fsOptions ty
+    || isSkippableType ty
