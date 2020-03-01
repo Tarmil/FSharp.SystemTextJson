@@ -1,6 +1,6 @@
 # FSharp.SystemTextJson
 
-[![Build status](https://ci.appveyor.com/api/projects/status/mf903n55gsiop0mh/branch/master?svg=true)](https://ci.appveyor.com/project/Tarmil/fsharp-systemtextjson/branch/master)
+[![Build status](https://github.com/Tarmil/FSharp.SystemTextJson/workflows/Build/badge.svg)](https://github.com/Tarmil/FSharp.SystemTextJson/actions?query=workflow%3ABuild)
 [![Nuget](https://img.shields.io/nuget/v/FSharp.SystemTextJson?logo=nuget)](https://nuget.org/packages/FSharp.SystemTextJson)
 
 This library provides F# union and record support for [System.Text.Json](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/).
