@@ -2,4 +2,4 @@
 set -e
 
 dotnet tool restore
-dotnet fake build "$@"
+exec dotnet fake build "$@"

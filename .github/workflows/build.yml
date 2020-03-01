@@ -27,8 +27,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build
-        run: dotnet tool restore &&
-             ./build.sh -v $(dotnet nbgv get-version -v SemVer2)
+        run: ./build.sh
 
       - name: Upload nupkg
         uses: actions/upload-artifact@v1
