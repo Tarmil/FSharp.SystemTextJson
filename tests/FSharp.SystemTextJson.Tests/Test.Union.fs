@@ -240,7 +240,7 @@ module NonStruct =
         Assert.Equal("""{"bc":{"x":"test","Item2":true}}""", JsonSerializer.Serialize(Bc("test", true), externalTagNamedFieldsTagPolicyOptions))
 
     let internalTagNamedFieldsOptions = JsonSerializerOptions()
-    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnwrapOption))
+    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.Default))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields`` () =
@@ -728,7 +728,7 @@ module Struct =
         Assert.Equal("""{"bc":{"x":"test","Item2":true}}""", JsonSerializer.Serialize(Bc("test", true), externalTagNamedFieldsTagPolicyOptions))
 
     let internalTagNamedFieldsOptions = JsonSerializerOptions()
-    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnwrapOption))
+    internalTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.Default))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields`` () =

@@ -31,7 +31,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
 
     let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
     let baseFormat =
-        let given = fsOptions.UnionEncoding &&& enum<JsonUnionEncoding> 0x00_ff
+        let given = fsOptions.UnionEncoding &&& enum<JsonUnionEncoding> 0x00_fe
         if given = enum 0 then JsonUnionEncoding.AdjacentTag else given
     let namedFields = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.NamedFields
     let unwrapFieldlessTags = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags
