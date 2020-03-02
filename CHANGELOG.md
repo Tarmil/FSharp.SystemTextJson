@@ -1,9 +1,21 @@
 # Changelog
 
+## 0.10
+
+* [#47](https://github.com/Tarmil/FSharp.SystemTextJson/issues/47): Add `Skippable<'T>` to represent values that can be omitted from the serialization of a record or a union with `NamedFields`. This is particularly useful with `Skippable<'T option>` (or `voption`) to represent a field that can be omitted, null, or have a proper value.
+    ```fsharp
+    type R = { x: Skippable<int option> }
+
+    { x = Skip }              // Serialized as: {}
+    { x = Include None }      // Serialized as: {"x":null}
+    { x = Include (Some 42) } // Serialized as: {"x":42}
+    ```
+    Also add a `Skippable` module with standard functions: `map`, `filter`, etc. Implementation largely based on @cmeeren's [JsonSkippable](https://github.com/cmeeren/FSharp.JsonSkippable/blob/master/src/FSharp.JsonSkippable/Skippable.fs) which provides the same functionality for Newtonsoft.Json.
+* [#51](https://github.com/Tarmil/FSharp.SystemTextJson/issues/51): When the type `K` is a single-case union wrapping a string, serialize `Map<K, V>` into a JSON object, like `Map<string, V>`.
+
 ## 0.9
 
 * [#43](https://github.com/Tarmil/FSharp.SystemTextJson/issues/43): In deserialization, allow omitting fields that are optional.
-* [#51](https://github.com/Tarmil/FSharp.SystemTextJson/issues/51): When the type `K` is a single-case union wrapping a string, serialize `Map<K, V>` into a JSON object, like `Map<string, V>`.
 
 ## 0.8
 
