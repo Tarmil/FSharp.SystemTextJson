@@ -51,6 +51,45 @@ let ``serialize string-keyed map`` (m: Map<NonNull<string>, int>) =
     let actual = JsonSerializer.Serialize(m, options)
     Assert.Equal(expected, actual)
 
+type UserId = UserId of string
+
+let serKV1_1 (KeyValue (UserId k, v: int)) =
+    JsonSerializer.Serialize(k) + ":" + JsonSerializer.Serialize(v)
+
+[<Property>]
+let ``deserialize newtype-string-keyed map`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
+    let ser = "{" + String.concat "," (Seq.map serKV1_1 m) + "}"
+    let actual = JsonSerializer.Deserialize<Map<UserId, int>>(ser, options)
+    Assert.Equal<Map<UserId, int>>(m, actual)
+
+[<Property>]
+let ``serialize newtype-string-keyed map`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
+    let expected = "{" + String.concat "," (Seq.map serKV1_1 m) + "}"
+    let actual = JsonSerializer.Serialize(m, options)
+    Assert.Equal(expected, actual)
+
+[<Struct>]
+type SUserId = SUserId of string
+
+let serKV1_2 (KeyValue (SUserId k, v: int)) =
+    JsonSerializer.Serialize(k) + ":" + JsonSerializer.Serialize(v)
+
+[<Property>]
+let ``deserialize struct-newtype-string-keyed map`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (SUserId k) v m)
+    let ser = "{" + String.concat "," (Seq.map serKV1_2 m) + "}"
+    let actual = JsonSerializer.Deserialize<Map<SUserId, int>>(ser, options)
+    Assert.Equal<Map<SUserId, int>>(m, actual)
+
+[<Property>]
+let ``serialize struct-newtype-string-keyed map`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (SUserId k) v m)
+    let expected = "{" + String.concat "," (Seq.map serKV1_2 m) + "}"
+    let actual = JsonSerializer.Serialize(m, options)
+    Assert.Equal(expected, actual)
+
 let keyPolicyOptions = JsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
 keyPolicyOptions.Converters.Add(JsonFSharpConverter())
 

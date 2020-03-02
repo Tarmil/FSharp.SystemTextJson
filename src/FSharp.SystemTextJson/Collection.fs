@@ -3,6 +3,7 @@ namespace System.Text.Json.Serialization
 open System
 open System.Text.Json
 open System.Text.Json.Serialization.Helpers
+open FSharp.Reflection
 
 type JsonListConverter<'T>() =
     inherit JsonConverter<list<'T>>()
@@ -101,6 +102,43 @@ type JsonStringMapConverter<'V>() =
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
+type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
+    inherit JsonConverter<Map<'K, 'V>>()
+
+    let ty = typeof<Map<'K, 'V>>
+    let kty = typeof<'K>
+
+    let case = FSharpType.GetUnionCases(kty, true).[0]
+    let wrap = FSharpValue.PreComputeUnionConstructor(case, true)
+    let unwrap = FSharpValue.PreComputeUnionReader(case, true)
+
+    let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) options =
+        if not (reader.Read()) then acc else
+        match reader.TokenType with
+        | JsonTokenType.EndObject -> acc
+        | JsonTokenType.PropertyName ->
+            let key = reader.GetString()
+            let value = JsonSerializer.Deserialize<'V>(&reader, options)
+            read (Map.add (wrap [|key|] :?> 'K) value acc) &reader options
+        | _ ->
+            fail "JSON field" &reader ty
+
+    override _.Read(reader, _typeToConvert, options) =
+        expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
+        read Map.empty &reader options
+
+    override _.Write(writer, value: Map<'K, 'V>, options) =
+        writer.WriteStartObject()
+        for kv in value do
+            let k =
+                let k = (unwrap kv.Key).[0] :?> string
+                match options.DictionaryKeyPolicy with
+                | null -> k
+                | p -> p.ConvertName k
+            writer.WritePropertyName(k)
+            JsonSerializer.Serialize<'V>(writer, kv.Value, options)
+        writer.WriteEndObject()
+
 type JsonMapConverter<'K, 'V when 'K : comparison>() =
     inherit JsonConverter<Map<'K, 'V>>()
 
@@ -136,6 +174,14 @@ type JsonMapConverter<'K, 'V when 'K : comparison>() =
 type JsonMapConverter() =
     inherit JsonConverterFactory()
 
+    static let isWrappedString (ty: Type) =
+        TypeCache.isUnion ty &&
+        let cases = FSharpType.GetUnionCases(ty, true)
+        cases.Length = 1 &&
+        let fields = cases.[0].GetFields()
+        fields.Length = 1 &&
+        fields.[0].PropertyType = typeof<string>
+
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isMap typeToConvert
 
@@ -145,6 +191,9 @@ type JsonMapConverter() =
             if genArgs.[0] = typeof<string> then
                 typedefof<JsonStringMapConverter<_>>
                     .MakeGenericType([|genArgs.[1]|])
+            elif isWrappedString genArgs.[0] then
+                typedefof<JsonWrappedStringMapConverter<_,_>>
+                    .MakeGenericType(genArgs)
             else
                 typedefof<JsonMapConverter<_,_>>
                     .MakeGenericType(genArgs)
