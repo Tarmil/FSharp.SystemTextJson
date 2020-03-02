@@ -3,6 +3,7 @@
 ## 0.9
 
 * [#43](https://github.com/Tarmil/FSharp.SystemTextJson/issues/43): In deserialization, allow omitting fields that are optional.
+* [#51](https://github.com/Tarmil/FSharp.SystemTextJson/issues/51): When the type `K` is a single-case union wrapping a string, serialize `Map<K, V>` into a JSON object, like `Map<string, V>`.
 
 ## 0.8
 
