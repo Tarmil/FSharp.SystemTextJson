@@ -28,6 +28,25 @@ let ``deserialize set of ints`` (s: Set<int>) =
     let actual = JsonSerializer.Deserialize<Set<int>>(ser, options)
     Assert.Equal<Set<int>>(s, actual)
 
+let tryblock thunk =
+    try thunk() |> Ok
+    with e -> Error e.Message
+
+module NullsInsideList =
+    [<Fact>]
+    let ``allowed when the target type is a list of options``() =
+        let ser = "[0, null, 2, 3]"
+        let actual = JsonSerializer.Deserialize<int option list>(ser, options)
+        Assert.Equal<int option list>([Some 0; None; Some 2; Some 3], actual)
+
+    [<Fact>]
+    let ``forbid nulls inside array when target type is not option``() =
+        let ser = """["hello", null]"""
+        let actual = tryblock (fun _ -> JsonSerializer.Deserialize<string list>(ser, options))
+        match actual with
+        | Error msg -> Assert.Equal("Unexpected null inside array. Expected only elements of type String", msg)
+        | _ -> failwith "expected failure"
+
 [<Property>]
 let ``serialize set of ints`` (s: Set<int>) =
     let expected = "[" + String.concat "," (Seq.map string s) + "]"

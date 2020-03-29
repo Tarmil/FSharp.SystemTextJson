@@ -5,34 +5,41 @@ open System.Text.Json
 open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
-type JsonListConverter<'T>() =
+type JsonListConverter<'T>(fsOptions) =
     inherit JsonConverter<list<'T>>()
+    let tType = typeof<'T>
+    let tIsNullable = isNullableFieldType fsOptions tType
 
     override _.Read(reader, _typeToConvert, options) =
-        JsonSerializer.Deserialize<'T[]>(&reader, options)
-        |> List.ofArray
+        let array = JsonSerializer.Deserialize<'T[]>(&reader, options)
+        if not tIsNullable then
+            for elem in array do
+                if isNull (box elem) then
+                    let msg = sprintf "Unexpected null inside array. Expected only elements of type %s" tType.Name
+                    raise (JsonException msg)
+        array |> List.ofArray
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
-type JsonListConverter() =
+type JsonListConverter(fsOptions) =
     inherit JsonConverterFactory()
 
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isList typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type) =
+    static member internal CreateConverter(typeToConvert: Type, fsOptions) =
         typedefof<JsonListConverter<_>>
             .MakeGenericType([|typeToConvert.GetGenericArguments().[0]|])
-            .GetConstructor([||])
-            .Invoke([||])
+            .GetConstructor([|typeof<JsonFSharpOptions>|])
+            .Invoke([|fsOptions|])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonListConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, _options) =
-        JsonListConverter.CreateConverter(typeToConvert)
+        JsonListConverter.CreateConverter(typeToConvert, fsOptions)
 
 type JsonSetConverter<'T when 'T : comparison>() =
     inherit JsonConverter<Set<'T>>()

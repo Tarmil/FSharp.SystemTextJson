@@ -290,7 +290,7 @@ module Struct =
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({bx=1;by=null}, actual)
-       
+
     [<Struct>]
     type S =
         {
