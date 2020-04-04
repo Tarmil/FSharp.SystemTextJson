@@ -181,8 +181,13 @@ let ``serialize 8-tuple`` ((a, b, c, d, e, f, g, h as t): int * int * int * int 
 [<Property>]
 let ``deserialize struct 2-tuple`` ((a, b as t): struct (int * string)) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
-    let actual = JsonSerializer.Deserialize<struct (int * string)>(ser, options)
-    Assert.Equal(t, actual)
+    let result = tryblock (fun () -> JsonSerializer.Deserialize<struct (int * string)>(ser, options))
+    match b, result with
+    | null, Ok _ -> failwith "Deserializing null for a non-nullable field should fail"
+    | _, Ok actual -> Assert.Equal(t, actual)
+    | null, Error msg -> Assert.Equal((sprintf "Unexpected null inside tuple-array. Expected type String, but got null."), msg)
+    | _, Error msg -> failwithf "Unexpected deserialization error %s" msg
+
 
 [<Property>]
 let ``serialize struct 2-tuple`` ((a, b as t): struct (int * string)) =
