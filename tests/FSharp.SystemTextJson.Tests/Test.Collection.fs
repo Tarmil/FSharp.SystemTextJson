@@ -153,8 +153,12 @@ let ``serialize int-keyed map`` (m: Map<int, string>) =
 [<Property>]
 let ``deserialize 2-tuple`` ((a, b as t): int * string) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
-    let actual = JsonSerializer.Deserialize<int * string>(ser, options)
-    Assert.Equal(t, actual)
+    let result = tryblock (fun () -> JsonSerializer.Deserialize<int * string>(ser, options))
+    match b, result with
+    | null, Ok _ -> failwith "Deserializing null for a non-nullable field should fail"
+    | _, Ok actual -> Assert.Equal(t, actual)
+    | null, Error msg -> Assert.Equal((sprintf "Unexpected null inside tuple-array. Expected type String, but got null."), msg)
+    | _, Error msg -> failwithf "Unexpected deserialization error %s" msg
 
 [<Property>]
 let ``serialize 2-tuple`` ((a, b as t): int * string) =

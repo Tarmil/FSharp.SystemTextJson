@@ -29,7 +29,7 @@ type JsonListConverter(fsOptions) =
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isList typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type, fsOptions) =
+    static member internal CreateConverter(typeToConvert: Type, fsOptions: JsonFSharpOptions) =
         typedefof<JsonListConverter<_>>
             .MakeGenericType([|typeToConvert.GetGenericArguments().[0]|])
             .GetConstructor([|typeof<JsonFSharpOptions>|])
@@ -42,8 +42,11 @@ type JsonListConverter(fsOptions) =
     override _.CreateConverter(typeToConvert, _options) =
         JsonListConverter.CreateConverter(typeToConvert, fsOptions)
 
-type JsonSetConverter<'T when 'T : comparison>() =
+type JsonSetConverter<'T when 'T : comparison>(fsOptions) =
     inherit JsonConverter<Set<'T>>()
+    let tType = typeof<'T>
+    let tIsNullable = isNullableFieldType fsOptions tType
+    let needsNullChecking = not tIsNullable && not tType.IsValueType
 
     let rec read (acc: Set<'T>) (reader: byref<Utf8JsonReader>) options =
         if not (reader.Read()) then acc else
@@ -55,29 +58,35 @@ type JsonSetConverter<'T when 'T : comparison>() =
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
-        read Set.empty &reader options
+        let set = read Set.empty &reader options
+        if needsNullChecking then
+            for elem in set do
+                if isNull (box elem) then
+                    let msg = sprintf "Unexpected null inside set. Expected only elements of type %s" tType.Name
+                    raise (JsonException msg)
+        set
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
-type JsonSetConverter() =
+type JsonSetConverter(fsOptions) =
     inherit JsonConverterFactory()
 
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isSet typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type) =
+    static member internal CreateConverter(typeToConvert: Type, fsOptions: JsonFSharpOptions) =
         typedefof<JsonSetConverter<_>>
             .MakeGenericType([|typeToConvert.GetGenericArguments().[0]|])
-            .GetConstructor([||])
-            .Invoke([||])
+            .GetConstructor([|typeof<JsonFSharpOptions>|])
+            .Invoke([|fsOptions|])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonSetConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, _options) =
-        JsonSetConverter.CreateConverter(typeToConvert)
+        JsonSetConverter.CreateConverter(typeToConvert, fsOptions)
 
 type JsonStringMapConverter<'V>() =
     inherit JsonConverter<Map<string, 'V>>()
