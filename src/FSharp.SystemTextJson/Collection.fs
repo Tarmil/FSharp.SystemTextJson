@@ -9,10 +9,11 @@ type JsonListConverter<'T>(fsOptions) =
     inherit JsonConverter<list<'T>>()
     let tType = typeof<'T>
     let tIsNullable = isNullableFieldType fsOptions tType
+    let needsNullChecking = not tIsNullable && not tType.IsValueType
 
     override _.Read(reader, _typeToConvert, options) =
         let array = JsonSerializer.Deserialize<'T[]>(&reader, options)
-        if not tIsNullable then
+        if needsNullChecking then
             for elem in array do
                 if isNull (box elem) then
                     let msg = sprintf "Unexpected null inside array. Expected only elements of type %s" tType.Name

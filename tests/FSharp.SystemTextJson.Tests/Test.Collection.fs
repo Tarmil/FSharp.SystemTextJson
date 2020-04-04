@@ -47,6 +47,14 @@ module NullsInsideList =
         | Error msg -> Assert.Equal("Unexpected null inside array. Expected only elements of type String", msg)
         | _ -> failwith "expected failure"
 
+    [<Fact>]
+    let ``allow nulls inside array if allowNullFields is true ``() =
+        let options = JsonSerializerOptions()
+        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let ser = """["hello", null]"""
+        let actual = JsonSerializer.Deserialize<string list>(ser,options)
+        Assert.Equal<string list>(["hello"; null], actual)
+
 [<Property>]
 let ``serialize set of ints`` (s: Set<int>) =
     let expected = "[" + String.concat "," (Seq.map string s) + "]"
