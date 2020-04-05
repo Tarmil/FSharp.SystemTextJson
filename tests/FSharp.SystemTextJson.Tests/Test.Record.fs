@@ -215,6 +215,20 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNameCaseInsensitiveOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
 
+    type D =
+        {
+            dx: int
+            dy: int option
+        }
+
+    [<Fact>]
+    let ``should fail if missing required field`` () =
+        try
+            JsonSerializer.Deserialize<D>("""{"dy": 1}""", options) |> ignore
+            failwith "Deserialization was supposed to fail on the line above"
+        with
+        | :? JsonException as e -> Assert.Equal("Missing field for record type Tests.Record+NonStruct+D: dx", e.Message)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
