@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11
+
+* [#54](https://github.com/Tarmil/FSharp.SystemTextJson/issues/54): Do throw an exception when a mandatory field is missing and an optional field was omitted. Thanks @fuchen!
+
+* [#57](https://github.com/Tarmil/FSharp.SystemTextJson/issues/57): Do throw an exception when a parsed value is null inside an array, a set or a tuple, unless `allowNullFields` is true. Thanks @drhumlen!
+
 ## 0.10
 
 * [#47](https://github.com/Tarmil/FSharp.SystemTextJson/issues/47): Add `Skippable<'T>` to represent values that can be omitted from the serialization of a record or a union with `NamedFields`. This is particularly useful with `Skippable<'T option>` (or `voption`) to represent a field that can be omitted, null, or have a proper value.
