@@ -1,31 +1,42 @@
-﻿namespace System.Text.Json.Serialization
+namespace System.Text.Json.Serialization
 
 open System
 open System.Text.Json
 open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
+type internal TupleProperty =
+    {
+        Type: Type
+        NeedsNullChecking: bool
+    }
+
 type JsonTupleConverter<'T>(fsOptions) =
     inherit JsonConverter<'T>()
 
     let ty = typeof<'T>
-    let types = FSharpType.GetTupleElements(ty)
+    let fieldProps =
+        FSharpType.GetTupleElements(ty)
+        |> Array.map (fun t ->
+            let tIsNullable = isNullableFieldType fsOptions t
+            let needsNullChecking = not tIsNullable && not t.IsValueType
+            {
+                Type = t
+                NeedsNullChecking = needsNullChecking
+            })
     let ctor = FSharpValue.PreComputeTupleConstructor(ty)
     let reader = FSharpValue.PreComputeTupleReader(ty)
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "array" &reader typeToConvert
-        let elts = Array.zeroCreate types.Length
-        for i in 0..types.Length-1 do
+        let elts = Array.zeroCreate fieldProps.Length
+        for i in 0..fieldProps.Length-1 do
+            let p = fieldProps.[i]
             reader.Read() |> ignore
-            let value = JsonSerializer.Deserialize(&reader, types.[i], options)
-            let tType = types.[i]
-            let tIsNullable = isNullableFieldType fsOptions tType
-            let needsNullChecking = not tIsNullable && not tType.IsValueType
-            if needsNullChecking then
-                if isNull (box value) then
-                    let msg = sprintf "Unexpected null inside tuple-array. Expected type %s, but got null." tType.Name
-                    raise (JsonException msg)
+            let value = JsonSerializer.Deserialize(&reader, p.Type, options)
+            if p.NeedsNullChecking && isNull (box value) then
+                let msg = sprintf "Unexpected null inside tuple-array. Expected type %s, but got null." p.Type.Name
+                raise (JsonException msg)
             elts.[i] <- value
         readExpecting JsonTokenType.EndArray "end of array" &reader typeToConvert
         ctor elts :?> 'T
@@ -33,8 +44,8 @@ type JsonTupleConverter<'T>(fsOptions) =
     override _.Write(writer, value, options) =
         writer.WriteStartArray()
         let values = reader value
-        for i in 0..types.Length-1 do
-            JsonSerializer.Serialize(writer, values.[i], types.[i], options)
+        for i in 0..fieldProps.Length-1 do
+            JsonSerializer.Serialize(writer, values.[i], fieldProps.[i].Type, options)
         writer.WriteEndArray()
 
 type JsonTupleConverter(fsOptions) =

@@ -107,7 +107,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                         requiredFieldCount <- requiredFieldCount + 1
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
 
-                    if isNull fields.[i] && p.MustBeNonNull then
+                    if p.MustBeNonNull && isNull fields.[i] then
                         let msg = sprintf "%s.%s was expected to be of type %s, but was null." typeToConvert.Name p.Name p.Type.Name
                         raise (JsonException msg)
                 | _ ->
