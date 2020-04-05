@@ -13,13 +13,13 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
     static member internal CreateConverter(typeToConvert, options, fsOptions) =
         match TypeCache.getKind typeToConvert with
         | TypeCache.TypeKind.List ->
-            JsonListConverter.CreateConverter(typeToConvert)
+            JsonListConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Set ->
-            JsonSetConverter.CreateConverter(typeToConvert)
+            JsonSetConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Map ->
             JsonMapConverter.CreateConverter(typeToConvert)
         | TypeCache.TypeKind.Tuple ->
-            JsonTupleConverter.CreateConverter(typeToConvert)
+            JsonTupleConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Record ->
             JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
         | TypeCache.TypeKind.Union ->

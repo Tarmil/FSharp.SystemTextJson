@@ -5,7 +5,7 @@ open System.Text.Json
 open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
-type JsonTupleConverter<'T>() =
+type JsonTupleConverter<'T>(fsOptions) =
     inherit JsonConverter<'T>()
 
     let ty = typeof<'T>
@@ -18,7 +18,15 @@ type JsonTupleConverter<'T>() =
         let elts = Array.zeroCreate types.Length
         for i in 0..types.Length-1 do
             reader.Read() |> ignore
-            elts.[i] <- JsonSerializer.Deserialize(&reader, types.[i], options)
+            let value = JsonSerializer.Deserialize(&reader, types.[i], options)
+            let tType = types.[i]
+            let tIsNullable = isNullableFieldType fsOptions tType
+            let needsNullChecking = not tIsNullable && not tType.IsValueType
+            if needsNullChecking then
+                if isNull (box value) then
+                    let msg = sprintf "Unexpected null inside tuple-array. Expected type %s, but got null." tType.Name
+                    raise (JsonException msg)
+            elts.[i] <- value
         readExpecting JsonTokenType.EndArray "end of array" &reader typeToConvert
         ctor elts :?> 'T
 
@@ -29,21 +37,21 @@ type JsonTupleConverter<'T>() =
             JsonSerializer.Serialize(writer, values.[i], types.[i], options)
         writer.WriteEndArray()
 
-type JsonTupleConverter() =
+type JsonTupleConverter(fsOptions) =
     inherit JsonConverterFactory()
 
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isTuple typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type) =
+    static member internal CreateConverter(typeToConvert: Type, fsOptions: JsonFSharpOptions) =
         typedefof<JsonTupleConverter<_>>
             .MakeGenericType([|typeToConvert|])
-            .GetConstructor([||])
-            .Invoke([||])
+            .GetConstructor([|typeof<JsonFSharpOptions>|])
+            .Invoke([|fsOptions|])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonTupleConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, _options) =
-        JsonTupleConverter.CreateConverter(typeToConvert)
+        JsonTupleConverter.CreateConverter(typeToConvert, fsOptions)
