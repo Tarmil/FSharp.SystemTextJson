@@ -34,27 +34,3 @@ jobs:
         with:
           name: nuget
           path: bin/nuget
-
-  publish:
-    needs: build
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download nupkg
-        uses: actions/download-artifact@v1
-        with:
-          name: nuget
-
-      - name: Push to GitHub release
-        uses: svenstaro/upload-release-action@1.1.0
-        with:
-          tag: ${{ github.ref }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file_glob: 'true'
-          file: nuget/*.nupkg
-
-      - name: Push to NuGet
-        run: dotnet nuget push nuget/*.nupkg
-               --api-key ${{ secrets.NUGET_API_KEY }}
-               --source https://api.nuget.org/v3/index.json
-               --skip-duplicate
