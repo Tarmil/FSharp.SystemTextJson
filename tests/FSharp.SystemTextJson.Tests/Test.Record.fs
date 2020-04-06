@@ -442,3 +442,15 @@ module Struct =
     let ``serialize with property case insensitive`` () =
         let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNameCaseInsensitiveOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+    
+    type RecordWithReadOnlyMember =
+        {
+            CcFirst: int
+            CcSecond: string
+        }
+        with member _.Member = "b"
+
+    [<Fact>]
+    let ``serialize record member fields`` () =
+        let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
