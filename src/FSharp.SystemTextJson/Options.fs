@@ -60,6 +60,10 @@ type JsonUnionEncoding =
     /// rather than a single-value array or object.
     | UnwrapSingleFieldCases = 0x10_00
 
+    /// Implicitly sets NamedFields. If set, when a union case has a single field which is a record,
+    /// the fields of this record are encoded directly as fields of the object representing the union.
+    | UnwrapRecordCases = 0x21_00
+
 
     //// Specific formats
 

@@ -16,6 +16,11 @@ type internal RecordProperty =
         IsSkip: obj -> bool
     }
 
+type internal IRecordConverter =
+    abstract ReadRestOfObject : byref<Utf8JsonReader> * JsonSerializerOptions * skipFirstRead: bool -> obj
+    abstract WriteRestOfObject : Utf8JsonWriter * obj * JsonSerializerOptions -> unit
+    abstract FieldNames : string[]
+
 type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
     inherit JsonConverter<'T>()
 
@@ -90,17 +95,21 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             | true, p -> ValueSome p
             | false, _ -> ValueNone
 
-    override _.Read(reader, typeToConvert, options) =
+    override this.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader typeToConvert
+        this.ReadRestOfObject(&reader, options, false)
 
+    member internal _.ReadRestOfObject(reader, options, skipFirstRead) =
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true
         let mutable requiredFieldCount = 0
-        while cont && reader.Read() do
+        let mutable skipRead = skipFirstRead
+        while cont && (skipRead || reader.Read()) do
             match reader.TokenType with
             | JsonTokenType.EndObject ->
                 cont <- false
             | JsonTokenType.PropertyName ->
+                skipRead <- false
                 match fieldIndex &reader with
                 | ValueSome (i, p) when not p.Ignore ->
                     if p.MustBePresent then
@@ -108,7 +117,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
 
                     if p.MustBeNonNull && isNull fields.[i] then
-                        let msg = sprintf "%s.%s was expected to be of type %s, but was null." typeToConvert.Name p.Name p.Type.Name
+                        let msg = sprintf "%s.%s was expected to be of type %s, but was null." recordType.Name p.Name p.Type.Name
                         raise (JsonException msg)
                 | _ ->
                     reader.Skip()
@@ -117,11 +126,15 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         if requiredFieldCount < minExpectedFieldCount && not options.IgnoreNullValues then
             for i in 0..fieldCount-1 do
                 if isNull fields.[i] && fieldProps.[i].MustBePresent then
-                    raise (JsonException("Missing field for record type " + typeToConvert.FullName + ": " + fieldProps.[i].Name))
+                    raise (JsonException("Missing field for record type " + recordType.FullName + ": " + fieldProps.[i].Name))
+
         ctor fields :?> 'T
 
-    override _.Write(writer, value, options) =
+    override this.Write(writer, value, options) =
         writer.WriteStartObject()
+        this.WriteRestOfObject(writer, value, options)
+
+    member internal _.WriteRestOfObject(writer, value, options) =
         let values = dector value
         for i in 0..fieldProps.Length-1 do
             let v = values.[i]
@@ -130,6 +143,14 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)
         writer.WriteEndObject()
+
+    interface IRecordConverter with
+        member this.ReadRestOfObject(reader, options, skipFirstRead) =
+            box (this.ReadRestOfObject(&reader, options, skipFirstRead))
+        member this.WriteRestOfObject(writer, value, options) =
+            this.WriteRestOfObject(writer, unbox value, options)
+        member _.FieldNames =
+            fieldProps |> Array.map (fun p -> p.Name)
 
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()

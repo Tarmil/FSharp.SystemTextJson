@@ -23,6 +23,7 @@ type private Case =
         Dector: obj -> obj[]
         Name: string
         UnwrappedSingleField: bool
+        UnwrappedRecordField: ValueOption<IRecordConverter>
         MinExpectedFieldCount: int
     }
 
@@ -69,13 +70,30 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                     ValueSome d
                 else
                     ValueNone
+            let unwrappedRecordField =
+                if namedFields
+                    && fields.Length = 1
+                    && FSharpType.IsRecord(fields.[0].Type, true)
+                    && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapRecordCases
+                then
+                    JsonRecordConverter.CreateConverter(fields.[0].Type, options, fsOptions)
+                    |> box
+                    :?> IRecordConverter
+                    |> ValueSome
+                else
+                    ValueNone
+            let unwrappedSingleField =
+                ValueOption.isNone unwrappedRecordField
+                && fields.Length = 1
+                && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases
             {
                 Fields = fields
                 FieldsByName = fieldsByName
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
                 Name = name
-                UnwrappedSingleField = fields.Length = 1 && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases
+                UnwrappedSingleField = unwrappedSingleField
+                UnwrappedRecordField = unwrappedRecordField
                 MinExpectedFieldCount = fields |> Seq.filter (fun f -> f.MustBePresent) |> Seq.length
             })
 
@@ -92,7 +110,9 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                     match fieldlessCase with
                     | ValueSome _ -> hasDuplicateFieldNames <- true
                     | ValueNone -> fieldlessCase <- ValueSome case
-                case.Fields |> Array.map (fun f -> f.Name, case))
+                match case.UnwrappedRecordField with
+                | ValueNone -> case.Fields |> Array.map (fun f -> f.Name, case)
+                | ValueSome r -> r.FieldNames |> Array.map (fun n -> n, case))
         let fields =
             (Map.empty, cases)
             ||> Array.fold (fun foundFieldNames (fieldName, case) ->
@@ -210,18 +230,18 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         readExpecting JsonTokenType.StartArray "array" &reader ty
         readFieldsAsRestOfArray &reader case options
 
-    let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
+    let coreReadFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.zeroCreate fieldCount
         let mutable cont = true
         let mutable fieldsFound = 0
-        let mutable skipFirstRead = skipFirstRead
-        while cont && (skipFirstRead || reader.Read()) do
+        let mutable skipRead = skipFirstRead
+        while cont && (skipRead || reader.Read()) do
             match reader.TokenType with
             | JsonTokenType.EndObject ->
                 cont <- false
             | JsonTokenType.PropertyName ->
-                skipFirstRead <- false
+                skipRead <- false
                 match fieldIndexByName &reader case with
                 | ValueSome (i, f) ->
                     fieldsFound <- fieldsFound + 1
@@ -234,11 +254,24 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
             raise (JsonException("Missing field for union type " + ty.FullName))
         case.Ctor fields :?> 'T
 
+    let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
+        match case.UnwrappedRecordField with
+        | ValueSome conv ->
+            let field = conv.ReadRestOfObject(&reader, options, skipFirstRead)
+            case.Ctor [| field |] :?> 'T
+        | ValueNone ->
+            coreReadFieldsAsRestOfObject &reader case skipFirstRead options
+
     let readFieldsAsObject (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         readExpecting JsonTokenType.StartObject "object" &reader ty
         readFieldsAsRestOfObject &reader case false options
 
     let readFields (reader: byref<Utf8JsonReader>) case options =
+        match case.UnwrappedRecordField with
+        | ValueSome conv ->
+            let field = conv.ReadRestOfObject(&reader, options, false)
+            case.Ctor [| field |] :?> 'T
+        | ValueNone ->
         if case.UnwrappedSingleField then
             let field = readField &reader case case.Fields.[0] options
             case.Ctor [| field |] :?> 'T
@@ -307,7 +340,7 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
         writer.WriteStartArray()
         writeFieldsAsRestOfArray writer case value options
 
-    let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+    let coreWriteFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         let fields = case.Fields
         let values = case.Dector value
         for i in 0..fields.Length-1 do
@@ -317,6 +350,13 @@ type JsonUnionConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFShar
                 writer.WritePropertyName(f.Name)
                 JsonSerializer.Serialize(writer, v, f.Type, options)
         writer.WriteEndObject()
+
+    let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+        match case.UnwrappedRecordField with
+        | ValueSome conv ->
+            conv.WriteRestOfObject(writer, (case.Dector value).[0], options)
+        | ValueNone ->
+            coreWriteFieldsAsRestOfObject writer case value options
 
     let writeFieldsAsObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
