@@ -19,7 +19,8 @@ type JsonTupleConverter<'T>(fsOptions) =
         FSharpType.GetTupleElements(ty)
         |> Array.map (fun t ->
             let tIsNullable = isNullableFieldType fsOptions t
-            let needsNullChecking = not tIsNullable && not t.IsValueType
+            let tIsUnit = t = typeof<Unit>
+            let needsNullChecking = not tIsNullable && not t.IsValueType && not tIsUnit
             {
                 Type = t
                 NeedsNullChecking = needsNullChecking
