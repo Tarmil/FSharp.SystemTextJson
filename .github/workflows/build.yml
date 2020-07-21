@@ -27,10 +27,19 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build
-        run: ./build.sh
+        run: |
+          ./build.sh
+          echo "::set-env name=SEMVER::v$(dotnet nbgv get-version -v SemVer2)"
 
       - name: Upload nupkg
         uses: actions/upload-artifact@v1
         with:
           name: nuget
           path: bin/nuget
+
+      - name: Create tag
+        uses: tvdias/github-tagger@v0.0.1
+        if: ${{ ! contains(env.SEMVER, '-') }}
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.SEMVER }}
