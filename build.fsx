@@ -1,5 +1,4 @@
 #r "paket:
-nuget FSharp.Core ~> 4.6.0
 nuget Fake.DotNet.Cli
 nuget Fake.IO.FileSystem
 nuget Fake.Core.Target

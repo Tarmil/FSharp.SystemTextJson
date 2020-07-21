@@ -89,12 +89,12 @@ type ReflectionComparison() =
 
 
 let config =
-     ManualConfig
-            .Create(DefaultConfig.Instance)
-            .With(Job.ShortRun.With(Runtime.Core))
-            .With(MemoryDiagnoser.Default)
-            .With(MarkdownExporter.GitHub)
-            .With(ExecutionValidator.FailOnError)
+    ManualConfig
+        .Create(DefaultConfig.Instance)
+        .AddJob(Job.ShortRun.WithRuntime(CoreRuntime.Core31))
+        .AddDiagnoser(MemoryDiagnoser.Default)
+        .AddExporter(MarkdownExporter.GitHub)
+        .AddValidator(ExecutionValidator.FailOnError)
 
 let defaultSwitch () =
     BenchmarkSwitcher([| typeof<Records>; typeof<Classes>; typeof<ReflectionComparison> |])
