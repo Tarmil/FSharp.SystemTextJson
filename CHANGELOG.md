@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12
+
+* [#56](https://github.com/Tarmil/FSharp.SystemTextJson/issues/56): Add `JsonUnionEncoding.UnwrapRecordCases`, which implies `JsonUnionEncoding.NamedFields` and encodes union cases containing a single record field as if the record's fields were the union's fields instead. For example:
+    ```fsharp
+    type U =
+        | U of r: {| x: int; y: bool |}
+
+    U {| x = 1; y = true |}
+    // Serialized as: {"Case":"U","Fields":{"x":1,"y":true}}
+    // Instead of:    {"Case":"U","Fields":{"r":{"x":1,"y":true}}}
+    ```
+    This option is compatible with all union formats (`AdjacentTag`, `ExternalTag`, `InternalTag` and `Untagged`).
+* [#64](https://github.com/Tarmil/FSharp.SystemTextJson/issues/64): Fix serialization of `unit` as field of an F# type. Thanks @NickDarvey!
+
 ## 0.11
 
 * [#54](https://github.com/Tarmil/FSharp.SystemTextJson/issues/54): Do throw an exception when a mandatory field is missing and an optional field was omitted. Thanks @fuchen!
