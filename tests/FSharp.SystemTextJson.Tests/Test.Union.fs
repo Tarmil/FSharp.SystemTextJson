@@ -493,6 +493,23 @@ module NonStruct =
         let actual = JsonSerializer.Deserialize("""{"a":"Red","b":"Blue"}""", serializerOptions)
         Assert.Equal({| a = Red; b = Blue |}, actual)
 
+    type UnionWithUnitField =
+        | UWUF of int * unit
+
+    [<Fact>]
+    let ``serializes union with unit field`` () =
+        let options = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+        options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+        let actual = JsonSerializer.Serialize(UWUF (42,()), options)
+        Assert.Equal("""{"Case":"UWUF","Fields":[42,null]}""", actual)
+
+    [<Fact>]
+    let ``deserializes union with unit field`` () =
+        let options = JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+        options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+        let actual = JsonSerializer.Deserialize("""{"Case":"UWUF","Fields":[42,null]}""", options)
+        Assert.Equal(UWUF (42,()), actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]

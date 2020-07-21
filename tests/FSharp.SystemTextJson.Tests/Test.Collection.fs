@@ -161,6 +161,14 @@ let ``deserialize 2-tuple`` ((a, b as t): int * string) =
     | _, Error msg -> failwithf "Unexpected deserialization error %s" msg
 
 [<Property>]
+let ``deserialize 2-tuple with unit`` ((a, b as t): int * unit) =
+    let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
+    let result = tryblock (fun () -> JsonSerializer.Deserialize<int * unit>(ser, options))
+    match result with
+    | Ok actual -> Assert.Equal(t, actual)
+    | Error msg -> failwithf "Unexpected deserialization error %s" msg
+
+[<Property>]
 let ``serialize 2-tuple`` ((a, b as t): int * string) =
     let expected = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
     let actual = JsonSerializer.Serialize(t, options)
