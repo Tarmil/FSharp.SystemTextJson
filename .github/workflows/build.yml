@@ -29,7 +29,8 @@ jobs:
       - name: Build
         run: |
           ./build.sh
-          echo "::set-env name=SEMVER::v$(dotnet nbgv get-version -v SemVer2)"
+          echo "::set-env name=RELEASE_TAG::v$(dotnet nbgv get-version -v SemVer2)"
+          echo "::set-env name=RELEASE_TITLE::Version $(dotnet nbgv get-version -v MajorMinorVersion)"
 
       - name: Upload nupkg
         uses: actions/upload-artifact@v1
@@ -39,7 +40,19 @@ jobs:
 
       - name: Create tag
         uses: tvdias/github-tagger@v0.0.1
-        if: ${{ ! contains(env.SEMVER, '-') }}
+        if: ${{ ! contains(env.RELEASE_TAG, '-') }}
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.SEMVER }}
+          tag: ${{ env.RELEASE_TAG }}
+
+      - name: Create draft release
+        uses: Roang-zero1/github-create-release-action@master
+        if: ${{ ! contains(env.RELEASE_TAG, '-') }}
+        with:
+          created_tag: ${{ env.RELEASE_TAG }}
+          create_draft: true
+          update_existing: true
+          release_title: ${{ env.RELEASE_TITLE }}
+          changelog_heading: h2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
