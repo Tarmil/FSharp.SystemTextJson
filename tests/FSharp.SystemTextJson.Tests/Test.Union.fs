@@ -525,11 +525,15 @@ module NonStruct =
         let ``serialize with AdjacentTag``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, adjacentTagOptions)
             Assert.Equal("""{"Case":"U","Fields":{"x":1,"y":2}}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, adjacentTagOptions)
+            Assert.Equal("""{"Case":"V","Fields":{"v":42}}""", actual)
 
         [<Fact>]
         let ``deserialize with AdjacentTag``() =
             let actual = JsonSerializer.Deserialize("""{"Case":"U","Fields":{"x":1,"y":2}}""", adjacentTagOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"Case":"V","Fields":{"v":42}}""", adjacentTagOptions)
+            Assert.Equal(V 42, actual)
 
         let externalTagOptions = JsonSerializerOptions()
         externalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.UnwrapRecordCases))
@@ -538,11 +542,15 @@ module NonStruct =
         let ``serialize with externalTag``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, externalTagOptions)
             Assert.Equal("""{"U":{"x":1,"y":2}}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, externalTagOptions)
+            Assert.Equal("""{"V":{"v":42}}""", actual)
 
         [<Fact>]
         let ``deserialize with externalTag``() =
             let actual = JsonSerializer.Deserialize("""{"U":{"x":1,"y":2}}""", externalTagOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"V":{"v":42}}""", externalTagOptions)
+            Assert.Equal(V 42, actual)
 
         let internalTagOptions = JsonSerializerOptions()
         internalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapRecordCases))
@@ -551,11 +559,15 @@ module NonStruct =
         let ``serialize with internalTag``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, internalTagOptions)
             Assert.Equal("""{"Case":"U","x":1,"y":2}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, internalTagOptions)
+            Assert.Equal("""{"Case":"V","v":42}""", actual)
 
         [<Fact>]
         let ``deserialize with internalTag``() =
             let actual = JsonSerializer.Deserialize("""{"Case":"U","x":1,"y":2}""", internalTagOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"Case":"V","v":42}""", internalTagOptions)
+            Assert.Equal(V 42, actual)
 
         let untaggedOptions = JsonSerializerOptions()
         untaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged ||| JsonUnionEncoding.UnwrapRecordCases))
@@ -564,11 +576,15 @@ module NonStruct =
         let ``serialize with untagged``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, untaggedOptions)
             Assert.Equal("""{"x":1,"y":2}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, untaggedOptions)
+            Assert.Equal("""{"v":42}""", actual)
 
         [<Fact>]
         let ``deserialize with untagged``() =
             let actual = JsonSerializer.Deserialize("""{"x":1,"y":2}""", untaggedOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
+            Assert.Equal(V 42, actual)
 
 module Struct =
 
@@ -1057,11 +1073,15 @@ module Struct =
         let ``serialize with AdjacentTag``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, adjacentTagOptions)
             Assert.Equal("""{"Case":"U","Fields":{"x":1,"y":2}}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, adjacentTagOptions)
+            Assert.Equal("""{"Case":"V","Fields":{"v":42}}""", actual)
 
         [<Fact>]
         let ``deserialize with AdjacentTag``() =
             let actual = JsonSerializer.Deserialize("""{"Case":"U","Fields":{"x":1,"y":2}}""", adjacentTagOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"Case":"V","Fields":{"v":42}}""", adjacentTagOptions)
+            Assert.Equal(V 42, actual)
 
         let externalTagOptions = JsonSerializerOptions()
         externalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.UnwrapRecordCases))
@@ -1070,11 +1090,15 @@ module Struct =
         let ``serialize with externalTag``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, externalTagOptions)
             Assert.Equal("""{"U":{"x":1,"y":2}}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, externalTagOptions)
+            Assert.Equal("""{"V":{"v":42}}""", actual)
 
         [<Fact>]
         let ``deserialize with externalTag``() =
             let actual = JsonSerializer.Deserialize("""{"U":{"x":1,"y":2}}""", externalTagOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"V":{"v":42}}""", externalTagOptions)
+            Assert.Equal(V 42, actual)
 
         let internalTagOptions = JsonSerializerOptions()
         internalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapRecordCases))
@@ -1083,11 +1107,15 @@ module Struct =
         let ``serialize with internalTag``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, internalTagOptions)
             Assert.Equal("""{"Case":"U","x":1,"y":2}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, internalTagOptions)
+            Assert.Equal("""{"Case":"V","v":42}""", actual)
 
         [<Fact>]
         let ``deserialize with internalTag``() =
             let actual = JsonSerializer.Deserialize("""{"Case":"U","x":1,"y":2}""", internalTagOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"Case":"V","v":42}""", internalTagOptions)
+            Assert.Equal(V 42, actual)
 
         let untaggedOptions = JsonSerializerOptions()
         untaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged ||| JsonUnionEncoding.UnwrapRecordCases))
@@ -1096,8 +1124,12 @@ module Struct =
         let ``serialize with untagged``() =
             let actual = JsonSerializer.Serialize(U { x = 1; y = 2. }, untaggedOptions)
             Assert.Equal("""{"x":1,"y":2}""", actual)
+            let actual = JsonSerializer.Serialize(V 42, untaggedOptions)
+            Assert.Equal("""{"v":42}""", actual)
 
         [<Fact>]
         let ``deserialize with untagged``() =
             let actual = JsonSerializer.Deserialize("""{"x":1,"y":2}""", untaggedOptions)
             Assert.Equal(U { x = 1; y = 2. }, actual)
+            let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
+            Assert.Equal(V 42, actual)
