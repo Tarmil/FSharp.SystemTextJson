@@ -46,6 +46,7 @@ let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
         && ty.IsGenericType
         && ty.GetGenericTypeDefinition() = typedefof<voption<_>>)
     || (isSkippableType ty && isNullableFieldType fsOptions (ty.GetGenericArguments().[0]))
+    || (ty = typeof<Unit>)
 
 let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     isNullableFieldType fsOptions ty
