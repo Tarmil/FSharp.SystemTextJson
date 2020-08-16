@@ -100,6 +100,41 @@ type MyHub() =
         this.Clients.All.SendAsync("AddedOne", {| value = msg.value + 1 |})
 ```
 
+### Bolero
+
+Since version 0.14, [Bolero](https://fsbolero.io) uses System.Text.Json and FSharp.SystemTextJson for its Remoting.
+
+To use FSharp.SystemTextJson with its default options, there is nothing to do.
+
+To customize FSharp.SystemTextJson, pass a function to the `AddRemoting` method in both the client-side and server-side setup.
+You can use the same function to ensure that both use the exact same options:
+
+```fsharp
+// src/MyApp.Client/Startup.fs:
+
+module Program =
+
+    // Customize here
+    let serializerOptions (options: JsonSerializerOptions) =
+        let converter = JsonFSharpConverter(JsonUnionEncoding.ThothLike)
+        options.Converters.Add(converter)
+
+    [<EntryPoint>]
+    let Main args =
+        let builder = WebAssemblyHostBuilder.CreateDefault(args)
+        builder.RootComponents.Add<Main.MyApp>("#main")
+        builder.Services.AddRemoting(builder.HostEnvironment, serializerOptions) |> ignore
+        builder.Build().RunAsync() |> ignore
+        0
+
+
+// src/MyApp.Server/Startup.fs:
+
+    member this.ConfigureServices(services: IServiceCollection) =
+        services.AddRemoting<MyRemoteService>(MyApp.Client.Program.serializerOptions) |> ignore
+        // ...
+```
+
 ## Format
 
 ### Lists
