@@ -1,16 +1,22 @@
 namespace System.Text.Json.Serialization
 
 open System
+open System.Collections.Generic
 open System.Runtime.InteropServices
 open System.Text.Json
 
-type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
+type JsonFSharpConverter
+    (
+        fsOptions: JsonFSharpOptions,
+        [<Optional>]
+        overrides: IDictionary<Type, JsonFSharpOptions>
+    ) =
     inherit JsonConverterFactory()
 
     override _.CanConvert(typeToConvert) =
         TypeCache.getKind typeToConvert <> TypeCache.TypeKind.Other
 
-    static member internal CreateConverter(typeToConvert, options, fsOptions) =
+    static member internal CreateConverter(typeToConvert, options, fsOptions, overrides) =
         match TypeCache.getKind typeToConvert with
         | TypeCache.TypeKind.List ->
             JsonListConverter.CreateConverter(typeToConvert, fsOptions)
@@ -21,14 +27,14 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
         | TypeCache.TypeKind.Tuple ->
             JsonTupleConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Record ->
-            JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
+            JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
         | TypeCache.TypeKind.Union ->
-            JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)
+            JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
         | _ ->
             invalidOp ("Not an F# record or union type: " + typeToConvert.FullName)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
 
     new (
             [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
@@ -44,9 +50,11 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions) =
             [<Optional; DefaultParameterValue(Default.AllowNullFields)>]
             allowNullFields: bool,
             [<Optional; DefaultParameterValue(false)>]
-            allowOverride: bool
+            allowOverride: bool,
+            [<Optional>]
+            overrides: IDictionary<Type, JsonFSharpOptions>
         ) =
-        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy, unionTagCaseInsensitive, allowNullFields, allowOverride))
+        JsonFSharpConverter(JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy, unionTagCaseInsensitive, allowNullFields, allowOverride), overrides)
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
 type JsonFSharpConverterAttribute
@@ -69,7 +77,7 @@ type JsonFSharpConverterAttribute
     let fsOptions = JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, Default.UnionTagNamingPolicy, unionTagCaseInsensitive, allowNullFields, false)
 
     override _.CreateConverter(typeToConvert) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions, null)
 
     interface IJsonFSharpConverterAttribute with
         member this.Options = fsOptions

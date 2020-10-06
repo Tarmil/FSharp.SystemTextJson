@@ -28,7 +28,9 @@ jobs:
 
       - name: Build
         run: |
-          git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')"
+          if echo "${{github.ref}}" | grep -q "^refs/heads/"; then
+            git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')";
+          fi
           ./build.sh
 
       - name: Upload nupkg
