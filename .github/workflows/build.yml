@@ -28,7 +28,7 @@ jobs:
 
       - name: Build
         run: |
-          git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/[^/]+/||')"
+          git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')"
           ./build.sh
 
       - name: Upload nupkg
@@ -40,7 +40,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ contains(github.ref, 'releases') }}
+    if: ${{ startsWith(github.ref, 'refs/heads/releases/') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -52,7 +52,7 @@ jobs:
 
       - name: Prepare
         run: |
-          git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/[^/]+/||')"
+          git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')"
           dotnet tool restore
           echo "FULL_VERSION=$(dotnet nbgv get-version -v SemVer2)" >> $GITHUB_ENV
           echo "TAG_VERSION=$(dotnet nbgv get-version -v MajorMinorVersion)" >> $GITHUB_ENV
