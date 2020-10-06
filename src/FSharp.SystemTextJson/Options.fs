@@ -134,5 +134,8 @@ type JsonFSharpOptions
 
     member this.AllowOverride = allowOverride
 
+    member this.WithUnionEncoding(unionEncoding) =
+        JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy, unionTagCaseInsensitive, allowNullFields, allowOverride)
+
 type IJsonFSharpConverterAttribute =
     abstract Options: JsonFSharpOptions

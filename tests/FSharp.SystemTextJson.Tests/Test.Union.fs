@@ -588,7 +588,7 @@ module NonStruct =
 
     [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
     type Override =
-        | A of int * string
+        | A of x: int * y: string
 
     [<Fact>]
     let ``should not override tag name in attribute if AllowOverride = false`` () =
@@ -601,6 +601,12 @@ module NonStruct =
         let o = JsonSerializerOptions()
         o.Converters.Add(JsonFSharpConverter(allowOverride = true))
         Assert.Equal("""{"tag":"A","val":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should not override JsonEncoding if not specified`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, allowOverride = true))
+        Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
     type Override2 =
@@ -1164,7 +1170,7 @@ module Struct =
     [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
     [<Struct>]
     type Override =
-        | A of int * string
+        | A of x: int * y: string
 
     [<Fact>]
     let ``should not override tag name in attribute if AllowOverride = false`` () =
@@ -1177,6 +1183,12 @@ module Struct =
         let o = JsonSerializerOptions()
         o.Converters.Add(JsonFSharpConverter(allowOverride = true))
         Assert.Equal("""{"tag":"A","val":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should not override JsonEncoding if not specified`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, allowOverride = true))
+        Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
     [<Struct>]

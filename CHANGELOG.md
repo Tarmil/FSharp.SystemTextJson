@@ -3,6 +3,7 @@
 ## v0.13
 
 * [#69](https://github.com/Tarmil/FSharp.SystemTextJson/issues/69): Allow overriding `JsonFSharpConverter` options with `JsonFSharpConverterAttribute` by passing `allowOverride = true` to `JsonFSharpConverter`.
+* Add `JsonUnionEncoding.Inherit`. When this flag is set on a `JsonFSharpConverterAttribute` that overrides a `JsonFSharpConverter`, this type still uses the `JsonFSharpConverter`'s `JsonUnionEncoding`.
 
 ## v0.12
 
