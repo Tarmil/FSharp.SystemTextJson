@@ -11,15 +11,16 @@ jobs:
       - name: Download nupkg
         run: |
           runs_url="https://api.github.com/repos/${{github.repository}}/actions/workflows/build.yml/runs"
-          run_id=$(curl -s -H "Accept: application/vnd.github.antiope-preview+json" "$runs_url" \
-            | jq '[.workflow_runs[] | select(.head_sha == "${{github.sha}}").id][0]')
 
-          artifacts_url="https://api.github.com/repos/${{github.repository}}/actions/runs/$run_id/artifacts"
-          artifact_id=$(curl -s -H 'Accept: application/vnd.github.antiope-preview+json' "$artifacts_url" \
-            | jq '.artifacts[0].id')
+          artifacts_url=$(curl -s -H "Accept: application/vnd.github.antiope-preview+json" "$runs_url" \
+            | jq -r '.workflow_runs[] | select(.head_sha == "${{github.sha}}").artifacts_url')
 
-          artifact_url="https://${{secrets.GH_PAT}}@api.github.com/repos/${{github.repository}}/actions/artifacts/$artifact_id/zip"
-          curl -L -o nuget.zip "$artifact_url"
+          artifact_url=$(curl -s -H 'Accept: application/vnd.github.antiope-preview+json' "$artifacts_url" \
+            | jq -r '.artifacts[0].archive_download_url')
+
+          curl -L -o nuget.zip "$artifact_url" \
+             -H "Accept: application/vnd.github.v3+json" \
+             -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}"
           unzip nuget.zip -d nuget
 
       - name: Push to GitHub release
