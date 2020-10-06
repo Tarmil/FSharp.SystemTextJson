@@ -618,6 +618,24 @@ module NonStruct =
         o.Converters.Add(JsonFSharpConverter(allowOverride = true))
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
 
+    [<Fact>]
+    let ``should apply explicit overrides if allowOverride = false`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(overrides = dict [typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag)]))
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides if allowOverride = true`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowOverride = true, overrides = dict [typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag)]))
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides inheriting JsonUnionEncoding`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, overrides = dict [typeof<Override>, JsonFSharpOptions(unionTagName = "tag")]))
+        Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
 
 module Struct =
 
@@ -1200,3 +1218,21 @@ module Struct =
         let o = JsonSerializerOptions()
         o.Converters.Add(JsonFSharpConverter(allowOverride = true))
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides if allowOverride = false`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(overrides = dict [typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag)]))
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides if allowOverride = true`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowOverride = true, overrides = dict [typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag)]))
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides inheriting JsonUnionEncoding`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, overrides = dict [typeof<Override>, JsonFSharpOptions(unionTagName = "tag")]))
+        Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))

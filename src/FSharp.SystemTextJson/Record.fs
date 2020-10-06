@@ -161,8 +161,14 @@ type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     static member internal CanConvert(typeToConvert) =
         TypeCache.isRecord typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
-        let fsOptions = overrideOptions typeToConvert fsOptions
+    static member internal CreateConverter
+        (
+            typeToConvert: Type,
+            options: JsonSerializerOptions,
+            fsOptions: JsonFSharpOptions,
+            overrides: IDictionary<Type, JsonFSharpOptions>
+        ) =
+        let fsOptions = overrideOptions typeToConvert fsOptions overrides
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([|typeToConvert|])
             .GetConstructor([|typeof<JsonSerializerOptions>; typeof<JsonFSharpOptions>|])
@@ -173,4 +179,4 @@ type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
+        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions, null)

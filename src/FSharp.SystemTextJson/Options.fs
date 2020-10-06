@@ -104,7 +104,7 @@ module internal Default =
 
 type JsonFSharpOptions
     (
-        [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
+        [<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>]
         unionEncoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue(Default.UnionTagName)>]
         unionTagName: JsonUnionTagName,

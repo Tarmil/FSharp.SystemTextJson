@@ -1,6 +1,7 @@
 ﻿module internal System.Text.Json.Serialization.Helpers
 
 open System
+open System.Collections.Generic
 open System.Text.Json
 open FSharp.Reflection
 
@@ -52,14 +53,23 @@ let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     isNullableFieldType fsOptions ty
     || isSkippableType ty
 
-let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
-    if defaultOptions.AllowOverride then
-        match ty.GetCustomAttributes(typeof<IJsonFSharpConverterAttribute>, true) |> Array.tryHead with
-        | Some (:? IJsonFSharpConverterAttribute as attr) ->
-            if attr.Options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
-                attr.Options.WithUnionEncoding(defaultOptions.UnionEncoding)
-            else
-                attr.Options
-        | _ -> defaultOptions
+let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: IDictionary<Type, JsonFSharpOptions>) =
+    let inheritUnionEncoding (options: JsonFSharpOptions) =
+        if options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
+            options.WithUnionEncoding(defaultOptions.UnionEncoding)
+        else
+            options
+
+    let applyAttributeOverride() =
+        if defaultOptions.AllowOverride then
+            match ty.GetCustomAttributes(typeof<IJsonFSharpConverterAttribute>, true) |> Array.tryHead with
+            | Some (:? IJsonFSharpConverterAttribute as attr) -> attr.Options |> inheritUnionEncoding
+            | _ -> defaultOptions
+        else defaultOptions
+
+    if isNull overrides then
+        applyAttributeOverride()
     else
-        defaultOptions
+        match overrides.TryGetValue(ty) with
+        | true, options -> options |> inheritUnionEncoding
+        | false, _ -> applyAttributeOverride()
