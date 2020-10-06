@@ -1,0 +1,38 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download nupkg
+        run: |
+          runs_url="https://api.github.com/repos/${{github.repository}}/actions/workflows/build.yml/runs"
+
+          artifacts_url=$(curl -s -H "Accept: application/vnd.github.antiope-preview+json" "$runs_url" \
+            | jq -r '.workflow_runs[] | select(.head_sha == "${{github.sha}}").artifacts_url')
+
+          artifact_url=$(curl -s -H 'Accept: application/vnd.github.antiope-preview+json' "$artifacts_url" \
+            | jq -r '.artifacts[0].archive_download_url')
+
+          curl -L -o nuget.zip "$artifact_url" \
+             -H "Accept: application/vnd.github.v3+json" \
+             -H "Authorization: Bearer ${{secrets.GITHUB_TOKEN}}"
+          unzip nuget.zip -d nuget
+
+      - name: Push to GitHub release
+        uses: svenstaro/upload-release-action@1.1.0
+        with:
+          tag: ${{github.ref}}
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          file_glob: 'true'
+          file: nuget/*.nupkg
+
+      - name: Push to NuGet
+        run: dotnet nuget push nuget/*.nupkg
+               --api-key ${{secrets.NUGET_API_KEY}}
+               --source https://api.nuget.org/v3/index.json
+               --skip-duplicate
