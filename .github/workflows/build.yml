@@ -16,7 +16,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.402'
+          dotnet-version: '3.1.301'
 
       - name: NuGet cache
         uses: actions/cache@v1
@@ -29,16 +29,7 @@ jobs:
       - name: Build
         run: |
           git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/[^/]+/||')"
-          dotnet tool restore
-          dotnet paket restore
-          dotnet build -c release
-
-      - name: Test
-        run: dotnet test -c release --logger trx --results-directory $PWD/bin/testresults
-
-      - name: Pack
-        run: |
-          dotnet paket pack $PWD/bin/nuget --version "$(dotnet nbgv get-version -v SemVer2)"
+          ./build.sh
 
       - name: Upload nupkg
         uses: actions/upload-artifact@v1
