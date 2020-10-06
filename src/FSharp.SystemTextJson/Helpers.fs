@@ -55,7 +55,11 @@ let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
 let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
     if defaultOptions.AllowOverride then
         match ty.GetCustomAttributes(typeof<IJsonFSharpConverterAttribute>, true) |> Array.tryHead with
-        | Some (:? IJsonFSharpConverterAttribute as attr) -> attr.Options
+        | Some (:? IJsonFSharpConverterAttribute as attr) ->
+            if attr.Options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
+                attr.Options.WithUnionEncoding(defaultOptions.UnionEncoding)
+            else
+                attr.Options
         | _ -> defaultOptions
     else
         defaultOptions

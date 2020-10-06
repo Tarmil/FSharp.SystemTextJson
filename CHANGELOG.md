@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.13
+## v0.13
 
 * [#69](https://github.com/Tarmil/FSharp.SystemTextJson/issues/69): Allow overriding `JsonFSharpConverter` options with `JsonFSharpConverterAttribute` by passing `allowOverride = true` to `JsonFSharpConverter`.
+* Add `JsonUnionEncoding.Inherit`. When this flag is set on a `JsonFSharpConverterAttribute` that overrides a `JsonFSharpConverter`, this type still uses the `JsonFSharpConverter`'s `JsonUnionEncoding`.
 
-## 0.12
+## v0.12
 
 * [#56](https://github.com/Tarmil/FSharp.SystemTextJson/issues/56): Add `JsonUnionEncoding.UnwrapRecordCases`, which implies `JsonUnionEncoding.NamedFields` and encodes union cases containing a single record field as if the record's fields were the union's fields instead. For example:
     ```fsharp
@@ -18,13 +19,13 @@
     This option is compatible with all union formats (`AdjacentTag`, `ExternalTag`, `InternalTag` and `Untagged`).
 * [#64](https://github.com/Tarmil/FSharp.SystemTextJson/issues/64): Fix serialization of `unit` as field of an F# type. Thanks @NickDarvey!
 
-## 0.11
+## v0.11
 
 * [#54](https://github.com/Tarmil/FSharp.SystemTextJson/issues/54): Do throw an exception when a mandatory field is missing and an optional field was omitted. Thanks @fuchen!
 
 * [#57](https://github.com/Tarmil/FSharp.SystemTextJson/issues/57): Do throw an exception when a parsed value is null inside an array, a set or a tuple, unless `allowNullFields` is true. Thanks @drhumlen!
 
-## 0.10
+## v0.10
 
 * [#47](https://github.com/Tarmil/FSharp.SystemTextJson/issues/47): Add `Skippable<'T>` to represent values that can be omitted from the serialization of a record or a union with `NamedFields`. This is particularly useful with `Skippable<'T option>` (or `voption`) to represent a field that can be omitted, null, or have a proper value.
     ```fsharp
@@ -37,11 +38,11 @@
     Also add a `Skippable` module with standard functions: `map`, `filter`, etc. Implementation largely based on @cmeeren's [JsonSkippable](https://github.com/cmeeren/FSharp.JsonSkippable/blob/master/src/FSharp.JsonSkippable/Skippable.fs) which provides the same functionality for Newtonsoft.Json.
 * [#51](https://github.com/Tarmil/FSharp.SystemTextJson/issues/51): When the type `K` is a single-case union wrapping a string, serialize `Map<K, V>` into a JSON object, like `Map<string, V>`.
 
-## 0.9
+## v0.9
 
 * [#43](https://github.com/Tarmil/FSharp.SystemTextJson/issues/43): In deserialization, allow omitting fields that are optional.
 
-## 0.8
+## v0.8
 
 * [#30](https://github.com/Tarmil/FSharp.SystemTextJson/issues/30): Unwrap `'T voption` with `JsonUnionEncoding.UnwrapOption`.
 * [#32](https://github.com/Tarmil/FSharp.SystemTextJson/issues/32): Add `JsonUnionEncoding.UnwrapSingleFieldCases`, which encodes the field of single-field cases as `x` instead of `[x]`. Include it in `JsonUnionEncoding.FSharpLuLike`.
@@ -53,7 +54,7 @@
 
     The previous names are marked `Obsolete`.
 
-## 0.7
+## v0.7
 
 * [#3](https://github.com/tarmil/FSharp.SystemTextJson/issues/3): Add support for `PropertyNamingPolicy` on record and union fields.
 * [#22](https://github.com/tarmil/FSharp.SystemTextJson/issues/22): Add support for `DictionaryKeyPolicy` for `Map<string, 'T>`.
@@ -63,7 +64,7 @@
 * [#5](https://github.com/tarmil/FSharp.SystemTextJson/issues/5): Add support for `PropertyNameCaseInsensitive` on record and union fields.  
     Add `unionTagCaseInsensitive` option to `JsonFSharpConverter` and `JsonFSharpConverterAttribute` to customize the case sensitivity for union tag names.
 
-## 0.6
+## v0.6
 
 * [#4](https://github.com/tarmil/FSharp.SystemTextJson/issues/4): Add support for standard option `IgnoreNullValues` on record and union fields.
 * [#13](https://github.com/tarmil/FSharp.SystemTextJson/issues/14): Add support for `JsonPropertyNameAttribute` on union cases to set the tag name to use for this case.
@@ -72,7 +73,7 @@
 * Add `unionTagName` and `unionFieldsName` option to customize the `"Case"` and `"Fields"` tags for unions.
 * Add `JsonUnionEncoding.FSharpLuLike`, which is equivalent to `ExternalTag ||| BareFieldlessTags ||| SuccintOption`.
 
-## 0.5
+## v0.5
 
 * [#17](https://github.com/tarmil/FSharp.SystemTextJson/issues/17): Add encoding of collections:
     * `'T list` encoded as JSON array.
@@ -81,23 +82,23 @@
     * `Map<'K, 'V>` when `'K` is not `string` encoded as JSON array whose elements are `[key,value]` JSON arrays.
     * Tuples and struct tuples encoded as JSON array.
 
-## 0.4
+## v0.4
 
 * [#6](https://github.com/tarmil/FSharp.SystemTextJson/issues/6): Add different encodings for F# unions.
     * `JsonFSharpConverter` and `JsonFSharpConverterAttribute` now take `JsonUnionEncoding` as optional argument.
     * Unions are encoded depending on the `JsonUnionEncoding` as detailed in [the documentation](README.md#unions).
 
-## 0.3
+## v0.3
 
 * [#9](https://github.com/tarmil/FSharp.SystemTextJson/issues/9): Cache the result of `FSharpType.IsRecord` and `FSharpType.IsUnion`
 * [#12](https://github.com/tarmil/FSharp.SystemTextJson/issues/12): Target .NET Standard 2.0 rather than .NET Core 3.0
 
-## 0.2
+## v0.2
 
 * [#1](https://github.com/tarmil/FSharp.SystemTextJson/issues/1): Add support for `JsonPropertyNameAttribute` on record fields
 * [#2](https://github.com/tarmil/FSharp.SystemTextJson/issues/2): Add support for `JsonIgnoreAttribute` on record fields
 
-## 0.1
+## v0.1
 
 * Serialize records
 * Serialize unions with Newtonsoft-like format
