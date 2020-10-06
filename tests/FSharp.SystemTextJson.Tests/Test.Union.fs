@@ -586,6 +586,33 @@ module NonStruct =
             let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
             Assert.Equal(V 42, actual)
 
+    [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
+    type Override =
+        | A of int * string
+
+    [<Fact>]
+    let ``should not override tag name in attribute if AllowOverride = false`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter())
+        Assert.Equal("""{"Case":"A","Fields":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should override tag name in attribute if AllowOverride = true`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        Assert.Equal("""{"tag":"A","val":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    type Override2 =
+        | A of int * string
+
+    [<Fact>]
+    let ``should override JsonEncoding if specified`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
+
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -1133,3 +1160,31 @@ module Struct =
             Assert.Equal(U { x = 1; y = 2. }, actual)
             let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
             Assert.Equal(V 42, actual)
+
+    [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
+    [<Struct>]
+    type Override =
+        | A of int * string
+
+    [<Fact>]
+    let ``should not override tag name in attribute if AllowOverride = false`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter())
+        Assert.Equal("""{"Case":"A","Fields":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should override tag name in attribute if AllowOverride = true`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        Assert.Equal("""{"tag":"A","val":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    [<Struct>]
+    type Override2 =
+        | A of int * string
+
+    [<Fact>]
+    let ``should override JsonEncoding if specified`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
