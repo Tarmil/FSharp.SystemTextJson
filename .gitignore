@@ -11,3 +11,4 @@ paket-files/
 .ionide
 .vscode
 *.user
+.idea/
