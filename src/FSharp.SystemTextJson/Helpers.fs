@@ -51,3 +51,11 @@ let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
 let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     isNullableFieldType fsOptions ty
     || isSkippableType ty
+
+let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
+    if defaultOptions.AllowOverride then
+        match ty.GetCustomAttributes(typeof<IJsonFSharpConverterAttribute>, true) |> Array.tryHead with
+        | Some (:? IJsonFSharpConverterAttribute as attr) -> attr.Options
+        | _ -> defaultOptions
+    else
+        defaultOptions

@@ -229,6 +229,25 @@ module NonStruct =
         with
         | :? JsonException as e -> Assert.Equal("Missing field for record type Tests.Record+NonStruct+D: dx", e.Message)
 
+    [<JsonFSharpConverter(allowNullFields = false)>]
+    type Override =
+        {
+            x: string
+        }
+
+    [<Fact>]
+    let ``should not override allowNullFields in attribute if AllowOverride = false`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        Assert.Equal({x=null}, JsonSerializer.Deserialize<Override>("""{"x":null}""", o))
+
+    [<Fact>]
+    let ``should override allowNullFields in attribute if AllowOverride = true`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
+        |> ignore
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -442,3 +461,23 @@ module Struct =
     let ``serialize with property case insensitive`` () =
         let actual = JsonSerializer.Serialize({CcFirst = 1; CcSecond = "a"}, propertyNameCaseInsensitiveOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
+    [<JsonFSharpConverter(allowNullFields = false)>]
+    [<Struct>]
+    type Override =
+        {
+            x: string
+        }
+
+    [<Fact>]
+    let ``should not override allowNullFields in attribute if AllowOverride = false`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        Assert.Equal({x=null}, JsonSerializer.Deserialize<Override>("""{"x":null}""", o))
+
+    [<Fact>]
+    let ``should override allowNullFields in attribute if AllowOverride = true`` () =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
+        |> ignore

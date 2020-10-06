@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13
+
+* [#69](https://github.com/Tarmil/FSharp.SystemTextJson/issues/69): Allow overriding `JsonFSharpConverter` options with `JsonFSharpConverterAttribute` by passing `allowOverride = true` to `JsonFSharpConverter`.
+
 ## 0.12
 
 * [#56](https://github.com/Tarmil/FSharp.SystemTextJson/issues/56): Add `JsonUnionEncoding.UnwrapRecordCases`, which implies `JsonUnionEncoding.NamedFields` and encodes union cases containing a single record field as if the record's fields were the union's fields instead. For example:

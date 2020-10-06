@@ -501,6 +501,7 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         TypeCache.isUnion typeToConvert
 
     static member internal CreateConverter(typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
+        let fsOptions = overrideOptions typeToConvert fsOptions
         if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
             && typeToConvert.IsGenericType
             && typeToConvert.GetGenericTypeDefinition() = optionTy then
