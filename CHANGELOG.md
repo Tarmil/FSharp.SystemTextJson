@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14
+
+* [#71](https://github.com/Tarmil/FSharp.SystemTextJson/issues/71): Allow overriding specific types in `JsonFSharpConverter` with new argument `overrides`. These override even types that have `JsonFSharpConverterAttribute` when `allowOverride = true`.
+
 ## 0.13
 
 * [#69](https://github.com/Tarmil/FSharp.SystemTextJson/issues/69): Allow overriding `JsonFSharpConverter` options with `JsonFSharpConverterAttribute` by passing `allowOverride = true` to `JsonFSharpConverter`.
