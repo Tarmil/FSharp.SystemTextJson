@@ -3,363 +3,31 @@
 [![Build status](https://github.com/Tarmil/FSharp.SystemTextJson/workflows/Build/badge.svg)](https://github.com/Tarmil/FSharp.SystemTextJson/actions?query=workflow%3ABuild)
 [![Nuget](https://img.shields.io/nuget/v/FSharp.SystemTextJson?logo=nuget)](https://nuget.org/packages/FSharp.SystemTextJson)
 
-This library provides F# union and record support for [System.Text.Json](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/).
+This library provides support for F# types to [System.Text.Json](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/).
 
-## Usage
+It adds support for the following types:
 
-The NuGet package is [`FSharp.SystemTextJson`](https://nuget.org/packages/FSharp.SystemTextJson). However the namespace is `System.Text.Json.Serialization` like the base library.
+* F# records (including struct records and anonymous records);
 
-There are two ways to use `FSharp.SystemTextJson`: apply it to all F# types by passing `JsonSerializerOptions`, or apply it to specific types with an attribute.
+* F# discriminated unions (including struct unions), with a variety of representations;
 
-### Using options
+* F# collections: `list<'T>`, `Map<'T>`, `Set<'T>`.
 
-Add `JsonFSharpConverter` to the converters in `JsonSerializerOptions`, and the format will be applied to all F# types.
+It provides a number of customization options, allowing a wide range of JSON serialization formats.
 
-```fsharp
-open System.Text.Json
-open System.Text.Json.Serialization
+## Documentation
 
-let options = JsonSerializerOptions()
-options.Converters.Add(JsonFSharpConverter())
+* [How to use FSharp.SystemTextJson](docs/Using.md)
 
-JsonSerializer.Serialize({| x = "Hello"; y = "world!" |}, options)
-// --> {"x":"Hello","y":"world!"}
-```
+* [Serialization format](docs/Format.md)
 
-### Using attributes
-
-Add `JsonFSharpConverterAttribute` to the type that needs to be serialized.
-
-```fsharp
-open System.Text.Json
-open System.Text.Json.Serialization
-
-[<JsonFSharpConverter>]
-type Example = { x: string; y: string }
-
-JsonSerializer.Serialize({ x = "Hello"; y = "world!" })
-// --> {"x":"Hello","y":"world!"}
-```
-
-### Advantages and inconvenients
-
-The options way is generally recommended because it applies the format to all F# types. In addition to your defined types, this also includes:
-
-* Types defined in referenced libraries that you can't modify to add an attribute. This includes standard library types such as `option` and `Result`.
-* Anonymous records.
-
-The attribute way cannot handle the above cases.
-
-The advantage of the attribute way is that it allows calling `Serialize` and `Deserialize` without having to pass options every time. This is particularly useful if you are passing your own data to a library that calls these functions itself and doesn't take options.
-
-## Using with ASP.NET Core
-
-ASP.NET Core can be easily configured to use FSharp.SystemTextJson.
-
-### ASP.NET Core MVC
-
-To use F# types in MVC controllers, add the following to your startup `ConfigureServices`:
-
-```fsharp
-    member this.ConfigureServices(services: IServiceCollection) =
-        services.AddControllersWithViews() // or whichever method you're using to get an IMvcBuilder
-            .AddJsonOptions(fun options ->
-                options.JsonSerializerOptions.Converters.Add(JsonFSharpConverter()))
-        |> ignore
-```
-
-And you can then just do:
-
-```fsharp
-type MyTestController() =
-    inherit Controller()
-
-    member this.AddOne([<FromBody>] msg: {| value: int |}) =
-        {| value = msg.value + 1 |}
-```
-
-### SignalR
-
-To use F# types in SignalR hubs, add the following to your startup `ConfigureServices`:
-
-```fsharp
-    member this.ConfigureServices(services: IServiceCollection) =
-        services.AddSignalR()
-            .AddJsonProtocol(fun options ->
-                options.PayloadSerializerOptions.Converters.Add(JsonFSharpConverter()))
-        |> ignore
-```
-
-And you can then just do:
-
-```fsharp
-type MyHub() =
-    inherit Hub()
-
-    member this.AddOne(msg: {| value: int |})
-        this.Clients.All.SendAsync("AddedOne", {| value = msg.value + 1 |})
-```
-
-### Bolero
-
-Since version 0.14, [Bolero](https://fsbolero.io) uses System.Text.Json and FSharp.SystemTextJson for its Remoting.
-
-To use FSharp.SystemTextJson with its default options, there is nothing to do.
-
-To customize FSharp.SystemTextJson, pass a function to the `AddRemoting` method in both the client-side and server-side setup.
-You can use the same function to ensure that both use the exact same options:
-
-```fsharp
-// src/MyApp.Client/Startup.fs:
-
-module Program =
-
-    // Customize here
-    let serializerOptions (options: JsonSerializerOptions) =
-        let converter = JsonFSharpConverter(JsonUnionEncoding.ThothLike)
-        options.Converters.Add(converter)
-
-    [<EntryPoint>]
-    let Main args =
-        let builder = WebAssemblyHostBuilder.CreateDefault(args)
-        builder.RootComponents.Add<Main.MyApp>("#main")
-        builder.Services.AddRemoting(builder.HostEnvironment, serializerOptions) |> ignore
-        builder.Build().RunAsync() |> ignore
-        0
-
-
-// src/MyApp.Server/Startup.fs:
-
-    member this.ConfigureServices(services: IServiceCollection) =
-        services.AddRemoting<MyRemoteService>(MyApp.Client.Program.serializerOptions) |> ignore
-        // ...
-```
-
-## Format
-
-### Lists
-
-F# lists are serialized as JSON arrays.
-
-```fsharp
-JsonSerializer.Serialize([1; 2; 3], options)
-// --> [1,2,3]
-```
-
-### Sets
-
-F# sets are serialized as JSON arrays.
-
-```fsharp
-JsonSerializer.Serialize(Set [1; 2; 3], options)
-// --> [1,2,3]
-```
-
-### Maps
-
-F# string-keyed maps are serialized as JSON objects.
-
-```fsharp
-JsonSerializer.Serialize(Map [("a", 1); ("b", 2); ("c", 3)], options)
-// --> {"a":1,"b":2,"c":3}
-```
-
-Maps with other types as keys are serialized as JSON arrays, where each item is a `[key,value]` array.
-
-```fsharp
-JsonSerializer.Serialize(Map [(1, "a"); (2, "b"); (3, "c")], options)
-// --> [[1,"a"],[2,"b"],[3,"c"]]
-```
-
-### Tuples
-
-Tuples and struct tuples are serialized as JSON arrays.
-
-```fsharp
-JsonSerializer.Serialize((1, "abc"), options)
-// --> [1,"abc"]
-
-JsonSerializer.Serialize(struct (1, "abc"), options)
-// --> [1,"abc"]
-```
-
-### Records and anonymous records
-
-Records and anonymous records are serialized as JSON objects.
-
-```fsharp
-type Example = { x: string; y: string }
-
-JsonSerializer.Serialize({ x = "Hello"; y = "world!" }, options)
-// --> {"x":"Hello","y":"world!"}
-
-JsonSerializer.Serialize({| x = "Hello"; y = "world!" |}, options)
-// --> {"x":"Hello","y":"world!"}
-```
-
-Named record fields are serialized in the order in which they were declared in the type declaration.
-
-Anonymous record fields are serialized in alphabetical order.
-
-### Unions
-
-Unions can be serialized in a number of formats. The enum `JsonUnionEncoding` defines the format to use; you can pass a value of this type to the constructor of `JsonFSharpConverter` or to the `JsonFSharpConverter` attribute.
-
-```fsharp
-// Using options:
-let options = JsonSerializerOptions()
-options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapFieldlessTags))
-
-// Using attributes:
-[<JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapFieldlessTags)>]
-type MyUnion = // ...
-```
-
-<a name="union-field-names"></a>
-Some of the encoding styles for Unions write their union case name and/or argument values to a configurable tag.
-To configure this, `JsonFSharpConverter` accepts arguments called `unionTagName` and `unionFieldsName`, respectively.
-These tags default to `"Case"` and `"Fields"` respectively, and can be configured like so:
-
-```fsharp
-// Using options:
-let options = JsonSerializerOptions()
-options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields, "alternative-case-tag", "alternative-fields-tag"))
-
-// Using attributes:
-[<JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields, "alternative-case-tag", "alternative-fields-tag")>]
-type MyUnion = // ...
-```
-
-Note that when using the default `JsonUnionEncoding`, `unionTagName` and `unionFieldsName` can be passed by key, rather than by position, e.g.:
-
-``` fsharp
-[<JsonFSharpConverter(unionTagName="alternative-case-tag", unionFieldsName="alternative-fields-tag")>]
-type MyUnion = // ...
-```
-
-Here are the possible values:
-
-* `JsonUnionEncoding.AdjacentTag` is the default format. It represents unions as a JSON object with two fields:
-
-    * A field named from [`unionTagName`](#union-field-names): a string whose value is the name of the union case.
-    * A field named from [`unionFieldsName`](#union-field-names): an array whose items are the arguments of the union case. This field is absent if the union case has no arguments.
-
-    This is the same format used by Newtonsoft.Json.
-
-    ```fsharp
-    type Example =
-        | WithArgs of anInt: int * aString: string
-        | NoArgs
-
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> {"Case":"NoArgs"}
-
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> {"Case":"WithArgs","Fields":[123,"Hello world!"]}
-    ```
-
-* `JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array. The field names on this object are the names of the arguments.
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> {"Case":"NoArgs"}
-
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> {"Case":"WithArgs","Fields":{"anInt":123,"aString":"Hello world!"}}
-    ```
-
-    Note that if an argument doesn't have an explicit name, F# automatically gives it the name `Item` (if it's the only argument of its case) or `Item1`/`Item2`/etc (if the case has multiple arguments).
-
-* `JsonUnionEncoding.ExternalTag` represents unions as a JSON object with one field, whose name is the name of the union case, and whose value is an array whose items are the arguments of the union case.
-
-    This is the same format used by FSharpLu.Json.
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> {"NoArgs":[]}
-    
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> {"WithArgs":[123,"Hello world!"]}
-    ```
-    
-* `JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields` is similar, except that the fields are represented as an object instead of an array.
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> {"NoArgs":{}}
-    
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> {"WithArgs":{"anInt":123,"aString":"Hello world!"}}
-    ```
-
-* `JsonUnionEncoding.InternalTag` represents unions as an array whose first item is the name of the case, and the rest of the items are the arguments.
-
-    This is the same format used by Thoth.Json.
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> ["NoArgs"]
-    
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> ["WithArgs",123,"Hello world!"]
-    ```
-
-* `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` represents unions as an object whose first field is `unionTagName` (defaulting to  `"Case"`), and whose value is the name of the case. The rest of the fields have the names and values of the arguments.
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> {"Case":"NoArgs"}
-    
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> {"Case":"WithArgs","anInt":123,"aString":"Hello world!"}
-    ```
-
-* `JsonUnionEncoding.Untagged` represents unions as an object whose fields have the names and values of the arguments. The name of the case is not encoded at all. Deserialization is only possible if the fields of all cases have different names.
-
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> {}
-    
-    JsonSerializer.Serialize(WithArgs (123, "Hello world!"), options)
-    // --> {"anInt":123,"aString":"Hello world!"}
-    ```
-
-* Additionally, or-ing `||| JsonUnionEncoding.UnwrapFieldlessTags` to any of the previous formats represents cases that don't have any arguments as a simple string.
-
-    ```fsharp
-    JsonSerializer.Serialize(NoArgs, options)
-    // --> "NoArgs"
-    
-    JsonSerializer.Serialize(WithArgs (123, "HelloWorld!"), options)
-    // --> (same format as without UnwrapFieldlessTags)
-    ```
-
-Union cases that are represented as `null` in .NET using `CompilationRepresentationFlags.UseNullAsTrueValue`, such as `Option.None`, are serialized as `null`.
-
-### Options
-
-By default, the type `'T option` is treated specially.
-
-* The value `None`, as mentioned above, is represented as `null`.
-
-* The value `Some x` is represented the same as `x`, without wrapping it in the union representation for `Some`.
-
-When using a custom `JsonUnionEncoding`, this behavior is enabled by or-ing `||| JsonUnionEncoding.UnwrapOption`.
+* [Customizing the format](docs/Customizing.md)
 
 ## FAQ
 
-* Does FSharp.SystemTextJson support struct records and unions?
-
-Yes!
-
-* Does FSharp.SystemTextJson support anonymous records?
-
-Yes!
-
 * Does FSharp.SystemTextJson support alternative formats for unions?
 
-[Yes!](#unions)
+[Yes!](docs/Customizing.md)
 
 * Does FSharp.SystemTextJson support representing `'T option` as either just `'T` or `null` (or an absent field)?
 
@@ -373,6 +41,10 @@ Yes!
 * Does FSharp.SystemTextJson support options such as `PropertyNamingPolicy` and `IgnoreNullValues`?
 
 Yes!
+
+* Can I customize the format for a specific type?
+
+[Yes!](docs/Customizing.md#how-to-apply-customizations)
 
 * Does FSharp.SystemTextJson allocate memory?
 
