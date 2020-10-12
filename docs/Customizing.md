@@ -79,7 +79,7 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
 The customization option `unionEncoding` defines the format used to encode discriminated unions.
 Its type is `JsonUnionEncoding`, and it is an enum of flags that can be combined using the binary "or" operator (`|||`).
 
-A union encoding should be the combination of a *base encoding* and any number of *additional options*.
+A union encoding should be the combination of a [*base encoding*](#base-encoding) and any number of [*additional options*](#additional-options).
 For example:
 
 ```fsharp
