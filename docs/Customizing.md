@@ -15,7 +15,7 @@
 
 The way to customize the serialization format depends on [how FSharp.SystemTextJson is used](Using.md).
 
-* When passing an `JsonFSharpConverter` to the `JsonSerializerOptions` (the recommended way), the converter takes customization options as arguments.
+* When passing a `JsonFSharpConverter` to the `JsonSerializerOptions` (the recommended way), the converter takes customization options as arguments.
 
     ```fsharp
     let options = JsonSerializerOptions()
@@ -26,7 +26,7 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
     |> options.Converters.Add
     ```
     
-    Additionally, the format can be set for specific types.  
+    Additionally, the format can be set for specific types.
     The argument `overrides` takes an `IDictionary<System.Type, JsonFSharpOptions>` that lists the customized types.
     `JsonFSharpOptions` is an object whose constructor takes the same arguments as `JsonFSharpConverter`.
     
@@ -44,7 +44,7 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
     )
     ```
     
-    Finally, passing the argument `allowOverride = true` allows the custom format to be overridden by a `JsonFSharpConverterAttribute` (see below).  
+    Finally, passing the argument `allowOverride = true` allows the custom format to be overridden by a `JsonFSharpConverterAttribute` (see below).
     By default (ie when `allowOverride = false`), when using `JsonFSharpConverter`, `JsonFSharpConverterAttribute` is ignored.
     
 * When using `JsonFSharpConverterAttribute`, the attribute itself takes customization options as arguments.
@@ -56,12 +56,29 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
         | MyOtherCase of string
     ```
 
+    Note that due to .NET limitations on the types of arguments that can be passed to an attribute, some options are unavailable for `JsonFSharpConverterAttribute`, such as `unionTagNamingPolicy`.
+
 ## `unionEncoding`
 
 The customization option `unionEncoding` defines the format used to encode discriminated unions.
 Its type is `JsonUnionEncoding`, and it is an enum of flags that can be combined using the binary "or" operator (`|||`).
 
 A union encoding should be the combination of a *base encoding* and any number of *additional options*.
+For example:
+
+```fsharp
+let options = JsonSerializerOptions()
+JsonFSharpConverter(
+    unionEncoding = (
+        // Base encoding:
+        JsonUnionEncoding.InternalTag
+        // Additional options:
+        ||| JsonUnionEncoding.UnwrapOption
+        ||| JsonUnionEncoding.UnwrapRecordCases
+    )
+)
+|> options.Converters.Add
+```
 
 Examples in this section will serialize values of the following type:
 
@@ -147,7 +164,7 @@ There are four base encodings available:
 ### Additional options
 
 * `JsonUnionEncoding.NamedFields` causes the fields of a union to be encoded as a JSON object rather than an array.
-    The properties of the object are named after the value's fields (`anInt` and `aString` in our example).
+    The properties of the object are named after the value's fields (`aBool`, `anInt` and `aString` in our example).
     Its exact effect depends on the base format:
     
     * `JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields` replaces the array of case fields with an object.
@@ -320,4 +337,125 @@ There are four base encodings available:
         // --> {"lat":48.858,"long":2.295}
         ```
 
-<!-- TODO Other options -->
+### Combined flags
+
+`JsonUnionEncoding` also contains a few items that combine several of the above flags.
+
+* `JsonUnionEncoding.Default` represents the encoding that is used when `unionEncoding` is not specified.
+    It is equivalent to:
+
+    ```fsharp
+    JsonUnionEncoding.AdjacentTag
+    ||| JsonUnionEncoding.UnwrapOption
+    ||| JsonUnionEncoding.UnwrapSingleCaseUnions
+    ```
+
+    It is particularly useful if you want to use the default encoding with some additional options, for example:
+
+    ```fsharp
+    JsonFSharpConverter(unionEncoding = (JsonUnionEncoding.Default ||| JsonUnionEncoding.UnwrapRecordCases))
+    ```
+
+* `JsonUnionEncoding.NewtonsoftLike` causes similar behavior to the library Json.NET (aka Newtonsoft.Json).
+    It is equivalent to:
+
+    ```fsharp
+    JsonUnionEncoding.AdjacentTag
+    ```
+
+* `JsonUnionEncoding.ThothLike` causes similar behavior to the library [Thoth.Json](https://thoth-org.github.io/Thoth.Json/).
+    It is equivalent to:
+
+    ```fsharp
+    JsonUnionEncoding.InternalTag
+    ||| JsonUnionEncoding.UnwrapFieldlessTags
+    ```
+
+* `JsonUnionEncoding.FSharpLuLike` causes similar behavior to the library [FSharpLu.Json](https://github.com/microsoft/fsharplu/wiki/FSharpLu.Json) in Compact mode.
+    It is equivalent to:
+
+    ```fsharp
+    JsonUnionEncoding.ExternalTag
+    ||| JsonUnionEncoding.UnwrapFieldlessTags
+    ||| JsonUnionEncoding.UnwrapOption
+    ||| JsonUnionEncoding.UnwrapSingleFieldCases
+    ```
+
+## `unionTagName`
+
+This option sets the name of the property that contains the union case.
+This affects the base encodings `AdjacentTag` and `InternalTag ||| NamedFields`.
+The default value is `"Case"`.
+
+```fsharp
+JsonFSharpConverter(unionTagName = "type")
+|> options.Converters.Add
+
+JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
+// --> {"type":"WithArgs","Fields":[123,"Hello, world!"]}
+```
+
+## `unionFieldsName`
+
+This option sets the name of the property that contains the union fields.
+This affects the base encoding `AdjacentTag`.
+The default value is `"Fields"`.
+
+```fsharp
+JsonFSharpConverter(unionFieldsName = "value")
+|> options.Converters.Add
+
+JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
+// --> {"Case":"WithArgs","value":[123,"Hello, world!"]}
+```
+
+## `unionTagNamingPolicy`
+
+This option sets the naming policy for union case names.
+See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to#customize-json-names-and-values).
+
+```fsharp
+JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
+|> options.Converters.Add
+
+JsonSerializer.Serialize(WithArgs(123, "Hello, world!"), options)
+// --> {"Case":"withArgs","Fields":[123,"Hello, world!"]}
+```
+
+## `unionTagCaseInsensitive`
+
+This option only affects deserialization.
+It makes the parsing of union case names case-insensitive.
+
+```fsharp
+JsonFSharpConverter(unionTagCaseInsensitive = true)
+|> options.Converters.Add
+
+JsonSerializer.Deserialize<Example> """{"Case":"wIThArgS","Fields":[123,"Hello, world!"]}"""
+// --> WithArgs (123, "Hello, world!")
+```
+
+## `allowNullFields`
+
+By default, FSharp.SystemTextJson throws an exception when the following conditions are met:
+
+* it is deserializing a record or a union;
+* a field's JSON value is `null` or the field is unspecified;
+* that field's type isn't an explicitly nullable F# type (like `option`, `voption` and `Skippable`).
+
+With `allowNullFields = true`, such a null field is also allowed if the field's type is a class.
+
+```fsharp
+type Point() =
+    member val X = 0. with get, set
+    member val Y = 0. with get, set
+
+type Rectangle = { BottomLeft: Point; TopRight: Point }
+
+// With allowNullFields = false: throws an exception
+JsonSerializer.Deserialize<Rectangle> """{"TopRight":{"X":1,"Y":2}}"""
+
+// With allowNullFields = true: succeeds
+JsonSerializer.Deserialize<Rectangle> """{"TopRight":{"X":1,"Y":2}}"""
+// --> { BottomLeft = null; TopRight = Point(X = 1., Y = 2.) }
+```
