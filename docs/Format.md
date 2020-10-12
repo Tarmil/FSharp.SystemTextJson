@@ -113,4 +113,73 @@ By default, the types `'T option` and `'T voption` (aka `ValueOption`) are treat
 
 This behavior can be [customized](Customizing.md).
 
-<!-- TODO Skippable -->
+## Skippable
+
+FSharp.SystemTextJson defines a union type `Skippable<'T>`.
+This type has a shape similar to `'T option`:
+
+```fsharp
+type Skippable<'T> =
+    | Skip
+    | Include of 'T
+```
+
+It allows defining a record field that can be either present or absent in its JSON representation.
+
+```fsharp
+type Range =
+    {
+        min: int
+        max: Skippable<int>
+    }
+
+let betweenOneAndTwo = { min = 1; max = Include 2 }
+JsonSerializer.Serialize(betweenOneAndTwo, options)
+// --> {"min":1,"max":2}
+
+let fromThreeToInfinity = { min = 3; max = Skip }
+JsonSerializer.Serialize(fromThreeToInfinity, options)
+// --> {"min":3}
+```
+
+This also applies when used as a field of a union with `JsonUnionEncoding.NamedFields` (see [Customizing](Customizing.md)).
+
+When used outside a record, or as a field of a union without `JsonUnionEncoding.NamedFields`, `Skip` is represented as `null` and `Include x` is represented the same way as `x`.
+
+The type `Skippable<'T option>` allows distinguishing between a null field and an absent field:
+
+```fsharp
+/// Internal representation of a user.
+type User =
+    {
+        userId: int
+        name: string
+        age: int option
+    }
+
+/// Represents the body of a PATCH request to modify a User.
+type PatchUser =
+    {
+        userId: int
+        /// A user must have a name;
+        /// we can set it (Include) or leave it unchanged (Skip).
+        name: Skippable<string>
+        /// A user may not want to divulge their age;
+        /// we can set it (Include (Some x)), remove it (Include None), or leave it unchanged (Skip).
+        age: Skippable<int option>
+    }
+
+// Set the user's age:
+JsonSerializer.Serialize({ userId = 123; name = Skip; age = Include (Some 42) }, options)
+// --> {"userId":123,"age":42}
+
+// Remove the user's age:
+JsonSerializer.Serialize({ userId = 123; name = Skip; age = Include None }, options)
+// --> {"userId":123,"age":null}
+
+// Do not modify the user's age:
+JsonSerializer.Serialize({ userId = 123; name = Skip; age = Skip }, options)
+// --> {"userId":123}
+```
+
+There is also a module `Skippable` that contains all the same functions as the `Option` module, in addition to mapping functions `toOption`, `ofOption`, `toValueOption` and `ofValueOption`.
