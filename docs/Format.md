@@ -11,6 +11,7 @@
 - [Records, struct records and anonymous records](#records-struct-records-and-anonymous-records)
 - [Unions and struct unions](#unions-and-struct-unions)
 - [Options](#options)
+- [Skippable](#skippable)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 

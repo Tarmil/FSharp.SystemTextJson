@@ -8,6 +8,12 @@
 - [`unionEncoding`](#unionencoding)
   - [Base encoding](#base-encoding)
   - [Additional options](#additional-options)
+  - [Combined flags](#combined-flags)
+- [`unionTagName`](#uniontagname)
+- [`unionFieldsName`](#unionfieldsname)
+- [`unionTagNamingPolicy`](#uniontagnamingpolicy)
+- [`unionTagCaseInsensitive`](#uniontagcaseinsensitive)
+- [`allowNullFields`](#allownullfields)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
