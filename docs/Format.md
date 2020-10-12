@@ -104,6 +104,9 @@ JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
 // --> {"Case":"WithArgs","Fields":[123,"Hello, world!"]}
 ```
 
+If a union is marked with `UseNullAsTrueValue`, then its first case is represented as `null`.
+For example, `'T option` has this attribute, so `None` is represented as `null`.
+
 ## Options
 
 By default, the types `'T option` and `'T voption` (aka `ValueOption`) are treated specially.

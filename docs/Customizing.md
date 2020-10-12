@@ -107,7 +107,8 @@ type Example =
 
 ### Base encoding
 
-There are four base encodings available:
+There are four base encodings available.
+These encodings and their names are inspired by Rust's excellent Serde library, although they differ in some specifics.
 
 #### `AdjacentTag`
 
@@ -177,7 +178,7 @@ JsonSerializer.Serialize(NoArgs, options)
 // --> {}
 
 JsonSerializer.Serialize(WithOneArg 3.14, options)
-// --> {"aBool":3.14}
+// --> {"aFloat":3.14}
 
 JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
 // --> {"anInt":123,"aString":"Hello world!"}
@@ -190,7 +191,7 @@ This flag also sets the `NamedFields` additional flag (see [below](#additional-o
 #### `NamedFields`
 
 `JsonUnionEncoding.NamedFields` causes the fields of a union to be encoded as a JSON object rather than an array.
-The properties of the object are named after the value's fields (`aBool`, `anInt` and `aString` in our example).
+The properties of the object are named after the value's fields (`aFloat`, `anInt` and `aString` in our example).
 Its exact effect depends on the base format:
 
 * `JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields` replaces the array of case fields with an object.
@@ -198,12 +199,17 @@ Its exact effect depends on the base format:
     ```fsharp
     JsonSerializer.Serialize(NoArgs, options)
     // --> {"Case":"NoArgs"}
+    // (same format as without NamedFields)
 
     JsonSerializer.Serialize(WithOneArg 3.14, options)
-    // --> {"Case":"WithOneArg","Fields":{"aBool":3.14}}
+    // --> {"Case":"WithOneArg","Fields":{"aFloat":3.14}}
+    //                                   ^^^^^^^^^^^^^^
+    //                        Instead of [3.14]
 
     JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
     // --> {"Case":"WithArgs","Fields":{"anInt":123,"aString":"Hello, world!"}}
+    //                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                      Instead of [123,"Hello, world!"]
     ```
 
 * `JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields` replaces the array of case fields with an object.
@@ -211,12 +217,18 @@ Its exact effect depends on the base format:
     ```fsharp
     JsonSerializer.Serialize(NoArgs, options)
     // --> {"NoArgs":{}}
+    //               ^^
+    //    Instead of []
 
     JsonSerializer.Serialize(WithOneArg 3.14, options)
-    // --> {"WithOneArg":{"aBool":3.14}}
+    // --> {"WithOneArg":{"aFloat":3.14}}
+    //                   ^^^^^^^^^^^^^^
+    //        Instead of [3.14]
 
     JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
     // --> {"WithArgs":{"anInt":123,"aString":"Hello, world!"}}
+    //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //      Instead of [123,"Hello, world!"]
     ```
 
 * `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields` replaces the entire value with an object.
@@ -225,17 +237,23 @@ Its exact effect depends on the base format:
     ```fsharp
     JsonSerializer.Serialize(NoArgs, options)
     // --> {"Case":"NoArgs"}
+    // Instead of ["NoArgs"]
 
     JsonSerializer.Serialize(WithOneArg 3.14, options)
-    // --> {"Case":"WithOneArg","aBool":3.14}
+    // --> {"Case":"WithOneArg","aFloat":3.14}
+    // Instead of ["WithOneArg",3.14]
 
     JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
     // --> {"Case":"WithArgs","anInt":123,"aString":"Hello, world!"}
+    // Instead of ["WithArgs",123,"Hello, world!"]
     ```
 
     The name `"Case"` can be customized (see [`unionTagName`](#uniontagname) below).
 
 * `JsonUnionEncoding.Untagged` is unchanged by `JsonUnionEncoding.NamedFields`.
+
+If a field doesn't have a name specified in F# code, then a default name is assigned by the compiler:
+`Item` if the case has a single field, and `Item1`, `Item2`, etc if the case has multiple fields.
     
 #### `UnwrapFieldlessTags`
 
@@ -297,6 +315,8 @@ The exact effect depends on the base format:
 
     JsonSerializer.Serialize(WithOneArg 3.14, options)
     // --> {"Case":"WithOneArg","Fields":3.14}
+    //                                   ^^^^
+    //                        Instead of [3.14] or {"aFloat":3.14}
 
     JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
     // --> (same format as without UnwrapSingleCaseUnions)
@@ -310,6 +330,8 @@ The exact effect depends on the base format:
 
     JsonSerializer.Serialize(WithOneArg 3.14, options)
     // --> {"WithOneArg":3.14}
+    //                   ^^^^
+    //        Instead of [3.14] or {"aFloat":3.14}
 
     JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
     // --> (same format as without UnwrapSingleCaseUnions)
@@ -338,9 +360,12 @@ type Location =
     ```fsharp
     JsonSerializer.Serialize(Address "5 Avenue Anatole France", options)
     // --> {"Case":"Address","Fields":{"address":"5 Avenue Anatole France"}}
+    // (same as without UnwrapRecordCases)
 
     JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
     // --> {"Case":"ExactLocation","Fields":{"lat":48.858,"long":2.295}}
+    //                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                           Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
 
 * `JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.UnwrapRecordCases`:
@@ -348,9 +373,12 @@ type Location =
     ```fsharp
     JsonSerializer.Serialize(Address "5 Avenue Anatole France", options)
     // --> {"Address":{"address":"5 Avenue Anatole France"}}
+    // (same as without UnwrapRecordCases)
 
     JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
     // --> {"ExactLocation":{"lat":48.858,"long":2.295}}
+    //                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //           Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
 
 * `JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapRecordCases`:
@@ -358,9 +386,12 @@ type Location =
     ```fsharp
     JsonSerializer.Serialize(Address "5 Avenue Anatole France", options)
     // --> {"Case":"Address","address":"5 Avenue Anatole France"}
+    // (same as without UnwrapRecordCases)
 
     JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
     // --> {"Case":"ExactLocation","lat":48.858,"long":2.295}
+    //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                  Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
 
 * `JsonUnionEncoding.Untagged ||| JsonUnionEncoding.UnwrapRecordCases`:
@@ -368,9 +399,11 @@ type Location =
     ```fsharp
     JsonSerializer.Serialize(Address "5 Avenue Anatole France", options)
     // --> {"address":"5 Avenue Anatole France"}
+    // (same as without UnwrapRecordCases)
 
     JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
     // --> {"lat":48.858,"long":2.295}
+    // Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
 
 ### Combined flags
