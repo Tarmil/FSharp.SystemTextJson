@@ -10,6 +10,7 @@
   - [Using attributes](#using-attributes)
   - [Advantages and inconvenients](#advantages-and-inconvenients)
 - [Using with ASP.NET Core MVC](#using-with-aspnet-core-mvc)
+- [Using with Giraffe](#using-with-giraffe)
 - [Using with SignalR](#using-with-signalr)
 - [Using with Bolero](#using-with-bolero)
 
