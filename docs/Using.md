@@ -92,6 +92,44 @@ type MyTestController() =
         {| value = msg.value + 1 |}
 ```
 
+## Using with Giraffe
+
+To use FSharp.SystemTextJson in Giraffe (for example with the `json` function):
+
+* With Giraffe 5.x or newer, add the following to your `configureServices` function:
+
+    ```fsharp
+    open System.Text.Json
+    open System.Text.Json.Serialization
+    open Giraffe.Serialization
+
+    let configureServices (services: IServiceCollection) =
+        let jsonOptions = JsonSerializerOptions()
+        jsonOptions.Converters.Add(JsonFSharpConverter())
+        services.AddSingleton(jsonOptions) |> ignore
+        services.AddSingleton<IJsonSerializer, SystemTextJsonSerializer>() |> ignore 
+        // ...
+    ```
+    
+* Giraffe 4.x or earlier doesn't have the above `SystemTextJsonSerializer`, so you need to implement it in your project:
+
+    ```fsharp
+    open System
+    open System.Text.Json
+    open Giraffe.Serialization
+
+    type SystemTextJsonSerializer(options: JsonSerializerOptions) =
+        interface IJsonSerializer with
+            member _.Deserialize<'T>(string: string) = JsonSerializer.Deserialize<'T>(string, options)
+            member _.Deserialize<'T>(bytes: byte[]) = JsonSerializer.Deserialize<'T>(ReadOnlySpan bytes, options)
+            member _.DeserializeAsync<'T>(stream) = JsonSerializer.DeserializeAsync<'T>(stream, options).AsTask()
+            member _.SerializeToBytes<'T>(value: 'T) = JsonSerializer.SerializeToUtf8Bytes<'T>(value, options)
+            member _.SerializeToStreamAsync<'T>(value: 'T) stream = JsonSerializer.SerializeAsync<'T>(stream, value, options)
+            member _.SerializeToString<'T>(value: 'T) = JsonSerializer.Serialize<'T>(value, options)
+    ```
+    
+    and then add the same code as for Giraffe 5.x in your `configureServices` function.
+
 ## Using with SignalR
 
 To use F# types in SignalR hubs, add the following to your startup `ConfigureServices`:
