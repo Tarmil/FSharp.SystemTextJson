@@ -32,7 +32,10 @@ module Paths =
     let sln = root </> "FSharp.SystemTextJson.sln"
     let out = root </> "bin"
     let nugetOut = out </> "nuget"
+    let test = root </> "tests" </> "FSharp.SystemTextJson.Tests"
     let benchmarks = root </> "benchmarks" </> "FSharp.SystemTextJson.Benchmarks"
+    let trimTest = root </> "tests" </> "FSharp.SystemTextJson.TrimTest"
+    let trimTestOut rti = trimTest </> "bin" </> "Release" </> "net5.0" </> rti </> "publish" </> "FSharp.SystemTextJson.TrimTest.dll"
 
 Target.create "Clean" (fun _ ->
     !! "**/bin"
@@ -60,24 +63,45 @@ Target.create "Test" (fun _ ->
             Logger = Some "trx"
             ResultsDirectory = Some Paths.out
         }
-    ) Paths.sln
+    ) Paths.test
 )
+
+let checkOk (name: string) (r: ProcessResult) =
+    if not r.OK then
+        failwithf "%s failed with code %d:\n%A" name r.ExitCode r.Errors
+
+Target.create "TestTrim" <| fun _ ->
+    let rti = Environment.environVarOrDefault "DOTNET_RUNTIME_IDENTIFIER" "win-x64"
+    DotNet.publish (fun o ->
+        { o with
+            SelfContained = Some true
+            Runtime = Some rti
+            MSBuildParams =
+                { o.MSBuildParams with
+                    Properties = [
+                        "PublishTrimmed", "true"
+                        "TrimMode", "Link"
+                    ]
+                }
+        }
+    ) Paths.trimTest
+    let dll = Paths.trimTestOut rti
+    DotNet.exec id dll dll
+    |> checkOk "Trim test"
 
 /// This target doesn't need a dependency chain, because the benchmarks actually wrap and build the referenced
 /// project(s) as part of the run.
 Target.create "Benchmark" (fun _ ->
     DotNet.exec (fun o -> { o with 
                                 WorkingDirectory = Paths.benchmarks } ) "run" "-c release --filter \"*\""
-    |> fun r -> 
-        if r.OK 
-        then () 
-        else failwithf "Benchmarks failed with code %d:\n%A" r.ExitCode r.Errors
+    |> checkOk "Benchmarks"
 )
 
 Target.create "All" ignore
 
 "Build"
 ==> "Test"
+==> "TestTrim"
 ==> "Pack"
 ==> "All"
 
