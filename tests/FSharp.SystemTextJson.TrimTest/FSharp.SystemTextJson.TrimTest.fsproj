@@ -1,14 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Test.Collection.fs" />
-    <Compile Include="Test.Record.fs" />
-    <Compile Include="Test.Union.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

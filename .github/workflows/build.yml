@@ -16,7 +16,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.301'
+          dotnet-version: '5.0.100'
 
       - name: NuGet cache
         uses: actions/cache@v1
@@ -31,7 +31,7 @@ jobs:
           if echo "${{github.ref}}" | grep -q "^refs/heads/"; then
             git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')";
           fi
-          ./build.sh
+          DOTNET_RUNTIME_IDENTIFIER=linux-x64 ./build.sh
 
       - name: Upload nupkg
         uses: actions/upload-artifact@v1
@@ -50,7 +50,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.402'
+          dotnet-version: '5.0.100'
 
       - name: Prepare
         run: |
