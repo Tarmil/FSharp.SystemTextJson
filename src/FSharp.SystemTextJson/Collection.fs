@@ -21,7 +21,7 @@ type JsonListConverter<'T>(fsOptions) =
         array |> List.ofArray
 
     override _.Write(writer, value, options) =
-        JsonSerializer.Serialize(writer, value, typeof<seq<'T>>, options)
+        JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
 type JsonListConverter(fsOptions) =
     inherit JsonConverterFactory()
@@ -53,7 +53,7 @@ type JsonSetConverter<'T when 'T : comparison>(fsOptions) =
         match reader.TokenType with
         | JsonTokenType.EndArray -> acc
         | _ ->
-            let elt = JsonSerializer.Deserialize(&reader, typeof<'T>, options) :?> 'T
+            let elt = JsonSerializer.Deserialize<'T>(&reader, options)
             read (Set.add elt acc) &reader options
 
     override _.Read(reader, typeToConvert, options) =
@@ -67,7 +67,7 @@ type JsonSetConverter<'T when 'T : comparison>(fsOptions) =
         set
 
     override _.Write(writer, value, options) =
-        JsonSerializer.Serialize(writer, value, typeof<seq<'T>>, options)
+        JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
 type JsonSetConverter(fsOptions) =
     inherit JsonConverterFactory()
@@ -99,7 +99,7 @@ type JsonStringMapConverter<'V>() =
         | JsonTokenType.EndObject -> acc
         | JsonTokenType.PropertyName ->
             let key = reader.GetString()
-            let value = JsonSerializer.Deserialize(&reader, typeof<'V>, options) :?> 'V
+            let value = JsonSerializer.Deserialize<'V>(&reader, options)
             read (Map.add key value acc) &reader options
         | _ ->
             fail "JSON field" &reader ty
@@ -116,7 +116,7 @@ type JsonStringMapConverter<'V>() =
                 | null -> kv.Key
                 | p -> p.ConvertName kv.Key
             writer.WritePropertyName(k)
-            JsonSerializer.Serialize(writer, kv.Value, typeof<'V>, options)
+            JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
 type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
@@ -135,7 +135,7 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
         | JsonTokenType.EndObject -> acc
         | JsonTokenType.PropertyName ->
             let key = reader.GetString()
-            let value = JsonSerializer.Deserialize(&reader, typeof<'V>, options) :?> 'V
+            let value = JsonSerializer.Deserialize<'V>(&reader, options)
             read (Map.add (wrap [|key|] :?> 'K) value acc) &reader options
         | _ ->
             fail "JSON field" &reader ty
@@ -167,9 +167,9 @@ type JsonMapConverter<'K, 'V when 'K : comparison>() =
         | JsonTokenType.EndArray -> acc
         | JsonTokenType.StartArray ->
             reader.Read() |> ignore
-            let key = JsonSerializer.Deserialize(&reader, typeof<'K>, options) :?> 'K
+            let key = JsonSerializer.Deserialize<'K>(&reader, options)
             reader.Read() |> ignore
-            let value = JsonSerializer.Deserialize(&reader, typeof<'V>, options) :?> 'V
+            let value = JsonSerializer.Deserialize<'V>(&reader, options)
             readExpecting JsonTokenType.EndArray "JSON array" &reader ty
             read (Map.add key value acc) &reader options
         | _ ->
@@ -183,8 +183,8 @@ type JsonMapConverter<'K, 'V when 'K : comparison>() =
         writer.WriteStartArray()
         for kv in value do
             writer.WriteStartArray()
-            JsonSerializer.Serialize(writer, kv.Key, typeof<'K>, options)
-            JsonSerializer.Serialize(writer, kv.Value, typeof<'V>, options)
+            JsonSerializer.Serialize<'K>(writer, kv.Key, options)
+            JsonSerializer.Serialize<'V>(writer, kv.Value, options)
             writer.WriteEndArray()
         writer.WriteEndArray()
 
