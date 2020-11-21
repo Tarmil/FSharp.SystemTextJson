@@ -22,10 +22,10 @@ jobs:
           tag: ${{github.ref}}
           repo_token: ${{secrets.GITHUB_TOKEN}}
           file_glob: 'true'
-          file: nuget/*.nupkg
+          file: ./*.nupkg
 
       - name: Push to NuGet
-        run: dotnet nuget push nuget/*.nupkg
+        run: dotnet nuget push *.nupkg
                --api-key ${{secrets.NUGET_API_KEY}}
                --source https://api.nuget.org/v3/index.json
                --skip-duplicate
