@@ -12,7 +12,7 @@ type JsonListConverter<'T>(fsOptions) =
     let needsNullChecking = not tIsNullable && not tType.IsValueType
 
     override _.Read(reader, _typeToConvert, options) =
-        let array = JsonSerializer.Deserialize<'T[]>(&reader, options)
+        let array = JsonSerializer.Deserialize(&reader, typeof<'T[]>, options) :?> 'T[]
         if needsNullChecking then
             for elem in array do
                 if isNull (box elem) then
