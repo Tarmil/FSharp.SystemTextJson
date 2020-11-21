@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15
+
+* [#77](https://github.com/Tarmil/FSharp.SystemTextJson/issues/77): Fix compile-time error when publishing a trimmed .NET 5 application. Thanks @pchalamet!
+
 ## 0.14
 
 * [#71](https://github.com/Tarmil/FSharp.SystemTextJson/issues/71): Allow overriding specific types in `JsonFSharpConverter` with new argument `overrides`. These override even types that have `JsonFSharpConverterAttribute` when `allowOverride = true`.
