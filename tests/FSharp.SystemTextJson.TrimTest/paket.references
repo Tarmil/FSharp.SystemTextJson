@@ -1,2 +1,6 @@
+group trimtest
+fsharp.core
+fscheck.xunit
+system.text.json
 xunit.console
 xunit

@@ -68,6 +68,16 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     let dector = FSharpValue.PreComputeRecordReader(recordType, true)
 
+    let defaultFields =
+        let arr = Array.zeroCreate fieldCount
+        fieldProps
+        |> Array.iteri (fun i field ->
+            if isSkippableType field.Type || isValueOptionType field.Type then
+                let case = FSharpType.GetUnionCases(field.Type).[0]
+                arr.[i] <- FSharpValue.MakeUnion(case, [||])
+        )
+        arr
+
     let propertiesByName =
         if options.PropertyNameCaseInsensitive then
             let d = Dictionary(StringComparer.OrdinalIgnoreCase)
@@ -100,7 +110,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         this.ReadRestOfObject(&reader, options, false)
 
     member internal _.ReadRestOfObject(reader, options, skipFirstRead) =
-        let fields = Array.zeroCreate fieldCount
+        let fields = Array.copy defaultFields
         let mutable cont = true
         let mutable requiredFieldCount = 0
         let mutable skipRead = skipFirstRead

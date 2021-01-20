@@ -9,7 +9,18 @@ nuget Microsoft.SourceLink.GitHub prerelease copy_local:true
 nuget Nerdbank.GitVersioning copy_local:true
 nuget System.Text.Json >= 4.6.0 lowest_matching: true
 nuget xunit ~> 2.4.0
-nuget xunit.console ~> 2.4.0
 nuget xunit.runner.visualstudio ~> 2.4.0
 nuget BenchmarkDotNet
 nuget Newtonsoft.Json
+
+group trimtest
+framework net5.0
+storage none
+source https://api.nuget.org/v3/index.json
+
+nuget FSharp.Core >= 5.0
+nuget System.Text.Json >= 5.0
+nuget FsCheck.XUnit
+nuget xunit ~> 2.4.0
+nuget xunit.console ~> 2.4.0
+nuget Microsoft.NET.Test.Sdk ~> 16.3.0

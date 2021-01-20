@@ -33,6 +33,10 @@ let isSkippableType (ty: Type) =
     ty.IsGenericType
     && ty.GetGenericTypeDefinition() = typedefof<Skippable<_>>
 
+let isValueOptionType (ty: Type) =
+    ty.IsGenericType
+    && ty.GetGenericTypeDefinition() = typedefof<ValueOption<_>>
+
 let isSkip (ty: Type) =
     if isSkippableType ty then
         let getTag = FSharpValue.PreComputeUnionTagReader(ty)
@@ -43,9 +47,7 @@ let isSkip (ty: Type) =
 let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     fsOptions.AllowNullFields
     || isNullableUnion ty
-    || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
-        && ty.IsGenericType
-        && ty.GetGenericTypeDefinition() = typedefof<voption<_>>)
+    || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption && isValueOptionType ty)
     || (isSkippableType ty && isNullableFieldType fsOptions (ty.GetGenericArguments().[0]))
     || (ty = typeof<Unit>)
 
