@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.16
+
+* [#83](https://github.com/Tarmil/FSharp.SystemTextJson/issues/83): Fix null reference exception when deserializing a record that `Skip`s a field with FSharp.Core 5.0.
+* Remove netcoreapp3.0 specific build.
+
 ## 0.15
 
 * [#77](https://github.com/Tarmil/FSharp.SystemTextJson/issues/77): Fix compile-time error when publishing a trimmed .NET 5 application. Thanks @pchalamet!
