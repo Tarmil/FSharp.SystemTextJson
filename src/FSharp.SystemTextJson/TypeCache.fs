@@ -21,7 +21,7 @@ module TypeCache =
 
     /// cached access to FSharpType.* and System.Type to prevent repeated access to reflection members
     let getKind =
-        let cache = ConcurrentDictionary<Type, TypeKind>()
+        let cache = Dict<Type, TypeKind>()
         let listTy = typedefof<_ list>
         let setTy = typedefof<Set<_>>
         let mapTy = typedefof<Map<_,_>>
