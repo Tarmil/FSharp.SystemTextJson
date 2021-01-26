@@ -21,7 +21,7 @@ module TypeCache =
 
     /// cached access to FSharpType.* and System.Type to prevent repeated access to reflection members
     let getKind =
-        let cache = Dict<Type, TypeKind>()
+        let cache = Dict<System.Type, TypeKind>()
         let listTy = typedefof<_ list>
         let setTy = typedefof<Set<_>>
         let mapTy = typedefof<Map<_,_>>
@@ -33,7 +33,7 @@ module TypeCache =
             elif FSharpType.IsUnion(ty, true) then TypeKind.Union
             else TypeKind.Other)
 
-        fun (ty: Type) ->
+        fun (ty: System.Type) ->
             cache.GetOrAdd(ty, typeKindFactory)
 
     let isUnion ty =
