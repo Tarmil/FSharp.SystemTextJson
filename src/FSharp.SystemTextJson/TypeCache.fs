@@ -31,6 +31,7 @@ module TypeCache =
             elif ty.IsGenericType && ty.GetGenericTypeDefinition() = mapTy then TypeKind.Map
             elif FSharpType.IsTuple(ty) then TypeKind.Tuple
             elif FSharpType.IsUnion(ty, true) then TypeKind.Union
+            elif FSharpType.IsRecord(ty, true) then TypeKind.Record
             else TypeKind.Other)
 
         fun (ty: System.Type) ->
