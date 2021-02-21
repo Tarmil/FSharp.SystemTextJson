@@ -172,7 +172,7 @@ type JsonUnionConverter<'T>
                 | false, _ -> ValueNone
         match found with
         | ValueNone ->
-            raise (JsonException("Unknow case for union type " + ty.FullName + ": " + reader.GetString()))
+            raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
         | ValueSome case ->
             case
 
@@ -195,7 +195,7 @@ type JsonUnionConverter<'T>
                 | false, _ -> ValueNone
         match found with
         | ValueNone ->
-            raise (JsonException("Unknow case for union type " + ty.FullName + " due to unknown field: " + reader.GetString()))
+            raise (JsonException("Unknown case for union type " + ty.FullName + " due to unknown field: " + reader.GetString()))
         | ValueSome case ->
             case
 
