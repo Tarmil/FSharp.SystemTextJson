@@ -481,7 +481,7 @@ JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
 ## `unionTagNamingPolicy`
 
 This option sets the naming policy for union case names.
-See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to#customize-json-names-and-values).
+See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-customize-properties).
 
 ```fsharp
 JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
