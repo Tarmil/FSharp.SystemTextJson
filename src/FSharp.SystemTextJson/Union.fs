@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Text.Json
 open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
+open System.Buffers
 
 type private Field =
     {
@@ -153,7 +154,7 @@ type JsonUnionConverter<'T>
         else
             ValueNone
 
-    let getCaseByTag (reader: byref<Utf8JsonReader>) =
+    let getCaseByTag tag =
         let found =
             match casesByName with
             | ValueNone ->
@@ -161,18 +162,18 @@ type JsonUnionConverter<'T>
                 let mutable i = 0
                 while found.IsNone && i < cases.Length do
                     let case = cases.[i]
-                    if reader.ValueTextEquals(case.Name) then
+                    if case.Name.Equals(tag, StringComparison.InvariantCulture) then
                         found <- ValueSome case
                     else
                         i <- i + 1
                 found
             | ValueSome d ->
-                match d.TryGetValue(reader.GetString()) with
+                match d.TryGetValue(tag) with
                 | true, c -> ValueSome c
                 | false, _ -> ValueNone
         match found with
         | ValueNone ->
-            raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
+            raise (JsonException("Unknown case for union type " + ty.FullName + ": " + tag))
         | ValueSome case ->
             case
 
@@ -286,11 +287,32 @@ type JsonUnionConverter<'T>
         else
             readFieldsAsArray &reader case options
 
+    let getCaseFromValue (reader: byref<Utf8JsonReader>) =
+        let document = JsonDocument.ParseValue(&reader)
+        getCaseByTag (document.RootElement.ToString())
+
+    let getCaseFromDocument (reader: Utf8JsonReader) =
+        let mutable reader = reader
+        let document = JsonDocument.ParseValue(&reader)
+        match document.RootElement.TryGetProperty fsOptions.UnionTagName with
+        | true, element -> getCaseByTag (element.GetString())
+        | false, _ ->
+            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionFieldsName
+            |> JsonException
+            |> raise
+
+    let getCase (reader: byref<Utf8JsonReader>) =
+        let mutable snapshot = reader
+        if readIsExpectingPropertyNamed fsOptions.UnionTagName &snapshot ty then
+            readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
+            readExpecting JsonTokenType.String "case name" &reader ty
+            getCaseFromValue &reader
+        else
+            getCaseFromDocument reader
+
     let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-        readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
-        readExpecting JsonTokenType.String "case name" &reader ty
-        let case = getCaseByTag &reader
+        let case = getCase &reader
         let res =
             if case.Fields.Length > 0 then
                 readExpectingPropertyNamed fsOptions.UnionFieldsName &reader ty
@@ -303,7 +325,7 @@ type JsonUnionConverter<'T>
     let readExternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
         readExpecting JsonTokenType.PropertyName "case name" &reader ty
-        let case = getCaseByTag &reader
+        let case = getCaseByTag (reader.GetString())
         let res = readFields &reader case options
         readExpecting JsonTokenType.EndObject "end of object" &reader ty
         res
@@ -311,14 +333,12 @@ type JsonUnionConverter<'T>
     let readInternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if namedFields then
             expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-            readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
-            readExpecting JsonTokenType.String "case name" &reader ty
-            let case = getCaseByTag &reader
+            let case = getCase &reader
             readFieldsAsRestOfObject &reader case false options
         else
             expectAlreadyRead JsonTokenType.StartArray "array" &reader ty
             readExpecting JsonTokenType.String "case name" &reader ty
-            let case = getCaseByTag &reader
+            let case = getCaseFromValue &reader
             readFieldsAsRestOfArray &reader case options
 
     let readUntagged (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
@@ -408,7 +428,7 @@ type JsonUnionConverter<'T>
         | JsonTokenType.Null when Helpers.isNullableUnion ty ->
             (null : obj) :?> 'T
         | JsonTokenType.String when unwrapFieldlessTags ->
-            let case = getCaseByTag &reader
+            let case = getCaseFromValue &reader
             case.Ctor [||] :?> 'T
         | _ ->
             match baseFormat with

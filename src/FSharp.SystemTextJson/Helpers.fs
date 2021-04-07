@@ -19,8 +19,11 @@ let readExpecting expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>
     if not (reader.Read()) || reader.TokenType <> expectedTokenType then
         fail expectedLabel &reader ty
 
+let inline readIsExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
+    (reader.Read()) && reader.TokenType = JsonTokenType.PropertyName && (reader.ValueTextEquals expectedPropertyName)
+
 let readExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
-    if not (reader.Read()) || reader.TokenType <> JsonTokenType.PropertyName || not (reader.ValueTextEquals expectedPropertyName) then
+    if not <| readIsExpectingPropertyNamed expectedPropertyName &reader ty then
         fail ("\"" + expectedPropertyName + "\"") &reader ty
 
 let isNullableUnion (ty: Type) =
