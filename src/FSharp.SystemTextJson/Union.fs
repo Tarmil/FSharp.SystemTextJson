@@ -22,6 +22,7 @@ type private Case =
         Ctor: obj[] -> obj
         Dector: obj -> obj[]
         Name: string
+        NameAsProperty: string
         UnwrappedSingleField: bool
         UnwrappedRecordField: ValueOption<IRecordConverter>
         MinExpectedFieldCount: int
@@ -48,13 +49,19 @@ type JsonUnionConverter<'T>
     let cases =
         cases
         |> Array.map (fun uci ->
-            let name =
+            let (name, nameAsProperty) =
                 match uci.GetCustomAttributes(typeof<JsonPropertyNameAttribute>) with
-                | [| :? JsonPropertyNameAttribute as name |] -> name.Name
+                | [| :? JsonPropertyNameAttribute as name |] -> name.Name, name.Name
                 | _ ->
-                    match fsOptions.UnionTagNamingPolicy with
-                    | null -> uci.Name
-                    | policy -> policy.ConvertName uci.Name
+                    let name =
+                        match fsOptions.UnionTagNamingPolicy with
+                        | null -> uci.Name
+                        | policy -> policy.ConvertName uci.Name
+                    let nameAsProperty =
+                        match options.PropertyNamingPolicy with
+                        | null -> uci.Name
+                        | policy -> policy.ConvertName uci.Name
+                    name, nameAsProperty
             let fields =
                 uci.GetFields()
                 |> Array.map (fun p ->
@@ -98,6 +105,7 @@ type JsonUnionConverter<'T>
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
                 Name = name
+                NameAsProperty = nameAsProperty
                 UnwrappedSingleField = unwrappedSingleField
                 UnwrappedRecordField = unwrappedRecordField
                 MinExpectedFieldCount = fields |> Seq.filter (fun f -> f.MustBePresent) |> Seq.length
@@ -153,6 +161,15 @@ type JsonUnionConverter<'T>
         else
             ValueNone
 
+    let casesByNameAsProperty =
+        if options.PropertyNameCaseInsensitive then
+            let dict = Dictionary(StringComparer.OrdinalIgnoreCase)
+            for c in cases do
+                dict.[c.NameAsProperty] <- c
+            ValueSome dict
+        else
+            ValueNone
+
     let getCaseByTag (reader: byref<Utf8JsonReader>) =
         let found =
             match casesByName with
@@ -173,6 +190,29 @@ type JsonUnionConverter<'T>
         match found with
         | ValueNone ->
             raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
+        | ValueSome case ->
+            case
+
+    let getCaseByPropertyTag (reader: byref<Utf8JsonReader>) =
+        let found =
+            match casesByNameAsProperty with
+            | ValueNone ->
+                let mutable found = ValueNone
+                let mutable i = 0
+                while found.IsNone && i < cases.Length do
+                    let case = cases.[i]
+                    if reader.ValueTextEquals(case.NameAsProperty) then
+                        found <- ValueSome case
+                    else
+                        i <- i + 1
+                found
+            | ValueSome d ->
+                match d.TryGetValue(reader.GetString()) with
+                | true, c -> ValueSome c
+                | false, _ -> ValueNone
+        match found with
+        | ValueNone ->
+            raise (JsonException("Unknow case for union type " + ty.FullName + ": " + reader.GetString()))
         | ValueSome case ->
             case
 
@@ -303,7 +343,7 @@ type JsonUnionConverter<'T>
     let readExternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
         readExpecting JsonTokenType.PropertyName "case name" &reader ty
-        let case = getCaseByTag &reader
+        let case = getCaseByPropertyTag &reader
         let res = readFields &reader case options
         readExpecting JsonTokenType.EndObject "end of object" &reader ty
         res
@@ -386,7 +426,7 @@ type JsonUnionConverter<'T>
 
     let writeExternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WritePropertyName(case.Name)
+        writer.WritePropertyName(case.NameAsProperty)
         writeFields writer case value options
         writer.WriteEndObject()
 
