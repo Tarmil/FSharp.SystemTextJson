@@ -154,7 +154,7 @@ type JsonUnionConverter<'T>
         else
             ValueNone
 
-    let getCaseByTag tag =
+    let getCaseByTagReader (reader: byref<Utf8JsonReader>) =
         let found =
             match casesByName with
             | ValueNone ->
@@ -162,7 +162,30 @@ type JsonUnionConverter<'T>
                 let mutable i = 0
                 while found.IsNone && i < cases.Length do
                     let case = cases.[i]
-                    if case.Name.Equals(tag, StringComparison.InvariantCulture) then
+                    if reader.ValueTextEquals(case.Name) then
+                        found <- ValueSome case
+                    else
+                        i <- i + 1
+                found
+            | ValueSome d ->
+                match d.TryGetValue(reader.GetString()) with
+                | true, c -> ValueSome c
+                | false, _ -> ValueNone
+        match found with
+        | ValueNone ->
+            raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
+        | ValueSome case ->
+            case
+
+    let getCaseByTagString tag =
+        let found =
+            match casesByName with
+            | ValueNone ->
+                let mutable found = ValueNone
+                let mutable i = 0
+                while found.IsNone && i < cases.Length do
+                    let case = cases.[i]
+                    if case.Name.Equals(tag, StringComparison.OrdinalIgnoreCase) then
                         found <- ValueSome case
                     else
                         i <- i + 1
@@ -287,15 +310,11 @@ type JsonUnionConverter<'T>
         else
             readFieldsAsArray &reader case options
 
-    let getCaseFromValue (reader: byref<Utf8JsonReader>) =
-        let document = JsonDocument.ParseValue(&reader)
-        getCaseByTag (document.RootElement.ToString())
-
     let getCaseFromDocument (reader: Utf8JsonReader) =
         let mutable reader = reader
         let document = JsonDocument.ParseValue(&reader)
         match document.RootElement.TryGetProperty fsOptions.UnionTagName with
-        | true, element -> getCaseByTag (element.GetString())
+        | true, element -> getCaseByTagString (element.GetString())
         | false, _ ->
             sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionFieldsName
             |> JsonException
@@ -306,7 +325,7 @@ type JsonUnionConverter<'T>
         if readIsExpectingPropertyNamed fsOptions.UnionTagName &snapshot ty then
             readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
             readExpecting JsonTokenType.String "case name" &reader ty
-            struct (getCaseFromValue &reader, false)
+            struct (getCaseByTagReader &reader, false)
         else
             struct (getCaseFromDocument reader, true)
 
@@ -328,7 +347,7 @@ type JsonUnionConverter<'T>
     let readExternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
         readExpecting JsonTokenType.PropertyName "case name" &reader ty
-        let case = getCaseByTag (reader.GetString())
+        let case = getCaseByTagReader &reader
         let res = readFields &reader case options
         readExpecting JsonTokenType.EndObject "end of object" &reader ty
         res
@@ -341,7 +360,7 @@ type JsonUnionConverter<'T>
         else
             expectAlreadyRead JsonTokenType.StartArray "array" &reader ty
             readExpecting JsonTokenType.String "case name" &reader ty
-            let case = getCaseFromValue &reader
+            let case = getCaseByTagReader &reader
             readFieldsAsRestOfArray &reader case options
 
     let readUntagged (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
@@ -431,7 +450,7 @@ type JsonUnionConverter<'T>
         | JsonTokenType.Null when Helpers.isNullableUnion ty ->
             (null : obj) :?> 'T
         | JsonTokenType.String when unwrapFieldlessTags ->
-            let case = getCaseFromValue &reader
+            let case = getCaseByTagReader &reader
             case.Ctor [||] :?> 'T
         | _ ->
             match baseFormat with
