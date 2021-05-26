@@ -326,8 +326,12 @@ type JsonUnionConverter<'T>
             readExpectingPropertyNamed fsOptions.UnionTagName &reader ty
             readExpecting JsonTokenType.String "case name" &reader ty
             struct (getCaseByTagReader &reader, false)
-        else
+        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.AllowUnorderedTag then
             struct (getCaseFromDocument reader, true)
+        else
+            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionFieldsName
+            |> JsonException
+            |> raise
 
     let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty

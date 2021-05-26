@@ -77,13 +77,17 @@ type JsonUnionEncoding =
     /// the fields of this record are encoded directly as fields of the object representing the union.
     | UnwrapRecordCases         = 0x00_00_21_00
 
+    /// In AdjacentTag and InternalTag mode, allow deserializing unions
+    /// where the tag is not the first field in the JSON object.
+    | AllowUnorderedTag         = 0x00_00_40_00
+
 
     //// Specific formats
 
-    | Default                   = 0x00_00_0C_01
-    | NewtonsoftLike            = 0x00_00_00_01
-    | ThothLike                 = 0x00_00_02_04
-    | FSharpLuLike              = 0x00_00_16_02
+    | Default                   = 0x00_00_4C_01 // AdjacentTag ||| UnwrapOption ||| UnwrapSingleCaseUnions ||| AllowUnorderedTag
+    | NewtonsoftLike            = 0x00_00_40_01 // AdjacentTag ||| AllowUnorderedTag
+    | ThothLike                 = 0x00_00_42_04 // InternalTag ||| BareFieldlessTags ||| AllowUnorderedTag
+    | FSharpLuLike              = 0x00_00_56_02 // ExternalTag ||| BareFieldlessTags ||| UnwrapOption ||| UnwrapSingleFieldCases ||| AllowUnorderedTag
 
 type JsonUnionTagName = string
 type JsonUnionFieldsName = string
