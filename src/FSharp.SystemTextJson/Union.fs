@@ -316,7 +316,7 @@ type JsonUnionConverter<'T>
         match document.RootElement.TryGetProperty fsOptions.UnionTagName with
         | true, element -> getCaseByTagString (element.GetString())
         | false, _ ->
-            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionFieldsName
+            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionTagName
             |> JsonException
             |> raise
 
@@ -329,7 +329,7 @@ type JsonUnionConverter<'T>
         elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.AllowUnorderedTag then
             struct (getCaseFromDocument reader, true)
         else
-            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionFieldsName
+            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionTagName
             |> JsonException
             |> raise
 
