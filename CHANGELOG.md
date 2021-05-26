@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.17
+
+* [#87](https://github.com/Tarmil/FSharp.SystemTextJson/issues/87): Fix null checking on value type fields.
+
+* [#93](https://github.com/Tarmil/FSharp.SystemTextJson/issues/93): Allow deserializing F# unions in `AdjacentTag` and `InternalTag` modes where the tag is not the first field in the JSON object.
+    This capability is enabled by new option `JsonUnionEncoding.AllowUnorderedTag`, which is included in `JsonUnionEncoding.Default` and all `JsonUnionEncoding.*Like` combined formats.
+
 ## 0.16
 
 * [#83](https://github.com/Tarmil/FSharp.SystemTextJson/issues/83): Fix null reference exception when deserializing a record that `Skip`s a field with FSharp.Core 5.0.
