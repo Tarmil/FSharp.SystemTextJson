@@ -406,6 +406,27 @@ type Location =
     // Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
 
+#### `AllowUnorderedTag`
+
+`JsonUnionEncoding.AllowUnorderedTag` is enabled by default.
+It takes effect during deserialization in AdjacentTag and InternalTag modes.
+When it is disabled, the name of the case must be the first field of the JSON object.
+When it is enabled, the name of the case may come later in the object, at the cost of a slight performance penalty if it does.
+
+For example, without `AllowUnorderedTag`, the following will fail to parse:
+
+```fsharp
+JsonSerializer.Deserialize("""{"Fields":[3.14],"Case":"WithOneArg"}""", options)
+// --> Error: Failed to find union case field for Example: expected Case
+```
+
+Whereas with `AllowUnorderedTag`, it will succeed:
+
+```fsharp
+JsonSerializer.Deserialize("""{"Fields":[3.14],"Case":"WithOneArg"}""", options)
+// --> WithOneArg 3.14
+```
+
 ### Combined flags
 
 `JsonUnionEncoding` also contains a few items that combine several of the above flags.
@@ -417,6 +438,7 @@ type Location =
     JsonUnionEncoding.AdjacentTag
     ||| JsonUnionEncoding.UnwrapOption
     ||| JsonUnionEncoding.UnwrapSingleCaseUnions
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
     It is particularly useful if you want to use the default encoding with some additional options, for example:
@@ -430,6 +452,7 @@ type Location =
 
     ```fsharp
     JsonUnionEncoding.AdjacentTag
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
 * `JsonUnionEncoding.ThothLike` causes similar behavior to the library [Thoth.Json](https://thoth-org.github.io/Thoth.Json/).
@@ -438,6 +461,7 @@ type Location =
     ```fsharp
     JsonUnionEncoding.InternalTag
     ||| JsonUnionEncoding.UnwrapFieldlessTags
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
 * `JsonUnionEncoding.FSharpLuLike` causes similar behavior to the library [FSharpLu.Json](https://github.com/microsoft/fsharplu/wiki/FSharpLu.Json) in Compact mode.
@@ -448,6 +472,7 @@ type Location =
     ||| JsonUnionEncoding.UnwrapFieldlessTags
     ||| JsonUnionEncoding.UnwrapOption
     ||| JsonUnionEncoding.UnwrapSingleFieldCases
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
 ## `unionTagName`

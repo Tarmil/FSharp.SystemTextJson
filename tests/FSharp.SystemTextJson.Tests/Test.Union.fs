@@ -17,6 +17,7 @@ module NonStruct =
         Assert.Equal(Aa, JsonSerializer.Deserialize """{"Case":"Aa"}""")
         Assert.Equal(Ab 32, JsonSerializer.Deserialize """{"Case":"Ab","Fields":[32]}""")
         Assert.Equal(Ac("test", true), JsonSerializer.Deserialize """{"Case":"Ac","Fields":["test",true]}""")
+        Assert.Equal(Ac("test", true), JsonSerializer.Deserialize """{"Fields":["test",true],"Case":"Ac"}""")
 
     [<Fact>]
     let ``serialize via explicit converter`` () =
@@ -37,6 +38,7 @@ module NonStruct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", options))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":[32]}""", options))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", options))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true],"Case":"Bc"}""", options))
 
     [<Fact>]
     let ``serialize via options`` () =
@@ -67,6 +69,7 @@ module NonStruct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"ba"}""", tagPolicyOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":[32]}""", tagPolicyOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":["test",true]}""", tagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true],"Case":"bc"}""", tagPolicyOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag with tag policy`` () =
@@ -82,6 +85,7 @@ module NonStruct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"bA"}""", tagCaseInsensitiveOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bB", "Fields":[32]}""", tagCaseInsensitiveOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bC", "Fields":["test",true]}""", tagCaseInsensitiveOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true],"Case":"bC"}""", tagCaseInsensitiveOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag with case insensitive tag`` () =
@@ -98,6 +102,7 @@ module NonStruct =
     let ``deserialize UseNull`` () =
         Assert.Equal(Ca, JsonSerializer.Deserialize("""null""", options))
         Assert.Equal(Cb 32, JsonSerializer.Deserialize("""{"Case":"Cb","Fields":[32]}""", options))
+        Assert.Equal(Cb 32, JsonSerializer.Deserialize("""{"Fields":[32],"Case":"Cb"}""", options))
 
     [<Fact>]
     let ``serialize UseNull`` () =
@@ -180,13 +185,14 @@ module NonStruct =
         Assert.Equal("""{"x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), untaggedOptions))
 
     let adjacentTagNamedFieldsOptions = JsonSerializerOptions()
-    adjacentTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields))
+    adjacentTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag))
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", adjacentTagNamedFieldsOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":{"Item":32}}""", adjacentTagNamedFieldsOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":{"x":"test","Item2":true}}""", adjacentTagNamedFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":{"x":"test","Item2":true},"Case":"Bc"}""", adjacentTagNamedFieldsOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag NamedFields`` () =
@@ -195,13 +201,14 @@ module NonStruct =
         Assert.Equal("""{"Case":"Bc","Fields":{"x":"test","Item2":true}}""", JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsOptions))
 
     let adjacentTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-    adjacentTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
+    adjacentTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields with tag policy`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"ba"}""", adjacentTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":{"Item":32}}""", adjacentTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":{"x":"test","Item2":true}}""", adjacentTagNamedFieldsTagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":{"x":"test","Item2":true},"Case":"bc"}""", adjacentTagNamedFieldsTagPolicyOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag NamedFields with tag policy`` () =
@@ -247,6 +254,7 @@ module NonStruct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", internalTagNamedFieldsOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Item":32}""", internalTagNamedFieldsOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","x":"test","Item2":true}""", internalTagNamedFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"x":"test","Item2":true,"Case":"Bc"}""", internalTagNamedFieldsOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields`` () =
@@ -262,6 +270,7 @@ module NonStruct =
         Assert.Equal(S(1,Skip,Skip,Skip), JsonSerializer.Deserialize("""{"Case":"S","a":1}""", internalTagNamedFieldsOptions))
         Assert.Equal(S(1,Include 2,Include None,Include ValueNone), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":null,"d":null}""", internalTagNamedFieldsOptions))
         Assert.Equal(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", internalTagNamedFieldsOptions))
+        Assert.Equal(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), JsonSerializer.Deserialize("""{"a":1,"b":2,"Case":"S","c":3,"d":4}""", internalTagNamedFieldsOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields with Skippable fields`` () =
@@ -270,13 +279,14 @@ module NonStruct =
         Assert.Equal("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", JsonSerializer.Serialize(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), internalTagNamedFieldsOptions))
 
     let internalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-    internalTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
+    internalTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields with tag policy`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"ba"}""", internalTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Item":32}""", internalTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","x":"test","Item2":true}""", internalTagNamedFieldsTagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"x":"test","Case":"bc","Item2":true}""", internalTagNamedFieldsTagPolicyOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields with tag policy`` () =
@@ -285,13 +295,14 @@ module NonStruct =
         Assert.Equal("""{"Case":"bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsTagPolicyOptions))
 
     let internalTagNamedFieldsConfiguredTagOptions = JsonSerializerOptions()
-    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, "type"))
+    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag, "type"))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields alternative Tag`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","Item":32}""", internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","x":"test","Item2":true}""", internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"x":"test","type":"Bc","Item2":true}""", internalTagNamedFieldsConfiguredTagOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields alternative Tag`` () =
@@ -300,13 +311,14 @@ module NonStruct =
         Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
 
     let adjacentTagNamedFieldsConfiguredFieldsOptions = JsonSerializerOptions()
-    adjacentTagNamedFieldsConfiguredFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag, "type", "args"))
+    adjacentTagNamedFieldsConfiguredFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.AllowUnorderedTag, "type", "args"))
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields alternative Fields`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","args":[32]}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","args":["test",true]}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"args":["test",true],"type":"Bc"}""", adjacentTagNamedFieldsConfiguredFieldsOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag NamedFields alternative Fields`` () =
@@ -650,6 +662,7 @@ module Struct =
         Assert.Equal(Aa, JsonSerializer.Deserialize """{"Case":"Aa"}""")
         Assert.Equal(Ab 32, JsonSerializer.Deserialize """{"Case":"Ab","Fields":[32]}""")
         Assert.Equal(Ac("test", true), JsonSerializer.Deserialize """{"Case":"Ac","Fields":["test",true]}""")
+        Assert.Equal(Ac("test", true), JsonSerializer.Deserialize """{"Fields":["test",true],"Case":"Ac"}""")
 
     [<Fact>]
     let ``serialize via explicit converter`` () =
@@ -671,6 +684,7 @@ module Struct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", options))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":[32]}""", options))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", options))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true],"Case":"Bc"}""", options))
 
     [<Fact>]
     let ``serialize via options`` () =
@@ -714,6 +728,7 @@ module Struct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"ba"}""", tagPolicyOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":[32]}""", tagPolicyOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":["test",true]}""", tagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true],"Case":"bc"}""", tagPolicyOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag with tag policy`` () =
@@ -729,6 +744,7 @@ module Struct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"bA"}""", tagCaseInsensitiveOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bB", "Fields":[32]}""", tagCaseInsensitiveOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bC", "Fields":["test",true]}""", tagCaseInsensitiveOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true], "Case":"bC"}""", tagCaseInsensitiveOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag with case insensitive tag`` () =
@@ -812,13 +828,14 @@ module Struct =
         Assert.Equal("""{"x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), untaggedOptions))
 
     let adjacentTagNamedFieldsOptions = JsonSerializerOptions()
-    adjacentTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields))
+    adjacentTagNamedFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag))
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", adjacentTagNamedFieldsOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":{"Item":32}}""", adjacentTagNamedFieldsOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":{"x":"test","Item2":true}}""", adjacentTagNamedFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":{"x":"test","Item2":true},"Case":"Bc"}""", adjacentTagNamedFieldsOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag NamedFields`` () =
@@ -827,13 +844,14 @@ module Struct =
         Assert.Equal("""{"Case":"Bc","Fields":{"x":"test","Item2":true}}""", JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsOptions))
 
     let adjacentTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-    adjacentTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
+    adjacentTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields with tag policy`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"ba"}""", adjacentTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Fields":{"Item":32}}""", adjacentTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","Fields":{"x":"test","Item2":true}}""", adjacentTagNamedFieldsTagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":{"x":"test","Item2":true},"Case":"bc"}""", adjacentTagNamedFieldsTagPolicyOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag NamedFields with tag policy`` () =
@@ -879,6 +897,7 @@ module Struct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", internalTagNamedFieldsOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Item":32}""", internalTagNamedFieldsOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","x":"test","Item2":true}""", internalTagNamedFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"x":"test","Case":"Bc","Item2":true}""", internalTagNamedFieldsOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields`` () =
@@ -895,6 +914,7 @@ module Struct =
         Assert.Equal(S(1,Skip,Skip,Skip), JsonSerializer.Deserialize("""{"Case":"S","a":1}""", internalTagNamedFieldsOptions))
         Assert.Equal(S(1,Include 2,Include None,Include ValueNone), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":null,"d":null}""", internalTagNamedFieldsOptions))
         Assert.Equal(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), JsonSerializer.Deserialize("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", internalTagNamedFieldsOptions))
+        Assert.Equal(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), JsonSerializer.Deserialize("""{"a":1,"b":2,"Case":"S","c":3,"d":4}""", internalTagNamedFieldsOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields with Skippable fields`` () =
@@ -903,13 +923,14 @@ module Struct =
         Assert.Equal("""{"Case":"S","a":1,"b":2,"c":3,"d":4}""", JsonSerializer.Serialize(S(1,Include 2,Include(Some 3),Include(ValueSome 4)), internalTagNamedFieldsOptions))
 
     let internalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-    internalTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
+    internalTagNamedFieldsTagPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields with tag policy`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"ba"}""", internalTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"bb","Item":32}""", internalTagNamedFieldsTagPolicyOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"bc","x":"test","Item2":true}""", internalTagNamedFieldsTagPolicyOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"x":"test","Item2":true,"Case":"bc"}""", internalTagNamedFieldsTagPolicyOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields with tag policy`` () =
@@ -918,13 +939,14 @@ module Struct =
         Assert.Equal("""{"Case":"bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsTagPolicyOptions))
 
     let internalTagNamedFieldsConfiguredTagOptions = JsonSerializerOptions()
-    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, "type"))
+    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.AllowUnorderedTag, "type"))
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields alternative Tag`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","Item":32}""", internalTagNamedFieldsConfiguredTagOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","x":"test","Item2":true}""", internalTagNamedFieldsConfiguredTagOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"x":"test","type":"Bc","Item2":true}""", internalTagNamedFieldsConfiguredTagOptions))
 
     [<Fact>]
     let ``serialize InternalTag NamedFields alternative Tag`` () =
@@ -933,13 +955,14 @@ module Struct =
         Assert.Equal("""{"type":"Bc","x":"test","Item2":true}""", JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions))
 
     let adjacentTagConfiguredFieldsOptions = JsonSerializerOptions()
-    adjacentTagConfiguredFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag, "type", "args"))
+    adjacentTagConfiguredFieldsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.AllowUnorderedTag, "type", "args"))
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields alternative Fields`` () =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"type":"Ba"}""", adjacentTagConfiguredFieldsOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"type":"Bb","args":[32]}""", adjacentTagConfiguredFieldsOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"type":"Bc","args":["test",true]}""", adjacentTagConfiguredFieldsOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"args":["test",true],"type":"Bc"}""", adjacentTagConfiguredFieldsOptions))
 
     [<Fact>]
     let ``serialize AdjacentTag NamedFields alternative Fields`` () =
@@ -955,6 +978,7 @@ module Struct =
         Assert.Equal(Ba, JsonSerializer.Deserialize("""{"Case":"Ba"}""", unwrapSingleFieldCasesOptions))
         Assert.Equal(Bb 32, JsonSerializer.Deserialize("""{"Case":"Bb","Fields":32}""", unwrapSingleFieldCasesOptions))
         Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Case":"Bc","Fields":["test",true]}""", unwrapSingleFieldCasesOptions))
+        Assert.Equal(Bc("test", true), JsonSerializer.Deserialize("""{"Fields":["test",true],"Case":"Bc"}""", unwrapSingleFieldCasesOptions))
 
     [<Fact>]
     let ``serialize unwrapped single-field cases`` () =
