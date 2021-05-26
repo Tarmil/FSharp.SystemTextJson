@@ -9,6 +9,7 @@
     <Compile Include="Test.Collection.fs" />
     <Compile Include="Test.Record.fs" />
     <Compile Include="Test.Union.fs" />
+    <Compile Include="Test.Regression.fs" />
     <Compile Include="Program.fs" />
     <None Include="paket.references" />
   </ItemGroup>

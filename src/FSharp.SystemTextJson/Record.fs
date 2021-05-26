@@ -124,11 +124,13 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 | ValueSome (i, p) when not p.Ignore ->
                     if p.MustBePresent then
                         requiredFieldCount <- requiredFieldCount + 1
-                    fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
 
-                    if p.MustBeNonNull && isNull fields.[i] then
+                    reader.Read() |> ignore
+                    if p.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
                         let msg = sprintf "%s.%s was expected to be of type %s, but was null." recordType.Name p.Name p.Type.Name
                         raise (JsonException msg)
+                    else
+                        fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
                 | _ ->
                     reader.Skip()
             | _ -> ()

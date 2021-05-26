@@ -241,17 +241,17 @@ type JsonUnionConverter<'T>
             | false, _ -> ValueNone
 
     let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) options =
-        let v = JsonSerializer.Deserialize(&reader, f.Type, options)
-        if isNull v && f.MustBeNonNull then
+        reader.Read() |> ignore
+        if f.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
             let msg = sprintf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
             raise (JsonException msg)
-        v
+        else
+            JsonSerializer.Deserialize(&reader, f.Type, options)
 
     let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.zeroCreate fieldCount
         for i in 0..fieldCount-1 do
-            reader.Read() |> ignore
             fields.[i] <- readField &reader case case.Fields.[i] options
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T

@@ -494,17 +494,6 @@ module NonStruct =
     let ``serialize non-unwrapped single-case`` () =
         Assert.Equal("""{"Case":"Unwrapped","Fields":["foo"]}""", JsonSerializer.Serialize(Unwrapped "foo", noNewtypeOptions))
 
-    type Color = Red | Blue | Green
-
-    [<Fact>]
-    let ``regression #33`` () =
-        let serializerOptions = JsonSerializerOptions()
-        serializerOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags))
-        let actual = JsonSerializer.Deserialize<Color list>("""[ "Red", "Blue"] """, serializerOptions)
-        Assert.Equal<Color>([Red; Blue], actual)
-        let actual = JsonSerializer.Deserialize("""{"a":"Red","b":"Blue"}""", serializerOptions)
-        Assert.Equal({| a = Red; b = Blue |}, actual)
-
     type UnionWithUnitField =
         | UWUF of int * unit
 
