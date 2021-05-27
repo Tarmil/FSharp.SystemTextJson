@@ -25,16 +25,17 @@ module TypeCache =
         let listTy = typedefof<_ list>
         let setTy = typedefof<Set<_>>
         let mapTy = typedefof<Map<_,_>>
+        let typeKindFactory = System.Func<System.Type, TypeKind>(fun ty ->
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = listTy then TypeKind.List
+            elif ty.IsGenericType && ty.GetGenericTypeDefinition() = setTy then TypeKind.Set
+            elif ty.IsGenericType && ty.GetGenericTypeDefinition() = mapTy then TypeKind.Map
+            elif FSharpType.IsTuple(ty) then TypeKind.Tuple
+            elif FSharpType.IsUnion(ty, true) then TypeKind.Union
+            elif FSharpType.IsRecord(ty, true) then TypeKind.Record
+            else TypeKind.Other)
 
         fun (ty: System.Type) ->
-            cache.GetOrAdd(ty, fun ty ->
-                if ty.IsGenericType && ty.GetGenericTypeDefinition() = listTy then TypeKind.List
-                elif ty.IsGenericType && ty.GetGenericTypeDefinition() = setTy then TypeKind.Set
-                elif ty.IsGenericType && ty.GetGenericTypeDefinition() = mapTy then TypeKind.Map
-                elif FSharpType.IsTuple(ty) then TypeKind.Tuple
-                elif FSharpType.IsUnion(ty, true) then TypeKind.Union
-                elif FSharpType.IsRecord(ty, true) then TypeKind.Record
-                else TypeKind.Other)
+            cache.GetOrAdd(ty, typeKindFactory)
 
     let isUnion ty =
         getKind ty = TypeKind.Union
