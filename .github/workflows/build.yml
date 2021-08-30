@@ -28,6 +28,7 @@ jobs:
 
       - name: Build
         run: |
+          # GH Actions puts us in detached head, but for nbgv, we need to be on the branch
           if echo "${{github.ref}}" | grep -q "^refs/heads/"; then
             git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')";
           fi
@@ -38,6 +39,27 @@ jobs:
         with:
           name: nuget
           path: bin/nuget
+
+  prerelease:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.ref == 'refs/heads/master' }}
+    steps:
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.100'
+
+      - name: Download nupkg
+        uses: actions/download-artifact@v1
+        with:
+          name: nuget
+
+      - name: Push to GitHub feed
+        run: dotnet nuget push nuget/*.nupkg
+               --api-key "${{secrets.GITHUB_TOKEN}}"
+               --source "https://nuget.pkg.github.com/${{github.repository_owner}}/"
+               --skip-duplicate
 
   release:
     runs-on: ubuntu-latest

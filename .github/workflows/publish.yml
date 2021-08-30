@@ -24,6 +24,12 @@ jobs:
           file_glob: 'true'
           file: ./*.nupkg
 
+      - name: Push to GitHub feed
+        run: dotnet nuget push *.nupkg
+               --api-key "${{secrets.GITHUB_TOKEN}}"
+               --source "https://nuget.pkg.github.com/${{github.repository_owner}}/"
+               --skip-duplicate
+
       - name: Push to NuGet
         run: dotnet nuget push *.nupkg
                --api-key ${{secrets.NUGET_API_KEY}}
