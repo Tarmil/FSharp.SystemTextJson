@@ -359,7 +359,8 @@ type JsonUnionConverter<'T>
     let readInternalTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if namedFields then
             expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
-            let struct (case, usedDocument) = getCase &reader
+            let mutable snapshot = reader
+            let struct (case, _usedDocument) = getCase &snapshot
             readFieldsAsRestOfObject &reader case false options
         else
             expectAlreadyRead JsonTokenType.StartArray "array" &reader ty
