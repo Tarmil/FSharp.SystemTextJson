@@ -2,10 +2,10 @@ namespace System.Text.Json.Serialization
 
 open System
 open System.Collections.Generic
+open System.Runtime.Serialization
 open System.Text.Json
-open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
-open System.Buffers
+open FSharp.Reflection
 
 type private Field =
     {
@@ -19,6 +19,7 @@ type private Field =
 type private Case =
     {
         Fields: Field[]
+        DefaultFields: obj[]
         FieldsByName: Dictionary<string, struct (int * Field)> voption
         Ctor: obj[] -> obj
         Dector: obj -> obj[]
@@ -93,8 +94,18 @@ type JsonUnionConverter<'T>
                 ValueOption.isNone unwrappedRecordField
                 && fields.Length = 1
                 && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases
+            let defaultFields =
+                let arr = Array.zeroCreate fields.Length
+                fields
+                |> Array.iteri (fun i field ->
+                    if isSkippableType field.Type || isValueOptionType field.Type then
+                        let case = FSharpType.GetUnionCases(field.Type).[0]
+                        arr.[i] <- FSharpValue.MakeUnion(case, [||])
+                )
+                arr
             {
                 Fields = fields
+                DefaultFields = defaultFields
                 FieldsByName = fieldsByName
                 Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
                 Dector = FSharpValue.PreComputeUnionReader(uci, true)
@@ -250,7 +261,7 @@ type JsonUnionConverter<'T>
 
     let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
-        let fields = Array.zeroCreate fieldCount
+        let fields = Array.copy case.DefaultFields
         for i in 0..fieldCount-1 do
             fields.[i] <- readField &reader case case.Fields.[i] options
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
@@ -262,7 +273,7 @@ type JsonUnionConverter<'T>
 
     let coreReadFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
-        let fields = Array.zeroCreate fieldCount
+        let fields = Array.copy case.DefaultFields
         let mutable cont = true
         let mutable fieldsFound = 0
         let mutable skipRead = skipFirstRead
