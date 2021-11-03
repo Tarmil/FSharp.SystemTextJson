@@ -1,20 +1,28 @@
-frameworks netstandard2.0, net5.0
+frameworks netstandard2.0
 storage none
 source https://api.nuget.org/v3/index.json
 
-nuget FsCheck.XUnit
 nuget FSharp.Core >= 4.7.0 lowest_matching:true
-nuget Microsoft.NET.Test.Sdk ~> 16.3.0
 nuget Microsoft.SourceLink.GitHub prerelease copy_local:true
 nuget Nerdbank.GitVersioning copy_local:true
 nuget System.Text.Json >= 4.6.0 lowest_matching: true
+
+group test
+framework net6.0
+storage none
+source https://api.nuget.org/v3/index.json
+
+nuget FSharp.Core >= 5.0
+nuget FsCheck.XUnit
+nuget Microsoft.NET.Test.Sdk ~> 16.3.0
+nuget System.Text.Json >= 6.0 prerelease
 nuget xunit ~> 2.4.0
 nuget xunit.runner.visualstudio ~> 2.4.0
 nuget BenchmarkDotNet
 nuget Newtonsoft.Json
 
 group trimtest
-framework net5.0
+framework net6.0
 storage none
 source https://api.nuget.org/v3/index.json
 

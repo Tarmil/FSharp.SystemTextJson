@@ -1,4 +1,5 @@
-﻿open FSharp.Reflection
+module FSharp.SystemTextJson.Benchmarks
+open FSharp.Reflection
 
 open System
 open BenchmarkDotNet.Attributes

@@ -35,7 +35,7 @@ module Paths =
     let test = root </> "tests" </> "FSharp.SystemTextJson.Tests"
     let benchmarks = root </> "benchmarks" </> "FSharp.SystemTextJson.Benchmarks"
     let trimTest = root </> "tests" </> "FSharp.SystemTextJson.TrimTest"
-    let trimTestOut rti = trimTest </> "bin" </> "Release" </> "net5.0" </> rti </> "publish" </> "FSharp.SystemTextJson.TrimTest.dll"
+    let trimTestOut rti = trimTest </> "bin" </> "Release" </> "net6.0" </> rti </> "publish" </> "FSharp.SystemTextJson.TrimTest.dll"
 
 Target.create "Clean" (fun _ ->
     !! "**/bin"
