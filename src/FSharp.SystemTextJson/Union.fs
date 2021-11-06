@@ -251,7 +251,7 @@ type JsonUnionConverter<'T>
             | true, p -> ValueSome p
             | false, _ -> ValueNone
 
-    let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) options =
+    let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) (options: JsonSerializerOptions) =
         reader.Read() |> ignore
         if f.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
             let msg = sprintf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
@@ -426,7 +426,7 @@ type JsonUnionConverter<'T>
         writer.WriteStartObject()
         writeFieldsAsRestOfObject writer case value options
 
-    let writeFields writer case value options =
+    let writeFields (writer: Utf8JsonWriter) case value (options: JsonSerializerOptions) =
         if case.UnwrappedSingleField then
             JsonSerializer.Serialize(writer, (case.Dector value).[0], case.Fields.[0].Type, options)
         elif namedFields then

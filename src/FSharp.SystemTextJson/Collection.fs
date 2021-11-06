@@ -48,7 +48,7 @@ type JsonSetConverter<'T when 'T : comparison>(fsOptions) =
     let tIsNullable = isNullableFieldType fsOptions tType
     let needsNullChecking = not tIsNullable && not tType.IsValueType
 
-    let rec read (acc: Set<'T>) (reader: byref<Utf8JsonReader>) options =
+    let rec read (acc: Set<'T>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if not (reader.Read()) then acc else
         match reader.TokenType with
         | JsonTokenType.EndArray -> acc
@@ -93,7 +93,7 @@ type JsonStringMapConverter<'V>() =
 
     let ty = typeof<Map<string, 'V>>
 
-    let rec read (acc: Map<string, 'V>) (reader: byref<Utf8JsonReader>) options =
+    let rec read (acc: Map<string, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if not (reader.Read()) then acc else
         match reader.TokenType with
         | JsonTokenType.EndObject -> acc
@@ -129,7 +129,7 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
     let wrap = FSharpValue.PreComputeUnionConstructor(case, true)
     let unwrap = FSharpValue.PreComputeUnionReader(case, true)
 
-    let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) options =
+    let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if not (reader.Read()) then acc else
         match reader.TokenType with
         | JsonTokenType.EndObject -> acc
@@ -161,7 +161,7 @@ type JsonMapConverter<'K, 'V when 'K : comparison>() =
 
     let ty = typeof<Map<'K, 'V>>
 
-    let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) options =
+    let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if not (reader.Read()) then acc else
         match reader.TokenType with
         | JsonTokenType.EndArray -> acc
