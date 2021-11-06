@@ -16,6 +16,7 @@ type internal RecordProperty =
         MustBeNonNull: bool
         MustBePresent: bool
         IsSkip: obj -> bool
+        WriteOrder: int
     }
 
 type internal IRecordConverter =
@@ -28,9 +29,34 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     let recordType: Type = typeof<'T>
 
+    let fields = FSharpType.GetRecordFields(recordType, true)
+
+    let fieldOrderIndices =
+        let revIndices =
+            fields
+            |> Array.mapi (fun i field ->
+                let revI =
+                    match field.GetCustomAttributes(typeof<JsonPropertyOrderAttribute>, true) with
+                    | [| :? JsonPropertyOrderAttribute as attr |] -> attr.Order
+                    | _ -> 0
+                struct (revI, i))
+        if revIndices |> Array.exists (fun struct (revI, _) -> revI <> 0) then
+            // Using Seq.sort rather than Array.sort because it is stable
+            let revIndices =
+                revIndices
+                |> Seq.sortBy (fun struct (revI, _) -> revI)
+                |> Array.ofSeq
+            let res = Array.zeroCreate fields.Length
+            for i in 0..res.Length-1 do
+                let struct (_, x) = revIndices[i]
+                res[x] <- i
+            ValueSome res
+        else
+            ValueNone
+
     let fieldProps =
-        FSharpType.GetRecordFields(recordType, true)
-        |> Array.map (fun p ->
+        fields
+        |> Array.mapi (fun i p ->
             let name =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
                 | [| :? JsonPropertyNameAttribute as name |] -> name.Name
@@ -57,8 +83,14 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 MustBeNonNull = not canBeNull
                 MustBePresent = not canBeSkipped
                 IsSkip = isSkip p.PropertyType
+                WriteOrder = match fieldOrderIndices with ValueSome a -> a[i] | ValueNone -> i
             }
         )
+
+    let writeOrderedFieldProps =
+        let a = Array.mapi (fun i x -> struct (i, x)) fieldProps
+        a |> Array.sortInPlaceBy (fun struct (_, x) -> x.WriteOrder)
+        a
 
     let fieldCount = fieldProps.Length
     let minExpectedFieldCount =
@@ -150,9 +182,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     member internal _.WriteRestOfObject(writer, value, options) =
         let values = dector value
-        for i in 0..fieldProps.Length-1 do
+        for struct (i, p) in writeOrderedFieldProps do
             let v = values[i]
-            let p = fieldProps[i]
             if not p.Ignore && not (options.IgnoreNullValues && isNull v) && not (p.IsSkip v) then
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)

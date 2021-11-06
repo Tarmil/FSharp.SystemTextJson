@@ -247,6 +247,34 @@ module NonStruct =
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
 
+    type OrderedClass() =
+        [<JsonPropertyOrder 2>]
+        member val LastName = "" with get, set
+        member val Country = "" with get, set
+        member val City = "" with get, set
+        [<JsonPropertyOrder -1>]
+        member val Id = 0 with get, set
+        [<JsonPropertyOrder 1>]
+        member val FirstName = "" with get, set
+
+    type Ordered =
+        {
+            [<JsonPropertyOrder 2>]
+            LastName: string
+            Country: string
+            City: string
+            [<JsonPropertyOrder -1>]
+            Id: int
+            [<JsonPropertyOrder 1>]
+            FirstName: string
+        }
+
+    [<Fact>]
+    let ``should respect JsonPropertyOrder`` () =
+        let expected = OrderedClass(LastName="Dupont",City="Paris",Country="France",Id=123,FirstName="Jean")
+        let actual = {LastName="Dupont";City="Paris";Country="France";Id=123;FirstName="Jean"}
+        Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual, options))
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
