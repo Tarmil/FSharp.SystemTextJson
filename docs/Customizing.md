@@ -362,7 +362,7 @@ type Location =
     // --> {"Case":"Address","Fields":{"address":"5 Avenue Anatole France"}}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"Case":"ExactLocation","Fields":{"lat":48.858,"long":2.295}}
     //                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //                           Instead of {"Item":{"lat":48.858,"long":2.295}}
@@ -375,7 +375,7 @@ type Location =
     // --> {"Address":{"address":"5 Avenue Anatole France"}}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"ExactLocation":{"lat":48.858,"long":2.295}}
     //                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //           Instead of {"Item":{"lat":48.858,"long":2.295}}
@@ -388,7 +388,7 @@ type Location =
     // --> {"Case":"Address","address":"5 Avenue Anatole France"}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"Case":"ExactLocation","lat":48.858,"long":2.295}
     //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //                  Instead of {"Item":{"lat":48.858,"long":2.295}}
@@ -401,7 +401,7 @@ type Location =
     // --> {"address":"5 Avenue Anatole France"}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"lat":48.858,"long":2.295}
     // Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
@@ -525,7 +525,7 @@ It makes the parsing of union case names case-insensitive.
 JsonFSharpConverter(unionTagCaseInsensitive = true)
 |> options.Converters.Add
 
-JsonSerializer.Deserialize<Example> """{"Case":"wIThArgS","Fields":[123,"Hello, world!"]}"""
+JsonSerializer.Deserialize<Example>("""{"Case":"wIThArgS","Fields":[123,"Hello, world!"]}""", options)
 // --> WithArgs (123, "Hello, world!")
 ```
 
@@ -546,10 +546,13 @@ type Point() =
 
 type Rectangle = { BottomLeft: Point; TopRight: Point }
 
+JsonFSharpConverter(allowNullFields = true)
+|> options.Converters.Add
+
 // With allowNullFields = false: throws an exception
-JsonSerializer.Deserialize<Rectangle> """{"TopRight":{"X":1,"Y":2}}"""
+JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 
 // With allowNullFields = true: succeeds
-JsonSerializer.Deserialize<Rectangle> """{"TopRight":{"X":1,"Y":2}}"""
+JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 // --> { BottomLeft = null; TopRight = Point(X = 1., Y = 2.) }
 ```
