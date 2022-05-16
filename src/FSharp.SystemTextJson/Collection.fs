@@ -148,7 +148,7 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
         writer.WriteStartObject()
         for kv in value do
             let k =
-                let k = (unwrap kv.Key).[0] :?> string
+                let k = (unwrap kv.Key)[0] :?> string
                 match options.DictionaryKeyPolicy with
                 | null -> k
                 | p -> p.ConvertName k
@@ -195,9 +195,9 @@ type JsonMapConverter() =
         TypeCache.isUnion ty &&
         let cases = FSharpType.GetUnionCases(ty, true)
         cases.Length = 1 &&
-        let fields = cases.[0].GetFields()
+        let fields = cases[0].GetFields()
         fields.Length = 1 &&
-        fields.[0].PropertyType = typeof<string>
+        fields[0].PropertyType = typeof<string>
 
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isMap typeToConvert
@@ -205,10 +205,10 @@ type JsonMapConverter() =
     static member internal CreateConverter(typeToConvert: Type) =
         let genArgs = typeToConvert.GetGenericArguments()
         let ty =
-            if genArgs.[0] = typeof<string> then
+            if genArgs[0] = typeof<string> then
                 typedefof<JsonStringMapConverter<_>>
-                    .MakeGenericType([|genArgs.[1]|])
-            elif isWrappedString genArgs.[0] then
+                    .MakeGenericType([|genArgs[1]|])
+            elif isWrappedString genArgs[0] then
                 typedefof<JsonWrappedStringMapConverter<_,_>>
                     .MakeGenericType(genArgs)
             else

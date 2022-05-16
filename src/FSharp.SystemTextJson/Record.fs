@@ -1,5 +1,7 @@
 namespace System.Text.Json.Serialization
 
+#nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
+
 open System
 open System.Collections.Generic
 open System.Text.Json
@@ -73,8 +75,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         fieldProps
         |> Array.iteri (fun i field ->
             if isSkippableType field.Type || isValueOptionType field.Type then
-                let case = FSharpType.GetUnionCases(field.Type).[0]
-                arr.[i] <- FSharpValue.MakeUnion(case, [||])
+                let case = FSharpType.GetUnionCases(field.Type)[0]
+                arr[i] <- FSharpValue.MakeUnion(case, [||])
         )
         arr
 
@@ -83,7 +85,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let d = Dictionary(StringComparer.OrdinalIgnoreCase)
             fieldProps |> Array.iteri (fun i f ->
                 if not f.Ignore then
-                    d.[f.Name] <- struct (i, f))
+                    d[f.Name] <- struct (i, f))
             ValueSome d
         else
             ValueNone
@@ -94,7 +96,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let mutable found = ValueNone
             let mutable i = 0
             while found.IsNone && i < fieldCount do
-                let p = fieldProps.[i]
+                let p = fieldProps[i]
                 if reader.ValueTextEquals(p.Name) then
                     found <- ValueSome (struct (i, p))
                 else
@@ -130,15 +132,15 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                         let msg = sprintf "%s.%s was expected to be of type %s, but was null." recordType.Name p.Name p.Type.Name
                         raise (JsonException msg)
                     else
-                        fields.[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
+                        fields[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
                 | _ ->
                     reader.Skip()
             | _ -> ()
 
         if requiredFieldCount < minExpectedFieldCount && not options.IgnoreNullValues then
             for i in 0..fieldCount-1 do
-                if isNull fields.[i] && fieldProps.[i].MustBePresent then
-                    raise (JsonException("Missing field for record type " + recordType.FullName + ": " + fieldProps.[i].Name))
+                if isNull fields[i] && fieldProps[i].MustBePresent then
+                    raise (JsonException("Missing field for record type " + recordType.FullName + ": " + fieldProps[i].Name))
 
         ctor fields :?> 'T
 
@@ -149,8 +151,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     member internal _.WriteRestOfObject(writer, value, options) =
         let values = dector value
         for i in 0..fieldProps.Length-1 do
-            let v = values.[i]
-            let p = fieldProps.[i]
+            let v = values[i]
+            let p = fieldProps[i]
             if not p.Ignore && not (options.IgnoreNullValues && isNull v) && not (p.IsSkip v) then
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)

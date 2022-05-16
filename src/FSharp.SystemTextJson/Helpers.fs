@@ -20,7 +20,7 @@ let readExpecting expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>
         fail expectedLabel &reader ty
 
 let inline readIsExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
-    (reader.Read()) && reader.TokenType = JsonTokenType.PropertyName && (reader.ValueTextEquals expectedPropertyName)
+    reader.Read() && reader.TokenType = JsonTokenType.PropertyName && (reader.ValueTextEquals expectedPropertyName)
 
 let readExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
     if not <| readIsExpectingPropertyNamed expectedPropertyName &reader ty then
@@ -51,7 +51,7 @@ let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     fsOptions.AllowNullFields
     || isNullableUnion ty
     || (fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption && isValueOptionType ty)
-    || (isSkippableType ty && isNullableFieldType fsOptions (ty.GetGenericArguments().[0]))
+    || (isSkippableType ty && isNullableFieldType fsOptions (ty.GetGenericArguments()[0]))
     || (ty = typeof<Unit>)
 
 let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =

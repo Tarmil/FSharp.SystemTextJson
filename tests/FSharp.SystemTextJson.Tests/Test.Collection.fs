@@ -151,7 +151,7 @@ let ``serialize int-keyed map`` (m: Map<int, string>) =
     Assert.Equal(expected, actual)
 
 [<Property>]
-let ``deserialize 2-tuple`` ((a, b as t): int * string) =
+let ``deserialize 2-tuple`` (a, b as t: int * string) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
     let result = tryblock (fun () -> JsonSerializer.Deserialize<int * string>(ser, options))
     match b, result with
@@ -161,7 +161,7 @@ let ``deserialize 2-tuple`` ((a, b as t): int * string) =
     | _, Error msg -> failwithf "Unexpected deserialization error %s" msg
 
 [<Property>]
-let ``deserialize 2-tuple with unit`` ((a, b as t): int * unit) =
+let ``deserialize 2-tuple with unit`` (a, b as t: int * unit) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
     let result = tryblock (fun () -> JsonSerializer.Deserialize<int * unit>(ser, options))
     match result with
@@ -169,25 +169,25 @@ let ``deserialize 2-tuple with unit`` ((a, b as t): int * unit) =
     | Error msg -> failwithf "Unexpected deserialization error %s" msg
 
 [<Property>]
-let ``serialize 2-tuple`` ((a, b as t): int * string) =
+let ``serialize 2-tuple`` (a, b as t: int * string) =
     let expected = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
     let actual = JsonSerializer.Serialize(t, options)
     Assert.Equal(expected, actual)
 
 [<Property>]
-let ``deserialize 8-tuple`` ((a, b, c, d, e, f, g, h as t): int * int * int * int * int * int * int * int) =
+let ``deserialize 8-tuple`` (a, b, c, d, e, f, g, h as t: int * int * int * int * int * int * int * int) =
     let ser = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
     let actual = JsonSerializer.Deserialize<int * int * int * int * int * int * int * int>(ser, options)
     Assert.Equal(t, actual)
 
 [<Property>]
-let ``serialize 8-tuple`` ((a, b, c, d, e, f, g, h as t): int * int * int * int * int * int * int * int) =
+let ``serialize 8-tuple`` (a, b, c, d, e, f, g, h as t: int * int * int * int * int * int * int * int) =
     let expected = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
     let actual = JsonSerializer.Serialize(t, options)
     Assert.Equal(expected, actual)
 
 [<Property>]
-let ``deserialize struct 2-tuple`` ((a, b as t): struct (int * string)) =
+let ``deserialize struct 2-tuple`` (a, b as t: struct (int * string)) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
     let result = tryblock (fun () -> JsonSerializer.Deserialize<struct (int * string)>(ser, options))
     match b, result with
@@ -198,19 +198,19 @@ let ``deserialize struct 2-tuple`` ((a, b as t): struct (int * string)) =
 
 
 [<Property>]
-let ``serialize struct 2-tuple`` ((a, b as t): struct (int * string)) =
+let ``serialize struct 2-tuple`` (a, b as t: struct (int * string)) =
     let expected = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
     let actual = JsonSerializer.Serialize(t, options)
     Assert.Equal(expected, actual)
 
 [<Property>]
-let ``deserialize struct 8-tuple`` ((a, b, c, d, e, f, g, h as t): struct (int * int * int * int * int * int * int * int)) =
+let ``deserialize struct 8-tuple`` (a, b, c, d, e, f, g, h as t: struct (int * int * int * int * int * int * int * int)) =
     let ser = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
     let actual = JsonSerializer.Deserialize<struct (int * int * int * int * int * int * int * int)>(ser, options)
     Assert.Equal(t, actual)
 
 [<Property>]
-let ``serialize struct 8-tuple`` ((a, b, c, d, e, f, g, h as t): struct (int * int * int * int * int * int * int * int)) =
+let ``serialize struct 8-tuple`` (a, b, c, d, e, f, g, h as t: struct (int * int * int * int * int * int * int * int)) =
     let expected = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
     let actual = JsonSerializer.Serialize(t, options)
     Assert.Equal(expected, actual)

@@ -31,13 +31,13 @@ type JsonTupleConverter<'T>(fsOptions) =
         expectAlreadyRead JsonTokenType.StartArray "array" &reader typeToConvert
         let elts = Array.zeroCreate fieldProps.Length
         for i in 0..fieldProps.Length-1 do
-            let p = fieldProps.[i]
+            let p = fieldProps[i]
             reader.Read() |> ignore
             let value = JsonSerializer.Deserialize(&reader, p.Type, options)
             if p.NeedsNullChecking && isNull (box value) then
                 let msg = sprintf "Unexpected null inside tuple-array. Expected type %s, but got null." p.Type.Name
                 raise (JsonException msg)
-            elts.[i] <- value
+            elts[i] <- value
         readExpecting JsonTokenType.EndArray "end of array" &reader typeToConvert
         ctor elts :?> 'T
 
@@ -45,7 +45,7 @@ type JsonTupleConverter<'T>(fsOptions) =
         writer.WriteStartArray()
         let values = reader value
         for i in 0..fieldProps.Length-1 do
-            JsonSerializer.Serialize(writer, values.[i], fieldProps.[i].Type, options)
+            JsonSerializer.Serialize(writer, values[i], fieldProps[i].Type, options)
         writer.WriteEndArray()
 
 type JsonTupleConverter(fsOptions) =

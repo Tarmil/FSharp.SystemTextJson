@@ -55,7 +55,7 @@ module NonStruct =
         | :? JsonException as e -> Assert.Equal("B.Bc(x) was expected to be of type String, but was null.", e.Message)
 
     [<Fact>]
-    let ``allowNullFields`` () =
+    let allowNullFields () =
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let actual = JsonSerializer.Deserialize("""{"Case":"Bc","Fields":[null,true]}""", options)
@@ -690,7 +690,7 @@ module Struct =
         | :? JsonException as e -> Assert.Equal("B.Bc(x) was expected to be of type String, but was null.", e.Message)
 
     [<Fact>]
-    let ``allowNullFields`` () =
+    let allowNullFields () =
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let actual = JsonSerializer.Deserialize("""{"Case":"Bc","Fields":[null,true]}""", options)

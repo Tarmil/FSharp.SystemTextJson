@@ -3,7 +3,6 @@ module Tests.Record
 open Xunit
 open System.Text.Json.Serialization
 open System.Text.Json
-open System.Linq.Expressions
 
 module NonStruct =
 
@@ -77,7 +76,7 @@ module NonStruct =
         Assert.Equal(result, {filter=None; limit=Some 50; offset=None})
 
     [<Fact>]
-    let ``allowNullFields`` () =
+    let allowNullFields () =
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
@@ -318,7 +317,7 @@ module Struct =
         Assert.Equal(result, {filter=None; limit=Some 50; offset=None})
 
     [<Fact>]
-    let ``allowNullFields`` () =
+    let allowNullFields () =
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
