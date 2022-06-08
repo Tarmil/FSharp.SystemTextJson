@@ -94,7 +94,11 @@ type JsonUnionConverter<'T>
                     {
                         Type = p.PropertyType
                         Name =
-                            match options.PropertyNamingPolicy with
+                            let policy =
+                                match fsOptions.UnionFieldNamingPolicy with
+                                | null -> options.PropertyNamingPolicy
+                                | policy -> policy
+                            match policy with
                             | null -> name
                             | policy -> policy.ConvertName name
                         MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
