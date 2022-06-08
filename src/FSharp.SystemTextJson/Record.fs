@@ -27,7 +27,12 @@ type internal IRecordConverter =
 type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
     inherit JsonConverter<'T>()
 
-    let recordType: Type = typeof<'T>
+    static let recordType: Type = typeof<'T>
+
+    static let hasOnSerializing = recordType.IsAssignableFrom(typeof<IJsonOnSerializing>)
+    static let hasOnSerialized = recordType.IsAssignableFrom(typeof<IJsonOnSerialized>)
+    static let hasOnDeserializing = recordType.IsAssignableFrom(typeof<IJsonOnDeserializing>)
+    static let hasOnDeserialized = recordType.IsAssignableFrom(typeof<IJsonOnDeserialized>)
 
     let fields = FSharpType.GetRecordFields(recordType, true)
 
@@ -174,13 +179,17 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 if isNull fields[i] && fieldProps[i].MustBePresent then
                     raise (JsonException("Missing field for record type " + recordType.FullName + ": " + fieldProps[i].Name))
 
-        ctor fields :?> 'T
+        let res = ctor fields
+        if hasOnDeserializing then (res :?> IJsonOnDeserializing).OnDeserializing()
+        if hasOnDeserialized then (res :?> IJsonOnDeserialized).OnDeserialized()
+        res :?> 'T
 
     override this.Write(writer, value, options) =
         writer.WriteStartObject()
         this.WriteRestOfObject(writer, value, options)
 
     member internal _.WriteRestOfObject(writer, value, options) =
+        if hasOnSerializing then (box value :?> IJsonOnSerializing).OnSerializing()
         let values = dector value
         for struct (i, p) in writeOrderedFieldProps do
             let v = values[i]
@@ -188,6 +197,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)
         writer.WriteEndObject()
+        if hasOnSerialized then (box value :?> IJsonOnSerialized).OnSerialized()
 
     interface IRecordConverter with
         member this.ReadRestOfObject(reader, options, skipFirstRead) =
