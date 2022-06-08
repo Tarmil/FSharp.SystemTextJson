@@ -18,6 +18,7 @@
     - [`UnwrapSingleCaseUnions`](#unwrapsinglecaseunions)
     - [`UnwrapSingleFieldCases`](#unwrapsinglefieldcases)
     - [`UnwrapRecordCases`](#unwraprecordcases)
+    - [`UnionFieldNamesFromTypes`](#unionfieldnamesfromtypes)
     - [`AllowUnorderedTag`](#allowunorderedtag)
   - [Combined flags](#combined-flags)
 - [`unionTagName`](#uniontagname)
@@ -407,6 +408,29 @@ type Location =
     // --> {"lat":48.858,"long":2.295}
     // Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
+
+#### `UnionFieldNamesFromTypes`
+
+When using `NamedFields`, if a field doesn't have a name specified in F# code, then a default name is assigned by the compiler:
+`Item` if the case has a single field, and `Item1`, `Item2`, etc if the case has multiple fields.
+Using `UnionFieldNamesFromTypes`, the unnamed field is serialized using its type name instead.
+
+If there are several fields with the same type, a suffix `1`, `2`, etc is added.
+
+```fsharp
+JsonFSharpConverter(
+    JsonUnionEncoding.Default |||
+    JsonUnionEncoding.InternalTag |||
+    JsonUnionEncoding.NamedFields |||
+    JsonUnionEncoding.UnionFieldNamesFromTypes)
+|> options.Converters.Additional
+
+type Pair = Pair of int * string
+
+JsonSerializer.Serialize(Pair(123, "test"), options)
+// --> {"Case":"Pair","Int32":123,"String":"test"}
+```
+
 
 #### `AllowUnorderedTag`
 
