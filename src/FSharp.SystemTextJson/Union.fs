@@ -5,6 +5,7 @@ namespace System.Text.Json.Serialization
 open System
 open System.Collections.Generic
 open System.Text.Json
+open System.Text.Json.Serialization
 open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
@@ -59,14 +60,43 @@ type JsonUnionConverter<'T>
                     | null -> uci.Name
                     | policy -> policy.ConvertName uci.Name
             let fields =
-                uci.GetFields()
-                |> Array.map (fun p ->
+                let fields = uci.GetFields()
+                let usedFieldNames = Dictionary()
+                let fieldsAndNames =
+                    if fsOptions.UnionEncoding.HasFlag(JsonUnionEncoding.UnionFieldNamesFromTypes) then
+                        fields
+                        |> Array.mapi (fun i p ->
+                            let useTypeName =
+                                if i = 0 && fields.Length = 1 then
+                                    p.Name = "Item"
+                                else
+                                    p.Name = "Item" + string (i + 1)
+                            let name =
+                                if useTypeName then
+                                    p.PropertyType.Name
+                                else p.Name
+                            let nameIndex =
+                                match usedFieldNames.TryGetValue(name) with
+                                | true, ix -> ix + 1
+                                | false, _ -> 1
+                            usedFieldNames[name] <- nameIndex
+                            p, name, nameIndex)
+                    else
+                        fields |> Array.map (fun p -> p, p.Name, 1)
+                fieldsAndNames
+                |> Array.map (fun (p, name, nameIndex) ->
+                    let name =
+                        let mutable nameCount = 1
+                        if nameIndex = 1 && not (usedFieldNames.TryGetValue(name, &nameCount) && nameCount > 1) then
+                            name
+                        else
+                            name + string nameIndex
                     {
                         Type = p.PropertyType
                         Name =
                             match options.PropertyNamingPolicy with
-                            | null -> p.Name
-                            | policy -> policy.ConvertName p.Name
+                            | null -> name
+                            | policy -> policy.ConvertName name
                         MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
                         MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
                         IsSkip = isSkip p.PropertyType

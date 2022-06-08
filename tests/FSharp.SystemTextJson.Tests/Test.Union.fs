@@ -637,6 +637,23 @@ module NonStruct =
         o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, overrides = dict [typeof<Override>, JsonFSharpOptions(unionTagName = "tag")]))
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
+    type NamedAfterTypes =
+        | NTA of int
+        | NTB of int * string
+        | NTC of x: int
+        | NTD of x: int * y: string
+        | NTE of string * string
+
+    let namedAfterTypesOptions = JsonSerializerOptions()
+    namedAfterTypesOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnionFieldNamesFromTypes))
+
+    [<Fact>]
+    let ``serialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal("""{"Case":"NTA","Int32":123}""", JsonSerializer.Serialize(NTA 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTB","Int32":123,"String":"test"}""", JsonSerializer.Serialize(NTB(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTC","x":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTD","x":123,"y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTE","String1":"123","String2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptions))
 
 module Struct =
 
@@ -1249,3 +1266,25 @@ module Struct =
         let o = JsonSerializerOptions()
         o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, overrides = dict [typeof<Override>, JsonFSharpOptions(unionTagName = "tag")]))
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Struct>]
+    type NamedAfterTypesA = NTA of int
+    [<Struct>]
+    type NamedAfterTypesB = NTB of int * string
+    [<Struct>]
+    type NamedAfterTypesC = NTC of x: int
+    [<Struct>]
+    type NamedAfterTypesD = NTD of x: int * y: string
+    [<Struct>]
+    type NamedAfterTypesE = NTE of string * string
+
+    let namedAfterTypesOptions = JsonSerializerOptions()
+    namedAfterTypesOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnionFieldNamesFromTypes))
+
+    [<Fact>]
+    let ``serialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal("""{"Case":"NTA","Int32":123}""", JsonSerializer.Serialize(NTA 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTB","Int32":123,"String":"test"}""", JsonSerializer.Serialize(NTB(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTC","x":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTD","x":123,"y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTE","String1":"123","String2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptions))

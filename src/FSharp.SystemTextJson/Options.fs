@@ -81,6 +81,9 @@ type JsonUnionEncoding =
     /// where the tag is not the first field in the JSON object.
     | AllowUnorderedTag         = 0x00_00_40_00
 
+    /// When a union field doesn't have an explicit name, use its type as name.
+    | UnionFieldNamesFromTypes  = 0x00_00_80_00
+
 
     //// Specific formats
 
