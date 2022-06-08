@@ -655,6 +655,14 @@ module NonStruct =
         Assert.Equal("""{"Case":"NTD","x":123,"y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptions))
         Assert.Equal("""{"Case":"NTE","String1":"123","String2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptions))
 
+    [<Fact>]
+    let ``deserialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal(NTA 123, JsonSerializer.Deserialize("""{"Case":"NTA","Int32":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTB(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTB","Int32":123,"String":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTC 123, JsonSerializer.Deserialize("""{"Case":"NTC","x":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTD(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTD","x":123,"y":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTE("123", "test"), JsonSerializer.Deserialize("""{"Case":"NTE","String1":"123","String2":"test"}""", namedAfterTypesOptions))
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -1288,3 +1296,11 @@ module Struct =
         Assert.Equal("""{"Case":"NTC","x":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptions))
         Assert.Equal("""{"Case":"NTD","x":123,"y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptions))
         Assert.Equal("""{"Case":"NTE","String1":"123","String2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptions))
+
+    [<Fact>]
+    let ``deserialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal(NTA 123, JsonSerializer.Deserialize("""{"Case":"NTA","Int32":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTB(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTB","Int32":123,"String":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTC 123, JsonSerializer.Deserialize("""{"Case":"NTC","x":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTD(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTD","x":123,"y":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTE("123", "test"), JsonSerializer.Deserialize("""{"Case":"NTE","String1":"123","String2":"test"}""", namedAfterTypesOptions))
