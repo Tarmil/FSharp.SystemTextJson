@@ -637,6 +637,52 @@ module NonStruct =
         o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, overrides = dict [typeof<Override>, JsonFSharpOptions(unionTagName = "tag")]))
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
+    type NamedAfterTypes =
+        | NTA of int
+        | NTB of int * string
+        | NTC of X: int
+        | NTD of X: int * Y: string
+        | NTE of string * string
+
+    let namedAfterTypesOptions = JsonSerializerOptions()
+    namedAfterTypesOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnionFieldNamesFromTypes))
+
+    [<Fact>]
+    let ``serialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal("""{"Case":"NTA","Int32":123}""", JsonSerializer.Serialize(NTA 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTB","Int32":123,"String":"test"}""", JsonSerializer.Serialize(NTB(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTC","X":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTD","X":123,"Y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTE","String1":"123","String2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptions))
+
+    [<Fact>]
+    let ``deserialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal(NTA 123, JsonSerializer.Deserialize("""{"Case":"NTA","Int32":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTB(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTB","Int32":123,"String":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTC 123, JsonSerializer.Deserialize("""{"Case":"NTC","X":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTD(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTD","X":123,"Y":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTE("123", "test"), JsonSerializer.Deserialize("""{"Case":"NTE","String1":"123","String2":"test"}""", namedAfterTypesOptions))
+
+    let namedAfterTypesOptionsWithNamingPolicy = JsonSerializerOptions()
+    namedAfterTypesOptionsWithNamingPolicy.Converters.Add(
+        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnionFieldNamesFromTypes,
+            unionFieldNamingPolicy = JsonNamingPolicy.CamelCase))
+
+    [<Fact>]
+    let ``serialize UnionFieldNamesFromTypes with unionFieldNamingPolicy`` () =
+        Assert.Equal("""{"Case":"NTA","int32":123}""", JsonSerializer.Serialize(NTA 123, namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTB","int32":123,"string":"test"}""", JsonSerializer.Serialize(NTB(123, "test"), namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTC","x":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTD","x":123,"y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTE","string1":"123","string2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptionsWithNamingPolicy))
+
+    [<Fact>]
+    let ``deserialize UnionFieldNamesFromTypes with unionFieldNamingPolicy`` () =
+        Assert.Equal(NTA 123, JsonSerializer.Deserialize("""{"Case":"NTA","int32":123}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTB(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTB","int32":123,"string":"test"}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTC 123, JsonSerializer.Deserialize("""{"Case":"NTC","x":123}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTD(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTD","x":123,"y":"test"}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTE("123", "test"), JsonSerializer.Deserialize("""{"Case":"NTE","string1":"123","string2":"test"}""", namedAfterTypesOptionsWithNamingPolicy))
 
 module Struct =
 
@@ -1249,3 +1295,54 @@ module Struct =
         let o = JsonSerializerOptions()
         o.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, overrides = dict [typeof<Override>, JsonFSharpOptions(unionTagName = "tag")]))
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Struct>]
+    type NamedAfterTypesA = NTA of int
+    [<Struct>]
+    type NamedAfterTypesB = NTB of int * string
+    [<Struct>]
+    type NamedAfterTypesC = NTC of X: int
+    [<Struct>]
+    type NamedAfterTypesD = NTD of X: int * Y: string
+    [<Struct>]
+    type NamedAfterTypesE = NTE of string * string
+
+    let namedAfterTypesOptions = JsonSerializerOptions()
+    namedAfterTypesOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnionFieldNamesFromTypes))
+
+    [<Fact>]
+    let ``serialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal("""{"Case":"NTA","Int32":123}""", JsonSerializer.Serialize(NTA 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTB","Int32":123,"String":"test"}""", JsonSerializer.Serialize(NTB(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTC","X":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTD","X":123,"Y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptions))
+        Assert.Equal("""{"Case":"NTE","String1":"123","String2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptions))
+
+    [<Fact>]
+    let ``deserialize UnionFieldNamesFromTypes`` () =
+        Assert.Equal(NTA 123, JsonSerializer.Deserialize("""{"Case":"NTA","Int32":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTB(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTB","Int32":123,"String":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTC 123, JsonSerializer.Deserialize("""{"Case":"NTC","X":123}""", namedAfterTypesOptions))
+        Assert.Equal(NTD(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTD","X":123,"Y":"test"}""", namedAfterTypesOptions))
+        Assert.Equal(NTE("123", "test"), JsonSerializer.Deserialize("""{"Case":"NTE","String1":"123","String2":"test"}""", namedAfterTypesOptions))
+
+    let namedAfterTypesOptionsWithNamingPolicy = JsonSerializerOptions()
+    namedAfterTypesOptionsWithNamingPolicy.Converters.Add(
+        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields ||| JsonUnionEncoding.UnionFieldNamesFromTypes,
+            unionFieldNamingPolicy = JsonNamingPolicy.CamelCase))
+
+    [<Fact>]
+    let ``serialize UnionFieldNamesFromTypes with unionFieldNamingPolicy`` () =
+        Assert.Equal("""{"Case":"NTA","int32":123}""", JsonSerializer.Serialize(NTA 123, namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTB","int32":123,"string":"test"}""", JsonSerializer.Serialize(NTB(123, "test"), namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTC","x":123}""", JsonSerializer.Serialize(NTC 123, namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTD","x":123,"y":"test"}""", JsonSerializer.Serialize(NTD(123, "test"), namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal("""{"Case":"NTE","string1":"123","string2":"test"}""", JsonSerializer.Serialize(NTE("123", "test"), namedAfterTypesOptionsWithNamingPolicy))
+
+    [<Fact>]
+    let ``deserialize UnionFieldNamesFromTypes with unionFieldNamingPolicy`` () =
+        Assert.Equal(NTA 123, JsonSerializer.Deserialize("""{"Case":"NTA","int32":123}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTB(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTB","int32":123,"string":"test"}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTC 123, JsonSerializer.Deserialize("""{"Case":"NTC","x":123}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTD(123, "test"), JsonSerializer.Deserialize("""{"Case":"NTD","x":123,"y":"test"}""", namedAfterTypesOptionsWithNamingPolicy))
+        Assert.Equal(NTE("123", "test"), JsonSerializer.Deserialize("""{"Case":"NTE","string1":"123","string2":"test"}""", namedAfterTypesOptionsWithNamingPolicy))

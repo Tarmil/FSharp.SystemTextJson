@@ -81,6 +81,9 @@ type JsonUnionEncoding =
     /// where the tag is not the first field in the JSON object.
     | AllowUnorderedTag         = 0x00_00_40_00
 
+    /// When a union field doesn't have an explicit name, use its type as name.
+    | UnionFieldNamesFromTypes  = 0x00_00_80_00
+
 
     //// Specific formats
 
@@ -101,6 +104,8 @@ module internal Default =
     let [<Literal>] UnionFieldsName = "Fields"
 
     let [<Literal>] UnionTagNamingPolicy = null : JsonNamingPolicy
+    
+    let [<Literal>] UnionFieldNamingPolicy = null : JsonNamingPolicy
 
     let [<Literal>] UnionTagCaseInsensitive = false
 
@@ -116,6 +121,8 @@ type JsonFSharpOptions
         unionFieldsName: JsonUnionFieldsName,
         [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>]
         unionTagNamingPolicy: JsonNamingPolicy,
+        [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>]
+        unionFieldNamingPolicy: JsonNamingPolicy,
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>]
         unionTagCaseInsensitive: bool,
         [<Optional; DefaultParameterValue(Default.AllowNullFields)>]
@@ -132,6 +139,8 @@ type JsonFSharpOptions
 
     member this.UnionTagNamingPolicy = unionTagNamingPolicy
 
+    member this.UnionFieldNamingPolicy = unionFieldNamingPolicy
+
     member this.UnionTagCaseInsensitive = unionTagCaseInsensitive
 
     member this.AllowNullFields = allowNullFields
@@ -139,7 +148,7 @@ type JsonFSharpOptions
     member this.AllowOverride = allowOverride
 
     member this.WithUnionEncoding(unionEncoding) =
-        JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy, unionTagCaseInsensitive, allowNullFields, allowOverride)
+        JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, unionTagNamingPolicy, unionFieldNamingPolicy, unionTagCaseInsensitive, allowNullFields, allowOverride)
 
 type IJsonFSharpConverterAttribute =
     abstract Options: JsonFSharpOptions
