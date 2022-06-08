@@ -18,10 +18,12 @@
     - [`UnwrapSingleCaseUnions`](#unwrapsinglecaseunions)
     - [`UnwrapSingleFieldCases`](#unwrapsinglefieldcases)
     - [`UnwrapRecordCases`](#unwraprecordcases)
+    - [`AllowUnorderedTag`](#allowunorderedtag)
   - [Combined flags](#combined-flags)
 - [`unionTagName`](#uniontagname)
 - [`unionFieldsName`](#unionfieldsname)
 - [`unionTagNamingPolicy`](#uniontagnamingpolicy)
+- [`unionFieldNamingPolicy`](#unionfieldnamingpolicy)
 - [`unionTagCaseInsensitive`](#uniontagcaseinsensitive)
 - [`allowNullFields`](#allownullfields)
 
@@ -514,6 +516,24 @@ JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
 
 JsonSerializer.Serialize(WithArgs(123, "Hello, world!"), options)
 // --> {"Case":"withArgs","Fields":[123,"Hello, world!"]}
+```
+
+## `unionFieldNamingPolicy`
+
+This option sets the naming policy for union field names.
+See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-customize-properties).
+
+If this option is not set, `JsonSerializerOptions.PropertyNamingPolicy` is used as the naming policy for union fields.
+
+```fsharp
+JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields,
+    unionFieldNamingPolicy = JsonNamingPolicy.CamelCase)
+|> options.Converters.Additional
+
+type Person = Person of FirstName: string * LastName: string
+
+JsonSerializer.Serialize(Person("John", "Doe"), options)
+// --> {"Case":"Person","firstName":"John","lastName":"Doe"}
 ```
 
 ## `unionTagCaseInsensitive`
