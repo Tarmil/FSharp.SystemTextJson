@@ -8,6 +8,7 @@
     <PackageProjectUrl>https://github.com/tarmil/FSharp.SystemTextJson</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tarmil/FSharp.SystemTextJson.git</RepositoryUrl>
     <Tags>F#;FSharp;Json</Tags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- SourceLink settings -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
