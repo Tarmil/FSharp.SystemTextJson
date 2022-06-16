@@ -36,6 +36,8 @@ type JsonFSharpConverter
     override _.CreateConverter(typeToConvert, options) =
         JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
 
+    new () = JsonFSharpConverter(JsonFSharpOptions())
+
     new (
             [<Optional; DefaultParameterValue(Default.UnionEncoding)>]
             unionEncoding: JsonUnionEncoding,
