@@ -13,6 +13,10 @@ type JsonFSharpConverter
     ) =
     inherit JsonConverterFactory()
 
+    member _.Options = fsOptions
+
+    member _.Overrides = overrides
+
     override _.CanConvert(typeToConvert) =
         TypeCache.getKind typeToConvert <> TypeCache.TypeKind.Other
 
