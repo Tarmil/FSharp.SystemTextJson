@@ -73,6 +73,10 @@ type JsonFSharpConverterAttribute
         unionTagName: JsonUnionTagName,
         [<Optional; DefaultParameterValue(Default.UnionFieldsName)>]
         unionFieldsName: JsonUnionFieldsName,
+        [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>]
+        unionTagNamingPolicy: JsonKnownNamingPolicy,
+        [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>]
+        unionFieldNamingPolicy: JsonKnownNamingPolicy,
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>]
         unionTagCaseInsensitive: bool,
         [<Optional; DefaultParameterValue(Default.AllowNullFields)>]
@@ -82,7 +86,12 @@ type JsonFSharpConverterAttribute
 
     let options = JsonSerializerOptions()
 
-    let fsOptions = JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, Default.UnionTagNamingPolicy, Default.UnionFieldNamingPolicy, unionTagCaseInsensitive, allowNullFields, false)
+    let namingPolicy = function
+        | JsonKnownNamingPolicy.Unspecified -> null
+        | JsonKnownNamingPolicy.CamelCase -> JsonNamingPolicy.CamelCase
+        | p -> failwithf "Unknown naming policy: %A" p
+
+    let fsOptions = JsonFSharpOptions(unionEncoding, unionTagName, unionFieldsName, namingPolicy unionTagNamingPolicy, namingPolicy unionFieldNamingPolicy, unionTagCaseInsensitive, allowNullFields, false)
 
     override _.CreateConverter(typeToConvert) =
         JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions, null)
