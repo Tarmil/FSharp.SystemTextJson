@@ -423,7 +423,7 @@ JsonFSharpConverter(
     JsonUnionEncoding.InternalTag |||
     JsonUnionEncoding.NamedFields |||
     JsonUnionEncoding.UnionFieldNamesFromTypes)
-|> options.Converters.Additional
+|> options.Converters.Add
 
 type Pair = Pair of int * string
 
@@ -552,7 +552,7 @@ If this option is not set, `JsonSerializerOptions.PropertyNamingPolicy` is used 
 ```fsharp
 JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields,
     unionFieldNamingPolicy = JsonNamingPolicy.CamelCase)
-|> options.Converters.Additional
+|> options.Converters.Add
 
 type Person = Person of FirstName: string * LastName: string
 
