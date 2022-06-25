@@ -29,31 +29,34 @@ let ``deserialize set of ints`` (s: Set<int>) =
     Assert.Equal<Set<int>>(s, actual)
 
 let tryblock thunk =
-    try thunk() |> Ok
-    with e -> Error e.Message
+    try
+        thunk () |> Ok
+    with e ->
+        Error e.Message
 
 module NullsInsideList =
     [<Fact>]
-    let ``allowed when the target type is a list of options``() =
+    let ``allowed when the target type is a list of options`` () =
         let ser = "[0, null, 2, 3]"
         let actual = JsonSerializer.Deserialize<int option list>(ser, options)
-        Assert.Equal<int option list>([Some 0; None; Some 2; Some 3], actual)
+        Assert.Equal<int option list>([ Some 0; None; Some 2; Some 3 ], actual)
 
     [<Fact>]
-    let ``forbid nulls inside array when target type is not option``() =
+    let ``forbid nulls inside array when target type is not option`` () =
         let ser = """["hello", null]"""
-        let actual = tryblock (fun _ -> JsonSerializer.Deserialize<string list>(ser, options))
+        let actual =
+            tryblock (fun _ -> JsonSerializer.Deserialize<string list>(ser, options))
         match actual with
         | Error msg -> Assert.Equal("Unexpected null inside array. Expected only elements of type String", msg)
         | _ -> failwith "expected failure"
 
     [<Fact>]
-    let ``allow nulls inside array if allowNullFields is true ``() =
+    let ``allow nulls inside array if allowNullFields is true `` () =
         let options = JsonSerializerOptions()
         options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
         let ser = """["hello", null]"""
-        let actual = JsonSerializer.Deserialize<string list>(ser,options)
-        Assert.Equal<string list>(["hello"; null], actual)
+        let actual = JsonSerializer.Deserialize<string list>(ser, options)
+        Assert.Equal<string list>([ "hello"; null ], actual)
 
 [<Property>]
 let ``serialize set of ints`` (s: Set<int>) =
@@ -117,7 +120,9 @@ let ``serialize struct-newtype-string-keyed map`` (m: Map<NonNull<string>, int>)
     let actual = JsonSerializer.Serialize(m, options)
     Assert.Equal(expected, actual)
 
-let keyPolicyOptions = JsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
+let keyPolicyOptions =
+    JsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
+
 keyPolicyOptions.Converters.Add(JsonFSharpConverter())
 
 [<Property>]
@@ -130,7 +135,9 @@ let ``deserialize string-keyed map with key policy`` (m: Map<NonNull<string>, in
 [<Property>]
 let ``serialize string-keyed map with key policy`` (m: Map<NonNull<string>, int>) =
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
-    let ccm = m |> Seq.map (fun (KeyValue(k, v)) -> KeyValuePair(JsonNamingPolicy.CamelCase.ConvertName k, v))
+    let ccm =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> KeyValuePair(JsonNamingPolicy.CamelCase.ConvertName k, v))
     let expected = "{" + String.concat "," (Seq.map serKV1 ccm) + "}"
     let actual = JsonSerializer.Serialize(m, keyPolicyOptions)
     Assert.Equal(expected, actual)
@@ -153,17 +160,20 @@ let ``serialize int-keyed map`` (m: Map<int, string>) =
 [<Property>]
 let ``deserialize 2-tuple`` (a, b as t: int * string) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
-    let result = tryblock (fun () -> JsonSerializer.Deserialize<int * string>(ser, options))
+    let result =
+        tryblock (fun () -> JsonSerializer.Deserialize<int * string>(ser, options))
     match b, result with
     | null, Ok _ -> failwith "Deserializing null for a non-nullable field should fail"
     | _, Ok actual -> Assert.Equal(t, actual)
-    | null, Error msg -> Assert.Equal((sprintf "Unexpected null inside tuple-array. Expected type String, but got null."), msg)
+    | null, Error msg ->
+        Assert.Equal((sprintf "Unexpected null inside tuple-array. Expected type String, but got null."), msg)
     | _, Error msg -> failwithf "Unexpected deserialization error %s" msg
 
 [<Property>]
 let ``deserialize 2-tuple with unit`` (a, b as t: int * unit) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
-    let result = tryblock (fun () -> JsonSerializer.Deserialize<int * unit>(ser, options))
+    let result =
+        tryblock (fun () -> JsonSerializer.Deserialize<int * unit>(ser, options))
     match result with
     | Ok actual -> Assert.Equal(t, actual)
     | Error msg -> failwithf "Unexpected deserialization error %s" msg
@@ -177,7 +187,8 @@ let ``serialize 2-tuple`` (a, b as t: int * string) =
 [<Property>]
 let ``deserialize 8-tuple`` (a, b, c, d, e, f, g, h as t: int * int * int * int * int * int * int * int) =
     let ser = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
-    let actual = JsonSerializer.Deserialize<int * int * int * int * int * int * int * int>(ser, options)
+    let actual =
+        JsonSerializer.Deserialize<int * int * int * int * int * int * int * int>(ser, options)
     Assert.Equal(t, actual)
 
 [<Property>]
@@ -189,11 +200,13 @@ let ``serialize 8-tuple`` (a, b, c, d, e, f, g, h as t: int * int * int * int * 
 [<Property>]
 let ``deserialize struct 2-tuple`` (a, b as t: struct (int * string)) =
     let ser = sprintf "[%i,%s]" a (JsonSerializer.Serialize b)
-    let result = tryblock (fun () -> JsonSerializer.Deserialize<struct (int * string)>(ser, options))
+    let result =
+        tryblock (fun () -> JsonSerializer.Deserialize<struct (int * string)>(ser, options))
     match b, result with
     | null, Ok _ -> failwith "Deserializing null for a non-nullable field should fail"
     | _, Ok actual -> Assert.Equal(t, actual)
-    | null, Error msg -> Assert.Equal((sprintf "Unexpected null inside tuple-array. Expected type String, but got null."), msg)
+    | null, Error msg ->
+        Assert.Equal((sprintf "Unexpected null inside tuple-array. Expected type String, but got null."), msg)
     | _, Error msg -> failwithf "Unexpected deserialization error %s" msg
 
 
@@ -204,9 +217,12 @@ let ``serialize struct 2-tuple`` (a, b as t: struct (int * string)) =
     Assert.Equal(expected, actual)
 
 [<Property>]
-let ``deserialize struct 8-tuple`` (a, b, c, d, e, f, g, h as t: struct (int * int * int * int * int * int * int * int)) =
+let ``deserialize struct 8-tuple``
+    (a, b, c, d, e, f, g, h as t: struct (int * int * int * int * int * int * int * int))
+    =
     let ser = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
-    let actual = JsonSerializer.Deserialize<struct (int * int * int * int * int * int * int * int)>(ser, options)
+    let actual =
+        JsonSerializer.Deserialize<struct (int * int * int * int * int * int * int * int)>(ser, options)
     Assert.Equal(t, actual)
 
 [<Property>]

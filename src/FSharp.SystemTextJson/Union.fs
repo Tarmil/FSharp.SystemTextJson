@@ -10,26 +10,22 @@ open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
 type private Field =
-    {
-        Type: Type
-        Name: string
-        MustBeNonNull: bool
-        MustBePresent: bool
-        IsSkip: obj -> bool
-    }
+    { Type: Type
+      Name: string
+      MustBeNonNull: bool
+      MustBePresent: bool
+      IsSkip: obj -> bool }
 
 type private Case =
-    {
-        Fields: Field[]
-        DefaultFields: obj[]
-        FieldsByName: Dictionary<string, struct (int * Field)> voption
-        Ctor: obj[] -> obj
-        Dector: obj -> obj[]
-        Name: string
-        UnwrappedSingleField: bool
-        UnwrappedRecordField: ValueOption<IRecordConverter>
-        MinExpectedFieldCount: int
-    }
+    { Fields: Field[]
+      DefaultFields: obj[]
+      FieldsByName: Dictionary<string, struct (int * Field)> voption
+      Ctor: obj[] -> obj
+      Dector: obj -> obj[]
+      Name: string
+      UnwrappedSingleField: bool
+      UnwrappedRecordField: ValueOption<IRecordConverter>
+      MinExpectedFieldCount: int }
 
 type JsonUnionConverter<'T>
     (
@@ -40,12 +36,14 @@ type JsonUnionConverter<'T>
     ) =
     inherit JsonConverter<'T>()
 
-    let [<Literal>] UntaggedBit = enum<JsonUnionEncoding> 0x00_08
+    [<Literal>]
+    let UntaggedBit = enum<JsonUnionEncoding> 0x00_08
     let baseFormat =
         let given = fsOptions.UnionEncoding &&& enum<JsonUnionEncoding> 0x00_fe
         if given = enum 0 then JsonUnionEncoding.AdjacentTag else given
     let namedFields = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.NamedFields
-    let unwrapFieldlessTags = fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags
+    let unwrapFieldlessTags =
+        fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags
 
     let ty = typeof<'T>
 
@@ -71,54 +69,52 @@ type JsonUnionConverter<'T>
                                     p.Name = "Item"
                                 else
                                     p.Name = "Item" + string (i + 1)
-                            let name =
-                                if useTypeName then
-                                    p.PropertyType.Name
-                                else p.Name
+                            let name = if useTypeName then p.PropertyType.Name else p.Name
                             let nameIndex =
                                 match usedFieldNames.TryGetValue(name) with
                                 | true, ix -> ix + 1
                                 | false, _ -> 1
                             usedFieldNames[name] <- nameIndex
-                            p, name, nameIndex)
+                            p, name, nameIndex
+                        )
                     else
                         fields |> Array.map (fun p -> p, p.Name, 1)
                 fieldsAndNames
                 |> Array.map (fun (p, name, nameIndex) ->
                     let name =
                         let mutable nameCount = 1
-                        if nameIndex = 1 && not (usedFieldNames.TryGetValue(name, &nameCount) && nameCount > 1) then
+                        if
+                            nameIndex = 1
+                            && not (usedFieldNames.TryGetValue(name, &nameCount) && nameCount > 1)
+                        then
                             name
                         else
                             name + string nameIndex
-                    {
-                        Type = p.PropertyType
-                        Name =
-                            let policy =
-                                match fsOptions.UnionFieldNamingPolicy with
-                                | null -> options.PropertyNamingPolicy
-                                | policy -> policy
-                            match policy with
-                            | null -> name
-                            | policy -> policy.ConvertName name
-                        MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
-                        MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
-                        IsSkip = isSkip p.PropertyType
-                    })
+                    { Type = p.PropertyType
+                      Name =
+                        let policy =
+                            match fsOptions.UnionFieldNamingPolicy with
+                            | null -> options.PropertyNamingPolicy
+                            | policy -> policy
+                        match policy with
+                        | null -> name
+                        | policy -> policy.ConvertName name
+                      MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
+                      MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
+                      IsSkip = isSkip p.PropertyType }
+                )
             let fieldsByName =
                 if options.PropertyNameCaseInsensitive then
                     let d = Dictionary(StringComparer.OrdinalIgnoreCase)
-                    fields |> Array.iteri (fun i f ->
-                        d[f.Name] <- struct (i, f))
+                    fields |> Array.iteri (fun i f -> d[f.Name] <- struct (i, f))
                     ValueSome d
                 else
                     ValueNone
             let unwrappedRecordField =
                 if namedFields
-                    && fields.Length = 1
-                    && FSharpType.IsRecord(fields[0].Type, true)
-                    && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapRecordCases
-                then
+                   && fields.Length = 1
+                   && FSharpType.IsRecord(fields[0].Type, true)
+                   && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapRecordCases then
                     JsonRecordConverter.CreateConverter(fields[0].Type, options, fsOptions, overrides)
                     |> box
                     :?> IRecordConverter
@@ -138,17 +134,16 @@ type JsonUnionConverter<'T>
                         arr[i] <- FSharpValue.MakeUnion(case, [||])
                 )
                 arr
-            {
-                Fields = fields
-                DefaultFields = defaultFields
-                FieldsByName = fieldsByName
-                Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
-                Dector = FSharpValue.PreComputeUnionReader(uci, true)
-                Name = name
-                UnwrappedSingleField = unwrappedSingleField
-                UnwrappedRecordField = unwrappedRecordField
-                MinExpectedFieldCount = fields |> Seq.filter (fun f -> f.MustBePresent) |> Seq.length
-            })
+            { Fields = fields
+              DefaultFields = defaultFields
+              FieldsByName = fieldsByName
+              Ctor = FSharpValue.PreComputeUnionConstructor(uci, true)
+              Dector = FSharpValue.PreComputeUnionReader(uci, true)
+              Name = name
+              UnwrappedSingleField = unwrappedSingleField
+              UnwrappedRecordField = unwrappedRecordField
+              MinExpectedFieldCount = fields |> Seq.filter (fun f -> f.MustBePresent) |> Seq.length }
+        )
 
     let tagReader = FSharpValue.PreComputeUnionTagReader(ty, true)
 
@@ -165,17 +160,19 @@ type JsonUnionConverter<'T>
                     | ValueNone -> fieldlessCase <- ValueSome case
                 match case.UnwrappedRecordField with
                 | ValueNone -> case.Fields |> Array.map (fun f -> f.Name, case)
-                | ValueSome r -> r.FieldNames |> Array.map (fun n -> n, case))
+                | ValueSome r -> r.FieldNames |> Array.map (fun n -> n, case)
+            )
         let fields =
             (Map.empty, cases)
             ||> Array.fold (fun foundFieldNames (fieldName, case) ->
                 if hasDuplicateFieldNames then
                     foundFieldNames
                 else
-                if foundFieldNames |> Map.containsKey fieldName then
-                    hasDuplicateFieldNames <- true
-                Map.add fieldName case foundFieldNames)
-        let fields = [| for KeyValue(k, v) in fields -> struct (k, v) |]
+                    if foundFieldNames |> Map.containsKey fieldName then
+                        hasDuplicateFieldNames <- true
+                    Map.add fieldName case foundFieldNames
+            )
+        let fields = [| for KeyValue (k, v) in fields -> struct (k, v) |]
         not hasDuplicateFieldNames, fieldlessCase, fields
 
     let allFieldsByName =
@@ -185,7 +182,7 @@ type JsonUnionConverter<'T>
                 match c.FieldsByName with
                 | ValueNone -> ()
                 | ValueSome fields ->
-                    for KeyValue(n, _) in fields do
+                    for KeyValue (n, _) in fields do
                         dict[n] <- c
             ValueSome dict
         else
@@ -218,10 +215,8 @@ type JsonUnionConverter<'T>
                 | true, c -> ValueSome c
                 | false, _ -> ValueNone
         match found with
-        | ValueNone ->
-            raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
-        | ValueSome case ->
-            case
+        | ValueNone -> raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
+        | ValueSome case -> case
 
     let getCaseByTagString tag =
         let found =
@@ -241,10 +236,8 @@ type JsonUnionConverter<'T>
                 | true, c -> ValueSome c
                 | false, _ -> ValueNone
         match found with
-        | ValueNone ->
-            raise (JsonException("Unknown case for union type " + ty.FullName + ": " + tag))
-        | ValueSome case ->
-            case
+        | ValueNone -> raise (JsonException("Unknown case for union type " + ty.FullName + ": " + tag))
+        | ValueSome case -> case
 
     let getCaseByFieldName (reader: byref<Utf8JsonReader>) =
         let found =
@@ -265,9 +258,15 @@ type JsonUnionConverter<'T>
                 | false, _ -> ValueNone
         match found with
         | ValueNone ->
-            raise (JsonException("Unknown case for union type " + ty.FullName + " due to unknown field: " + reader.GetString()))
-        | ValueSome case ->
-            case
+            raise (
+                JsonException(
+                    "Unknown case for union type "
+                    + ty.FullName
+                    + " due to unknown field: "
+                    + reader.GetString()
+                )
+            )
+        | ValueSome case -> case
 
     let fieldIndexByName (reader: byref<Utf8JsonReader>) (case: Case) =
         match case.FieldsByName with
@@ -277,7 +276,7 @@ type JsonUnionConverter<'T>
             while found.IsNone && i < case.Fields.Length do
                 let field = case.Fields[i]
                 if reader.ValueTextEquals(field.Name) then
-                    found <- ValueSome (struct (i, field))
+                    found <- ValueSome(struct (i, field))
                 else
                     i <- i + 1
             found
@@ -289,7 +288,8 @@ type JsonUnionConverter<'T>
     let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) (options: JsonSerializerOptions) =
         reader.Read() |> ignore
         if f.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
-            let msg = sprintf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
+            let msg =
+                sprintf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
             raise (JsonException msg)
         else
             JsonSerializer.Deserialize(&reader, f.Type, options)
@@ -297,7 +297,7 @@ type JsonUnionConverter<'T>
     let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.copy case.DefaultFields
-        for i in 0..fieldCount-1 do
+        for i in 0 .. fieldCount - 1 do
             fields[i] <- readField &reader case case.Fields[i] options
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
@@ -306,36 +306,43 @@ type JsonUnionConverter<'T>
         readExpecting JsonTokenType.StartArray "array" &reader ty
         readFieldsAsRestOfArray &reader case options
 
-    let coreReadFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
+    let coreReadFieldsAsRestOfObject
+        (reader: byref<Utf8JsonReader>)
+        (case: Case)
+        (skipFirstRead: bool)
+        (options: JsonSerializerOptions)
+        =
         let fields = Array.copy case.DefaultFields
         let mutable cont = true
         let mutable fieldsFound = 0
         let mutable skipRead = skipFirstRead
         while cont && (skipRead || reader.Read()) do
             match reader.TokenType with
-            | JsonTokenType.EndObject ->
-                cont <- false
+            | JsonTokenType.EndObject -> cont <- false
             | JsonTokenType.PropertyName ->
                 skipRead <- false
                 match fieldIndexByName &reader case with
                 | ValueSome (i, f) ->
                     fieldsFound <- fieldsFound + 1
                     fields[i] <- readField &reader case f options
-                | _ ->
-                    reader.Skip()
+                | _ -> reader.Skip()
             | _ -> ()
 
         if fieldsFound < case.MinExpectedFieldCount && not options.IgnoreNullValues then
             raise (JsonException("Missing field for union type " + ty.FullName))
         case.Ctor fields :?> 'T
 
-    let readFieldsAsRestOfObject (reader: byref<Utf8JsonReader>) (case: Case) (skipFirstRead: bool) (options: JsonSerializerOptions) =
+    let readFieldsAsRestOfObject
+        (reader: byref<Utf8JsonReader>)
+        (case: Case)
+        (skipFirstRead: bool)
+        (options: JsonSerializerOptions)
+        =
         match case.UnwrappedRecordField with
         | ValueSome conv ->
             let field = conv.ReadRestOfObject(&reader, options, skipFirstRead)
             case.Ctor [| field |] :?> 'T
-        | ValueNone ->
-            coreReadFieldsAsRestOfObject &reader case skipFirstRead options
+        | ValueNone -> coreReadFieldsAsRestOfObject &reader case skipFirstRead options
 
     let readFieldsAsObject (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         readExpecting JsonTokenType.StartObject "object" &reader ty
@@ -347,13 +354,13 @@ type JsonUnionConverter<'T>
             let field = conv.ReadRestOfObject(&reader, options, false)
             case.Ctor [| field |] :?> 'T
         | ValueNone ->
-        if case.UnwrappedSingleField then
-            let field = readField &reader case case.Fields[0] options
-            case.Ctor [| field |] :?> 'T
-        elif namedFields then
-            readFieldsAsObject &reader case options
-        else
-            readFieldsAsArray &reader case options
+            if case.UnwrappedSingleField then
+                let field = readField &reader case case.Fields[0] options
+                case.Ctor [| field |] :?> 'T
+            elif namedFields then
+                readFieldsAsObject &reader case options
+            else
+                readFieldsAsArray &reader case options
 
     let getCaseFromDocument (reader: Utf8JsonReader) =
         let mutable reader = reader
@@ -424,13 +431,12 @@ type JsonUnionConverter<'T>
             match fieldlessCase with
             | ValueSome case -> case.Ctor [||] :?> 'T
             | ValueNone -> fail "case field" &reader ty
-        | _ ->
-            fail "case field" &reader ty
+        | _ -> fail "case field" &reader ty
 
     let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         let fields = case.Fields
         let values = case.Dector value
-        for i in 0..fields.Length-1 do
+        for i in 0 .. fields.Length - 1 do
             JsonSerializer.Serialize(writer, values[i], fields[i].Type, options)
         writer.WriteEndArray()
 
@@ -438,10 +444,15 @@ type JsonUnionConverter<'T>
         writer.WriteStartArray()
         writeFieldsAsRestOfArray writer case value options
 
-    let coreWriteFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
+    let coreWriteFieldsAsRestOfObject
+        (writer: Utf8JsonWriter)
+        (case: Case)
+        (value: obj)
+        (options: JsonSerializerOptions)
+        =
         let fields = case.Fields
         let values = case.Dector value
-        for i in 0..fields.Length-1 do
+        for i in 0 .. fields.Length - 1 do
             let f = fields[i]
             let v = values[i]
             if not (options.IgnoreNullValues && isNull v) && not (f.IsSkip v) then
@@ -451,10 +462,8 @@ type JsonUnionConverter<'T>
 
     let writeFieldsAsRestOfObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         match case.UnwrappedRecordField with
-        | ValueSome conv ->
-            conv.WriteRestOfObject(writer, (case.Dector value)[0], options)
-        | ValueNone ->
-            coreWriteFieldsAsRestOfObject writer case value options
+        | ValueSome conv -> conv.WriteRestOfObject(writer, (case.Dector value)[0], options)
+        | ValueNone -> coreWriteFieldsAsRestOfObject writer case value options
 
     let writeFieldsAsObject (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
@@ -497,8 +506,7 @@ type JsonUnionConverter<'T>
 
     override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
-        | JsonTokenType.Null when isNullableUnion ty ->
-            (null : obj) :?> 'T
+        | JsonTokenType.Null when isNullableUnion ty -> (null: obj) :?> 'T
         | JsonTokenType.String when unwrapFieldlessTags ->
             let case = getCaseByTagReader &reader
             case.Ctor [||] :?> 'T
@@ -509,25 +517,33 @@ type JsonUnionConverter<'T>
             | JsonUnionEncoding.InternalTag -> readInternalTag &reader options
             | UntaggedBit ->
                 if not hasDistinctFieldNames then
-                    raise (JsonException(sprintf "Union %s can't be deserialized as Untagged because it has duplicate field names across unions" ty.FullName))
+                    raise (
+                        JsonException(
+                            sprintf
+                                "Union %s can't be deserialized as Untagged because it has duplicate field names across unions"
+                                ty.FullName
+                        )
+                    )
                 readUntagged &reader options
             | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
     override _.Write(writer, value, options) =
         let value = box value
-        if isNull value then writer.WriteNullValue() else
-
-        let tag = tagReader value
-        let case = cases[tag]
-        if unwrapFieldlessTags && case.Fields.Length = 0 then
-            writer.WriteStringValue(case.Name)
+        if isNull value then
+            writer.WriteNullValue()
         else
-        match baseFormat with
-        | JsonUnionEncoding.AdjacentTag -> writeAdjacentTag writer case value options
-        | JsonUnionEncoding.ExternalTag -> writeExternalTag writer case value options
-        | JsonUnionEncoding.InternalTag -> writeInternalTag writer case value options
-        | UntaggedBit -> writeUntagged writer case value options
-        | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
+
+            let tag = tagReader value
+            let case = cases[tag]
+            if unwrapFieldlessTags && case.Fields.Length = 0 then
+                writer.WriteStringValue(case.Name)
+            else
+                match baseFormat with
+                | JsonUnionEncoding.AdjacentTag -> writeAdjacentTag writer case value options
+                | JsonUnionEncoding.ExternalTag -> writeExternalTag writer case value options
+                | JsonUnionEncoding.InternalTag -> writeInternalTag writer case value options
+                | UntaggedBit -> writeUntagged writer case value options
+                | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
 
 type JsonSkippableConverter<'T>() =
     inherit JsonConverter<Skippable<'T>>()
@@ -573,8 +589,7 @@ type JsonUnwrappedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
     let getter = FSharpValue.PreComputeUnionReader(case, true)
 
     override _.Read(reader, _typeToConvert, options) =
-        ctor [| box (JsonSerializer.Deserialize<'FieldT>(&reader, options)) |]
-        :?> 'T
+        ctor [| box (JsonSerializer.Deserialize<'FieldT>(&reader, options)) |] :?> 'T
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<'FieldT>(writer, (getter value)[0] :?> 'FieldT, options)
@@ -608,23 +623,23 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         ) =
         let fsOptions = overrideOptions typeToConvert fsOptions overrides
         if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
-            && typeToConvert.IsGenericType
-            && typeToConvert.GetGenericTypeDefinition() = optionTy then
+           && typeToConvert.IsGenericType
+           && typeToConvert.GetGenericTypeDefinition() = optionTy then
             jsonUnwrapOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
             :?> JsonConverter
         elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
-            && typeToConvert.IsGenericType
-            && typeToConvert.GetGenericTypeDefinition() = voptionTy then
+             && typeToConvert.IsGenericType
+             && typeToConvert.GetGenericTypeDefinition() = voptionTy then
             jsonUnwrapValueOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
             :?> JsonConverter
         elif typeToConvert.IsGenericType
-            && typeToConvert.GetGenericTypeDefinition() = skippableTy then
+             && typeToConvert.GetGenericTypeDefinition() = skippableTy then
             jsonSkippableConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
@@ -636,19 +651,20 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
             let isUnwrappedSingleCase =
                 fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleCaseUnions
                 && cases.Length = 1
-                && (fields <- cases[0].GetFields(); fields.Length = 1)
+                && (fields <- cases[ 0 ].GetFields()
+                    fields.Length = 1)
             if isUnwrappedSingleCase then
                 let case = cases[0]
                 jsonUnwrappedUnionConverterTy
-                    .MakeGenericType([|typeToConvert; fields[0].PropertyType|])
-                    .GetConstructor([|caseTy|])
-                    .Invoke([|case|])
+                    .MakeGenericType([| typeToConvert; fields[0].PropertyType |])
+                    .GetConstructor([| caseTy |])
+                    .Invoke([| case |])
                 :?> JsonConverter
             else
                 jsonUnionConverterTy
-                    .MakeGenericType([|typeToConvert|])
-                    .GetConstructor([|optionsTy; fsOptionsTy; casesTy; overridesTy|])
-                    .Invoke([|options; fsOptions; cases; overrides|])
+                    .MakeGenericType([| typeToConvert |])
+                    .GetConstructor([| optionsTy; fsOptionsTy; casesTy; overridesTy |])
+                    .Invoke([| options; fsOptions; cases; overrides |])
                 :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =

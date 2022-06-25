@@ -16,7 +16,8 @@ type JsonListConverter<'T>(fsOptions) =
         if needsNullChecking then
             for elem in array do
                 if isNull (box elem) then
-                    let msg = sprintf "Unexpected null inside array. Expected only elements of type %s" tType.Name
+                    let msg =
+                        sprintf "Unexpected null inside array. Expected only elements of type %s" tType.Name
                     raise (JsonException msg)
         array |> List.ofArray
 
@@ -31,9 +32,9 @@ type JsonListConverter(fsOptions) =
 
     static member internal CreateConverter(typeToConvert: Type, fsOptions: JsonFSharpOptions) =
         typedefof<JsonListConverter<_>>
-            .MakeGenericType([|typeToConvert.GetGenericArguments().[0]|])
-            .GetConstructor([|typeof<JsonFSharpOptions>|])
-            .Invoke([|fsOptions|])
+            .MakeGenericType([| typeToConvert.GetGenericArguments().[0] |])
+            .GetConstructor([| typeof<JsonFSharpOptions> |])
+            .Invoke([| fsOptions |])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
@@ -42,19 +43,21 @@ type JsonListConverter(fsOptions) =
     override _.CreateConverter(typeToConvert, _options) =
         JsonListConverter.CreateConverter(typeToConvert, fsOptions)
 
-type JsonSetConverter<'T when 'T : comparison>(fsOptions) =
+type JsonSetConverter<'T when 'T: comparison>(fsOptions) =
     inherit JsonConverter<Set<'T>>()
     let tType = typeof<'T>
     let tIsNullable = isNullableFieldType fsOptions tType
     let needsNullChecking = not tIsNullable && not tType.IsValueType
 
     let rec read (acc: Set<'T>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        if not (reader.Read()) then acc else
-        match reader.TokenType with
-        | JsonTokenType.EndArray -> acc
-        | _ ->
-            let elt = JsonSerializer.Deserialize<'T>(&reader, options)
-            read (Set.add elt acc) &reader options
+        if not (reader.Read()) then
+            acc
+        else
+            match reader.TokenType with
+            | JsonTokenType.EndArray -> acc
+            | _ ->
+                let elt = JsonSerializer.Deserialize<'T>(&reader, options)
+                read (Set.add elt acc) &reader options
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
@@ -62,7 +65,8 @@ type JsonSetConverter<'T when 'T : comparison>(fsOptions) =
         if needsNullChecking then
             for elem in set do
                 if isNull (box elem) then
-                    let msg = sprintf "Unexpected null inside set. Expected only elements of type %s" tType.Name
+                    let msg =
+                        sprintf "Unexpected null inside set. Expected only elements of type %s" tType.Name
                     raise (JsonException msg)
         set
 
@@ -77,9 +81,9 @@ type JsonSetConverter(fsOptions) =
 
     static member internal CreateConverter(typeToConvert: Type, fsOptions: JsonFSharpOptions) =
         typedefof<JsonSetConverter<_>>
-            .MakeGenericType([|typeToConvert.GetGenericArguments().[0]|])
-            .GetConstructor([|typeof<JsonFSharpOptions>|])
-            .Invoke([|fsOptions|])
+            .MakeGenericType([| typeToConvert.GetGenericArguments().[0] |])
+            .GetConstructor([| typeof<JsonFSharpOptions> |])
+            .Invoke([| fsOptions |])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
@@ -94,15 +98,16 @@ type JsonStringMapConverter<'V>() =
     let ty = typeof<Map<string, 'V>>
 
     let rec read (acc: Map<string, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        if not (reader.Read()) then acc else
-        match reader.TokenType with
-        | JsonTokenType.EndObject -> acc
-        | JsonTokenType.PropertyName ->
-            let key = reader.GetString()
-            let value = JsonSerializer.Deserialize<'V>(&reader, options)
-            read (Map.add key value acc) &reader options
-        | _ ->
-            fail "JSON field" &reader ty
+        if not (reader.Read()) then
+            acc
+        else
+            match reader.TokenType with
+            | JsonTokenType.EndObject -> acc
+            | JsonTokenType.PropertyName ->
+                let key = reader.GetString()
+                let value = JsonSerializer.Deserialize<'V>(&reader, options)
+                read (Map.add key value acc) &reader options
+            | _ -> fail "JSON field" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
@@ -119,7 +124,7 @@ type JsonStringMapConverter<'V>() =
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
-type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
+type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
     inherit JsonConverter<Map<'K, 'V>>()
 
     let ty = typeof<Map<'K, 'V>>
@@ -130,15 +135,16 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
     let unwrap = FSharpValue.PreComputeUnionReader(case, true)
 
     let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        if not (reader.Read()) then acc else
-        match reader.TokenType with
-        | JsonTokenType.EndObject -> acc
-        | JsonTokenType.PropertyName ->
-            let key = reader.GetString()
-            let value = JsonSerializer.Deserialize<'V>(&reader, options)
-            read (Map.add (wrap [|key|] :?> 'K) value acc) &reader options
-        | _ ->
-            fail "JSON field" &reader ty
+        if not (reader.Read()) then
+            acc
+        else
+            match reader.TokenType with
+            | JsonTokenType.EndObject -> acc
+            | JsonTokenType.PropertyName ->
+                let key = reader.GetString()
+                let value = JsonSerializer.Deserialize<'V>(&reader, options)
+                read (Map.add (wrap [| key |] :?> 'K) value acc) &reader options
+            | _ -> fail "JSON field" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
@@ -156,24 +162,25 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K : comparison>() =
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
-type JsonMapConverter<'K, 'V when 'K : comparison>() =
+type JsonMapConverter<'K, 'V when 'K: comparison>() =
     inherit JsonConverter<Map<'K, 'V>>()
 
     let ty = typeof<Map<'K, 'V>>
 
     let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        if not (reader.Read()) then acc else
-        match reader.TokenType with
-        | JsonTokenType.EndArray -> acc
-        | JsonTokenType.StartArray ->
-            reader.Read() |> ignore
-            let key = JsonSerializer.Deserialize<'K>(&reader, options)
-            reader.Read() |> ignore
-            let value = JsonSerializer.Deserialize<'V>(&reader, options)
-            readExpecting JsonTokenType.EndArray "JSON array" &reader ty
-            read (Map.add key value acc) &reader options
-        | _ ->
-            fail "JSON array" &reader ty
+        if not (reader.Read()) then
+            acc
+        else
+            match reader.TokenType with
+            | JsonTokenType.EndArray -> acc
+            | JsonTokenType.StartArray ->
+                reader.Read() |> ignore
+                let key = JsonSerializer.Deserialize<'K>(&reader, options)
+                reader.Read() |> ignore
+                let value = JsonSerializer.Deserialize<'V>(&reader, options)
+                readExpecting JsonTokenType.EndArray "JSON array" &reader ty
+                read (Map.add key value acc) &reader options
+            | _ -> fail "JSON array" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader ty
@@ -192,12 +199,12 @@ type JsonMapConverter() =
     inherit JsonConverterFactory()
 
     static let isWrappedString (ty: Type) =
-        TypeCache.isUnion ty &&
-        let cases = FSharpType.GetUnionCases(ty, true)
-        cases.Length = 1 &&
-        let fields = cases[0].GetFields()
-        fields.Length = 1 &&
-        fields[0].PropertyType = typeof<string>
+        TypeCache.isUnion ty
+        && let cases = FSharpType.GetUnionCases(ty, true) in
+
+           cases.Length = 1
+           && let fields = cases[ 0 ].GetFields() in
+              fields.Length = 1 && fields[0].PropertyType = typeof<string>
 
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isMap typeToConvert
@@ -206,17 +213,12 @@ type JsonMapConverter() =
         let genArgs = typeToConvert.GetGenericArguments()
         let ty =
             if genArgs[0] = typeof<string> then
-                typedefof<JsonStringMapConverter<_>>
-                    .MakeGenericType([|genArgs[1]|])
+                typedefof<JsonStringMapConverter<_>>.MakeGenericType ([| genArgs[1] |])
             elif isWrappedString genArgs[0] then
-                typedefof<JsonWrappedStringMapConverter<_,_>>
-                    .MakeGenericType(genArgs)
+                typedefof<JsonWrappedStringMapConverter<_, _>>.MakeGenericType (genArgs)
             else
-                typedefof<JsonMapConverter<_,_>>
-                    .MakeGenericType(genArgs)
-        ty.GetConstructor([||])
-            .Invoke([||])
-        :?> JsonConverter
+                typedefof<JsonMapConverter<_, _>>.MakeGenericType (genArgs)
+        ty.GetConstructor([||]).Invoke([||]) :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonMapConverter.CanConvert(typeToConvert)
