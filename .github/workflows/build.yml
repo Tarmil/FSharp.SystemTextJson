@@ -27,6 +27,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      - name: Check formatting
+        run: |
+          dotnet tool restore
+          dotnet fantomas --check -r .
+
       - name: Build
         run: |
           # GH Actions puts us in detached head, but for nbgv, we need to be on the branch
