@@ -292,11 +292,33 @@ module NonStruct =
           CcSecond: string }
         member _.Member = "b"
 
+    let includeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+
+    let dontIncludeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+
     [<Fact>]
-    let ``serialize record member fields`` () =
+    let ``serialize record properties`` () =
         let actual =
-            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, propertyNameCaseInsensitiveOptions)
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, includeRecordPropertiesOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
+
+    [<Fact>]
+    let ``don't serialize record properties`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
+    [<Fact>]
+    let ``deserialize with includeRecordProperties`` () =
+        let actual =
+            JsonSerializer.Deserialize("""{"CcFirst":1,"CcSecond":"a"}""", includeRecordPropertiesOptions)
+        Assert.Equal({ CcFirst = 1; CcSecond = "a" }, actual)
 
 module Struct =
 
@@ -550,8 +572,30 @@ module Struct =
           CcSecond: string }
         member _.Member = "b"
 
+    let includeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+
+    let dontIncludeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+
     [<Fact>]
-    let ``serialize record member fields`` () =
+    let ``serialize record properties`` () =
         let actual =
-            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, propertyNameCaseInsensitiveOptions)
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, includeRecordPropertiesOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
+
+    [<Fact>]
+    let ``don't serialize record properties`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
+    [<Fact>]
+    let ``deserialize with includeRecordProperties`` () =
+        let actual =
+            JsonSerializer.Deserialize("""{"CcFirst":1,"CcSecond":"a"}""", includeRecordPropertiesOptions)
+        Assert.Equal({ CcFirst = 1; CcSecond = "a" }, actual)
