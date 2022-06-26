@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec pwsh -File .githooks/pre-commit-script.ps1

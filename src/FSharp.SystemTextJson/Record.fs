@@ -9,20 +9,18 @@ open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
 
 type internal RecordProperty =
-    {
-        Name: string
-        Type: Type
-        Ignore: bool
-        MustBeNonNull: bool
-        MustBePresent: bool
-        IsSkip: obj -> bool
-        WriteOrder: int
-    }
+    { Name: string
+      Type: Type
+      Ignore: bool
+      MustBeNonNull: bool
+      MustBePresent: bool
+      IsSkip: obj -> bool
+      WriteOrder: int }
 
 type internal IRecordConverter =
-    abstract ReadRestOfObject : byref<Utf8JsonReader> * JsonSerializerOptions * skipFirstRead: bool -> obj
-    abstract WriteRestOfObject : Utf8JsonWriter * obj * JsonSerializerOptions -> unit
-    abstract FieldNames : string[]
+    abstract ReadRestOfObject: byref<Utf8JsonReader> * JsonSerializerOptions * skipFirstRead: bool -> obj
+    abstract WriteRestOfObject: Utf8JsonWriter * obj * JsonSerializerOptions -> unit
+    abstract FieldNames: string[]
 
 type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
     inherit JsonConverter<'T>()
@@ -39,15 +37,14 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     match field.GetCustomAttributes(typeof<JsonPropertyOrderAttribute>, true) with
                     | [| :? JsonPropertyOrderAttribute as attr |] -> attr.Order
                     | _ -> 0
-                struct (revI, i))
+                struct (revI, i)
+            )
         if revIndices |> Array.exists (fun struct (revI, _) -> revI <> 0) then
             // Using Seq.sort rather than Array.sort because it is stable
             let revIndices =
-                revIndices
-                |> Seq.sortBy (fun struct (revI, _) -> revI)
-                |> Array.ofSeq
+                revIndices |> Seq.sortBy (fun struct (revI, _) -> revI) |> Array.ofSeq
             let res = Array.zeroCreate fields.Length
-            for i in 0..res.Length-1 do
+            for i in 0 .. res.Length - 1 do
                 let struct (_, x) = revIndices[i]
                 res[x] <- i
             ValueSome res
@@ -65,9 +62,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     | null -> p.Name
                     | policy -> policy.ConvertName p.Name
             let ignore =
-                p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true)
-                |> Array.isEmpty
-                |> not
+                p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let canBeNull =
                 ignore
                 || options.IgnoreNullValues
@@ -76,15 +71,16 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 ignore
                 || options.IgnoreNullValues
                 || isSkippableFieldType fsOptions p.PropertyType
-            {
-                Name = name
-                Type = p.PropertyType
-                Ignore = ignore
-                MustBeNonNull = not canBeNull
-                MustBePresent = not canBeSkipped
-                IsSkip = isSkip p.PropertyType
-                WriteOrder = match fieldOrderIndices with ValueSome a -> a[i] | ValueNone -> i
-            }
+            { Name = name
+              Type = p.PropertyType
+              Ignore = ignore
+              MustBeNonNull = not canBeNull
+              MustBePresent = not canBeSkipped
+              IsSkip = isSkip p.PropertyType
+              WriteOrder =
+                match fieldOrderIndices with
+                | ValueSome a -> a[i]
+                | ValueNone -> i }
         )
 
     let writeOrderedFieldProps =
@@ -94,9 +90,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     let fieldCount = fieldProps.Length
     let minExpectedFieldCount =
-        fieldProps
-        |> Seq.filter (fun p -> p.MustBePresent)
-        |> Seq.length
+        fieldProps |> Seq.filter (fun p -> p.MustBePresent) |> Seq.length
 
     let ctor = FSharpValue.PreComputeRecordConstructor(recordType, true)
 
@@ -115,9 +109,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     let propertiesByName =
         if options.PropertyNameCaseInsensitive then
             let d = Dictionary(StringComparer.OrdinalIgnoreCase)
-            fieldProps |> Array.iteri (fun i f ->
-                if not f.Ignore then
-                    d[f.Name] <- struct (i, f))
+            fieldProps
+            |> Array.iteri (fun i f -> if not f.Ignore then d[f.Name] <- struct (i, f))
             ValueSome d
         else
             ValueNone
@@ -130,7 +123,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             while found.IsNone && i < fieldCount do
                 let p = fieldProps[i]
                 if reader.ValueTextEquals(p.Name) then
-                    found <- ValueSome (struct (i, p))
+                    found <- ValueSome(struct (i, p))
                 else
                     i <- i + 1
             found
@@ -150,29 +143,38 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         let mutable skipRead = skipFirstRead
         while cont && (skipRead || reader.Read()) do
             match reader.TokenType with
-            | JsonTokenType.EndObject ->
-                cont <- false
+            | JsonTokenType.EndObject -> cont <- false
             | JsonTokenType.PropertyName ->
                 skipRead <- false
                 match fieldIndex &reader with
                 | ValueSome (i, p) when not p.Ignore ->
-                    if p.MustBePresent then
-                        requiredFieldCount <- requiredFieldCount + 1
+                    if p.MustBePresent then requiredFieldCount <- requiredFieldCount + 1
 
                     reader.Read() |> ignore
                     if p.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
-                        let msg = sprintf "%s.%s was expected to be of type %s, but was null." recordType.Name p.Name p.Type.Name
+                        let msg =
+                            sprintf
+                                "%s.%s was expected to be of type %s, but was null."
+                                recordType.Name
+                                p.Name
+                                p.Type.Name
                         raise (JsonException msg)
                     else
                         fields[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
-                | _ ->
-                    reader.Skip()
+                | _ -> reader.Skip()
             | _ -> ()
 
         if requiredFieldCount < minExpectedFieldCount && not options.IgnoreNullValues then
-            for i in 0..fieldCount-1 do
+            for i in 0 .. fieldCount - 1 do
                 if isNull fields[i] && fieldProps[i].MustBePresent then
-                    raise (JsonException("Missing field for record type " + recordType.FullName + ": " + fieldProps[i].Name))
+                    raise (
+                        JsonException(
+                            "Missing field for record type "
+                            + recordType.FullName
+                            + ": "
+                            + fieldProps[i].Name
+                        )
+                    )
 
         ctor fields :?> 'T
 
@@ -194,14 +196,12 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             box (this.ReadRestOfObject(&reader, options, skipFirstRead))
         member this.WriteRestOfObject(writer, value, options) =
             this.WriteRestOfObject(writer, unbox value, options)
-        member _.FieldNames =
-            fieldProps |> Array.map (fun p -> p.Name)
+        member _.FieldNames = fieldProps |> Array.map (fun p -> p.Name)
 
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
-    new() =
-        JsonRecordConverter(JsonFSharpOptions())
+    new() = JsonRecordConverter(JsonFSharpOptions())
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isRecord typeToConvert
@@ -215,9 +215,12 @@ type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
         ) =
         let fsOptions = overrideOptions typeToConvert fsOptions overrides
         typedefof<JsonRecordConverter<_>>
-            .MakeGenericType([|typeToConvert|])
-            .GetConstructor([|typeof<JsonSerializerOptions>; typeof<JsonFSharpOptions>|])
-            .Invoke([|options; fsOptions|])
+            .MakeGenericType([| typeToConvert |])
+            .GetConstructor(
+                [| typeof<JsonSerializerOptions>
+                   typeof<JsonFSharpOptions> |]
+            )
+            .Invoke([| options; fsOptions |])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
