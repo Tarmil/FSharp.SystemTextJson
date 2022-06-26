@@ -287,6 +287,17 @@ module NonStruct =
               FirstName = "Jean" }
         Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual, options))
 
+    type RecordWithReadOnlyMember =
+        { CcFirst: int
+          CcSecond: string }
+        member _.Member = "b"
+
+    [<Fact>]
+    let ``serialize record member fields`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -532,3 +543,15 @@ module Struct =
         o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
+
+    [<Struct>]
+    type RecordWithReadOnlyMember =
+        { CcFirst: int
+          CcSecond: string }
+        member _.Member = "b"
+
+    [<Fact>]
+    let ``serialize record member fields`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, propertyNameCaseInsensitiveOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
