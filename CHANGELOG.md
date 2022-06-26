@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19
+
+* [#111](https://github.com/Tarmil/FSharp.SystemTextJson/issues/111): Support `JsonKnownNamingPolicy` in `JsonFSharpConverterAttribute`.
+
+* [#112](https://github.com/Tarmil/FSharp.SystemTextJson/issues/112): Add `Options` and `Overrides` properties to `JsonFSharpConverter`.
+
+* [#263](https://github.com/Tarmil/FSharp.SystemTextJson/issues/263): Add a nullary constructor for JsonFSharpConverter.
+
+
 ## 0.18
 
 * [#98](https://github.com/Tarmil/FSharp.SystemTextJson/issues/98): Implement `JsonPropertyOrderAttribute` on records.

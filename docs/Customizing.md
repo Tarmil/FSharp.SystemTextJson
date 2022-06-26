@@ -75,8 +75,6 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
         | MyOtherCase of string
     ```
 
-    Note that due to .NET limitations on the types of arguments that can be passed to an attribute, some options are unavailable for `JsonFSharpConverterAttribute`, such as `unionTagNamingPolicy`.
-
 ## `unionEncoding`
 
 The customization option `unionEncoding` defines the format used to encode discriminated unions.
@@ -542,6 +540,8 @@ JsonSerializer.Serialize(WithArgs(123, "Hello, world!"), options)
 // --> {"Case":"withArgs","Fields":[123,"Hello, world!"]}
 ```
 
+When using the attribute, this option has enum type `JsonKnownNamingPolicy` instead.
+
 ## `unionFieldNamingPolicy`
 
 This option sets the naming policy for union field names.
@@ -559,6 +559,8 @@ type Person = Person of FirstName: string * LastName: string
 JsonSerializer.Serialize(Person("John", "Doe"), options)
 // --> {"Case":"Person","firstName":"John","lastName":"Doe"}
 ```
+
+When using the attribute, this option has enum type `JsonKnownNamingPolicy` instead.
 
 ## `unionTagCaseInsensitive`
 
