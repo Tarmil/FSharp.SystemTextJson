@@ -32,10 +32,15 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     let fields = FSharpType.GetRecordFields(recordType, true)
 
     let allProperties =
+        let all = recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
         if fsOptions.IncludeRecordProperties then
-            recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
+            all
         else
-            fields
+            all
+            |> Array.filter (fun p ->
+                Array.contains p fields
+                || (p.GetCustomAttributes(typeof<JsonIncludeAttribute>, true) |> Seq.isEmpty |> not)
+            )
 
     let fieldOrderIndices =
         let revIndices =
@@ -94,6 +99,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 | ValueSome a -> a[i]
                 | ValueNone -> i }
         )
+
     let fieldProps =
         if fsOptions.IncludeRecordProperties then
             allProps |> Array.take fields.Length
@@ -105,7 +111,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         a |> Array.sortInPlaceBy (fun struct (_, x) -> x.WriteOrder)
         a
 
-    let fieldCount = fieldProps.Length
+    let fieldCount = fields.Length
     let minExpectedFieldCount =
         fieldProps |> Seq.filter (fun p -> p.MustBePresent) |> Seq.length
 

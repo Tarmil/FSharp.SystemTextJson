@@ -320,6 +320,21 @@ module NonStruct =
             JsonSerializer.Deserialize("""{"CcFirst":1,"CcSecond":"a"}""", includeRecordPropertiesOptions)
         Assert.Equal({ CcFirst = 1; CcSecond = "a" }, actual)
 
+    type RecordWithInclude =
+        { incX: int
+          incY: string }
+
+        [<JsonInclude>]
+        member _.incZ = 42
+
+        member _.incT = "t"
+
+    [<Fact>]
+    let ``serialize with JsonInclude property`` () =
+        let actual =
+            JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -599,3 +614,19 @@ module Struct =
         let actual =
             JsonSerializer.Deserialize("""{"CcFirst":1,"CcSecond":"a"}""", includeRecordPropertiesOptions)
         Assert.Equal({ CcFirst = 1; CcSecond = "a" }, actual)
+
+    [<Struct>]
+    type RecordWithInclude =
+        { incX: int
+          incY: string }
+
+        [<JsonInclude>]
+        member _.incZ = 42
+
+        member _.incT = "t"
+
+    [<Fact>]
+    let ``serialize with JsonInclude property`` () =
+        let actual =
+            JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
