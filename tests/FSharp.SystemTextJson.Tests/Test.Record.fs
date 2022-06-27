@@ -291,6 +291,8 @@ module NonStruct =
         { CcFirst: int
           CcSecond: string }
         member _.Member = "b"
+        [<JsonIgnore>]
+        member _.IgnoredMember = "c"
 
     let includeRecordPropertiesOptions =
         JsonSerializerOptions(PropertyNameCaseInsensitive = true)
@@ -586,6 +588,8 @@ module Struct =
         { CcFirst: int
           CcSecond: string }
         member _.Member = "b"
+        [<JsonIgnore>]
+        member _.IgnoredMember = "c"
 
     let includeRecordPropertiesOptions =
         JsonSerializerOptions(PropertyNameCaseInsensitive = true)
