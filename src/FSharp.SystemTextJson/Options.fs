@@ -113,6 +113,9 @@ module internal Default =
     let UnionTagCaseInsensitive = false
 
     [<Literal>]
+    let IncludeRecordProperties = false
+
+    [<Literal>]
     let AllowNullFields = false
 
 type JsonFSharpOptions
@@ -124,6 +127,7 @@ type JsonFSharpOptions
         [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionFieldNamingPolicy: JsonNamingPolicy,
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
         [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
+        [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
         [<Optional; DefaultParameterValue(false)>] allowOverride: bool
     ) =
 
@@ -141,6 +145,8 @@ type JsonFSharpOptions
 
     member this.AllowNullFields = allowNullFields
 
+    member this.IncludeRecordProperties = includeRecordProperties
+
     member this.AllowOverride = allowOverride
 
     member this.WithUnionEncoding(unionEncoding) =
@@ -152,6 +158,7 @@ type JsonFSharpOptions
             unionFieldNamingPolicy = unionFieldNamingPolicy,
             unionTagCaseInsensitive = unionTagCaseInsensitive,
             allowNullFields = allowNullFields,
+            includeRecordProperties = includeRecordProperties,
             allowOverride = allowOverride
         )
 

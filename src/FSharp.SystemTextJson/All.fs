@@ -37,6 +37,7 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
         [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionFieldNamingPolicy: JsonNamingPolicy,
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
         [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
+        [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
         [<Optional; DefaultParameterValue(false)>] allowOverride: bool,
         [<Optional>] overrides: IDictionary<Type, JsonFSharpOptions>) =
         JsonFSharpConverter(
@@ -48,6 +49,7 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
                 unionFieldNamingPolicy = unionFieldNamingPolicy,
                 unionTagCaseInsensitive = unionTagCaseInsensitive,
                 allowNullFields = allowNullFields,
+                includeRecordProperties = includeRecordProperties,
                 allowOverride = allowOverride
             ),
             overrides
@@ -62,7 +64,8 @@ type JsonFSharpConverterAttribute
         [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionTagNamingPolicy: JsonKnownNamingPolicy,
         [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionFieldNamingPolicy: JsonKnownNamingPolicy,
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
-        [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool
+        [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
+        [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool
     ) =
     inherit JsonConverterAttribute()
 
@@ -83,6 +86,7 @@ type JsonFSharpConverterAttribute
             unionFieldNamingPolicy = namingPolicy unionFieldNamingPolicy,
             unionTagCaseInsensitive = unionTagCaseInsensitive,
             allowNullFields = allowNullFields,
+            includeRecordProperties = includeRecordProperties,
             allowOverride = false
         )
 

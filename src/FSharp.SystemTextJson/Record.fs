@@ -4,6 +4,7 @@ namespace System.Text.Json.Serialization
 
 open System
 open System.Collections.Generic
+open System.Reflection
 open System.Text.Json
 open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
@@ -15,6 +16,7 @@ type internal RecordProperty =
       MustBeNonNull: bool
       MustBePresent: bool
       IsSkip: obj -> bool
+      Read: obj -> obj
       WriteOrder: int }
 
 type internal IRecordConverter =
@@ -29,9 +31,20 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     let fields = FSharpType.GetRecordFields(recordType, true)
 
+    let allProperties =
+        let all = recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
+        if fsOptions.IncludeRecordProperties then
+            all
+        else
+            all
+            |> Array.filter (fun p ->
+                Array.contains p fields
+                || (p.GetCustomAttributes(typeof<JsonIncludeAttribute>, true) |> Seq.isEmpty |> not)
+            )
+
     let fieldOrderIndices =
         let revIndices =
-            fields
+            allProperties
             |> Array.mapi (fun i field ->
                 let revI =
                     match field.GetCustomAttributes(typeof<JsonPropertyOrderAttribute>, true) with
@@ -43,7 +56,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             // Using Seq.sort rather than Array.sort because it is stable
             let revIndices =
                 revIndices |> Seq.sortBy (fun struct (revI, _) -> revI) |> Array.ofSeq
-            let res = Array.zeroCreate fields.Length
+            let res = Array.zeroCreate allProperties.Length
             for i in 0 .. res.Length - 1 do
                 let struct (_, x) = revIndices[i]
                 res[x] <- i
@@ -51,8 +64,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         else
             ValueNone
 
-    let fieldProps =
-        fields
+    let allProps =
+        allProperties
         |> Array.mapi (fun i p ->
             let name =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
@@ -71,24 +84,34 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 ignore
                 || options.IgnoreNullValues
                 || isSkippableFieldType fsOptions p.PropertyType
+            let read =
+                let m = p.GetGetMethod()
+                fun o -> m.Invoke(o, Array.empty)
             { Name = name
               Type = p.PropertyType
               Ignore = ignore
               MustBeNonNull = not canBeNull
               MustBePresent = not canBeSkipped
               IsSkip = isSkip p.PropertyType
+              Read = read
               WriteOrder =
                 match fieldOrderIndices with
                 | ValueSome a -> a[i]
                 | ValueNone -> i }
         )
 
+    let fieldProps =
+        if fsOptions.IncludeRecordProperties then
+            allProps |> Array.take fields.Length
+        else
+            allProps
+
     let writeOrderedFieldProps =
-        let a = Array.mapi (fun i x -> struct (i, x)) fieldProps
+        let a = Array.mapi (fun i x -> struct (i, x)) allProps
         a |> Array.sortInPlaceBy (fun struct (_, x) -> x.WriteOrder)
         a
 
-    let fieldCount = fieldProps.Length
+    let fieldCount = fields.Length
     let minExpectedFieldCount =
         fieldProps |> Seq.filter (fun p -> p.MustBePresent) |> Seq.length
 
@@ -185,7 +208,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     member internal _.WriteRestOfObject(writer, value, options) =
         let values = dector value
         for struct (i, p) in writeOrderedFieldProps do
-            let v = values[i]
+            let v = if i < fieldCount then values[i] else p.Read value
             if not p.Ignore && not (options.IgnoreNullValues && isNull v) && not (p.IsSkip v) then
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)

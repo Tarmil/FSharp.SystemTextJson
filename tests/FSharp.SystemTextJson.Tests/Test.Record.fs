@@ -287,6 +287,56 @@ module NonStruct =
               FirstName = "Jean" }
         Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual, options))
 
+    type RecordWithReadOnlyMember =
+        { CcFirst: int
+          CcSecond: string }
+        member _.Member = "b"
+        [<JsonIgnore>]
+        member _.IgnoredMember = "c"
+
+    let includeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+
+    let dontIncludeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+
+    [<Fact>]
+    let ``serialize record properties`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, includeRecordPropertiesOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
+
+    [<Fact>]
+    let ``don't serialize record properties`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
+    [<Fact>]
+    let ``deserialize with includeRecordProperties`` () =
+        let actual =
+            JsonSerializer.Deserialize("""{"CcFirst":1,"CcSecond":"a"}""", includeRecordPropertiesOptions)
+        Assert.Equal({ CcFirst = 1; CcSecond = "a" }, actual)
+
+    type RecordWithInclude =
+        { incX: int
+          incY: string }
+
+        [<JsonInclude>]
+        member _.incZ = 42
+
+        member _.incT = "t"
+
+    [<Fact>]
+    let ``serialize with JsonInclude property`` () =
+        let actual =
+            JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -532,3 +582,55 @@ module Struct =
         o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
+
+    [<Struct>]
+    type RecordWithReadOnlyMember =
+        { CcFirst: int
+          CcSecond: string }
+        member _.Member = "b"
+        [<JsonIgnore>]
+        member _.IgnoredMember = "c"
+
+    let includeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+
+    let dontIncludeRecordPropertiesOptions =
+        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+
+    [<Fact>]
+    let ``serialize record properties`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, includeRecordPropertiesOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a","Member":"b"}""", actual)
+
+    [<Fact>]
+    let ``don't serialize record properties`` () =
+        let actual =
+            JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
+
+    [<Fact>]
+    let ``deserialize with includeRecordProperties`` () =
+        let actual =
+            JsonSerializer.Deserialize("""{"CcFirst":1,"CcSecond":"a"}""", includeRecordPropertiesOptions)
+        Assert.Equal({ CcFirst = 1; CcSecond = "a" }, actual)
+
+    [<Struct>]
+    type RecordWithInclude =
+        { incX: int
+          incY: string }
+
+        [<JsonInclude>]
+        member _.incZ = 42
+
+        member _.incT = "t"
+
+    [<Fact>]
+    let ``serialize with JsonInclude property`` () =
+        let actual =
+            JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
+        Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
