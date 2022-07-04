@@ -176,6 +176,11 @@ module NonStruct =
     let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
     ignoreNullOptions.Converters.Add(JsonFSharpConverter())
 
+    let newIgnoreNullOptions =
+        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+
+    newIgnoreNullOptions.Converters.Add(JsonFSharpConverter())
+
     [<AllowNullLiteral>]
     type Cls() =
         class
@@ -191,6 +196,16 @@ module NonStruct =
     [<Fact>]
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize({ cls = null; y = 1 }, ignoreNullOptions)
+        Assert.Equal("""{"y":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual = JsonSerializer.Deserialize("""{"y":1}""", newIgnoreNullOptions)
+        Assert.Equal({ cls = null; y = 1 }, actual)
+
+    [<Fact>]
+    let ``serialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual = JsonSerializer.Serialize({ cls = null; y = 1 }, newIgnoreNullOptions)
         Assert.Equal("""{"y":1}""", actual)
 
     let propertyNamingPolicyOptions =
@@ -511,6 +526,11 @@ module Struct =
     let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
     ignoreNullOptions.Converters.Add(JsonFSharpConverter())
 
+    let newIgnoreNullOptions =
+        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+
+    newIgnoreNullOptions.Converters.Add(JsonFSharpConverter())
+
     [<AllowNullLiteral>]
     type Cls() =
         class
@@ -527,6 +547,16 @@ module Struct =
     [<Fact>]
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize({ cls = null; y = 1 }, ignoreNullOptions)
+        Assert.Equal("""{"y":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual = JsonSerializer.Deserialize("""{"y":1}""", newIgnoreNullOptions)
+        Assert.Equal({ cls = null; y = 1 }, actual)
+
+    [<Fact>]
+    let ``serialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual = JsonSerializer.Serialize({ cls = null; y = 1 }, newIgnoreNullOptions)
         Assert.Equal("""{"y":1}""", actual)
 
     let propertyNamingPolicyOptions =

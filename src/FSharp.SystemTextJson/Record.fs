@@ -1,7 +1,5 @@
 namespace System.Text.Json.Serialization
 
-#nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
-
 open System
 open System.Collections.Generic
 open System.Reflection
@@ -79,7 +77,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let nullValue = tryGetNullValue fsOptions p.PropertyType
             let canBeSkipped =
                 ignore
-                || options.IgnoreNullValues
+                || ignoreNullValues options
                 || isSkippableFieldType fsOptions p.PropertyType
             let read =
                 let m = p.GetGetMethod()
@@ -184,7 +182,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 | _ -> reader.Skip()
             | _ -> ()
 
-        if requiredFieldCount < minExpectedFieldCount && not options.IgnoreNullValues then
+        if requiredFieldCount < minExpectedFieldCount && not (ignoreNullValues options) then
             for i in 0 .. fieldCount - 1 do
                 if isNull fields[i] && fieldProps[i].MustBePresent then
                     failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Name
@@ -199,7 +197,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         let values = dector value
         for struct (i, p) in writeOrderedFieldProps do
             let v = if i < fieldCount then values[i] else p.Read value
-            if not p.Ignore && not (options.IgnoreNullValues && isNull v) && not (p.IsSkip v) then
+            if not p.Ignore && not (ignoreNullValues options && isNull v) && not (p.IsSkip v) then
                 writer.WritePropertyName(p.Name)
                 JsonSerializer.Serialize(writer, v, p.Type, options)
         writer.WriteEndObject()
