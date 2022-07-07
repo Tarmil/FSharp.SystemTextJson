@@ -12,7 +12,7 @@ open FSharp.Reflection
 type private Field =
     { Type: Type
       Name: string
-      MustBeNonNull: bool
+      NullValue: obj voption
       MustBePresent: bool
       IsSkip: obj -> bool }
 
@@ -46,6 +46,8 @@ type JsonUnionConverter<'T>
         fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags
 
     let ty = typeof<'T>
+
+    let nullValue = tryGetNullValue fsOptions ty |> ValueOption.map (fun x -> x :?> 'T)
 
     let cases =
         cases
@@ -99,7 +101,7 @@ type JsonUnionConverter<'T>
                         match policy with
                         | null -> name
                         | policy -> policy.ConvertName name
-                      MustBeNonNull = not (isNullableFieldType fsOptions p.PropertyType)
+                      NullValue = tryGetNullValue fsOptions p.PropertyType
                       MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
                       IsSkip = isSkip p.PropertyType }
                 )
@@ -287,10 +289,18 @@ type JsonUnionConverter<'T>
 
     let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) (options: JsonSerializerOptions) =
         reader.Read() |> ignore
-        if f.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
-            let msg =
-                sprintf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
-            raise (JsonException msg)
+        if reader.TokenType = JsonTokenType.Null then
+            match f.NullValue with
+            | ValueSome v -> v
+            | ValueNone ->
+                let msg =
+                    sprintf
+                        "%s.%s(%s) was expected to be of type %s, but was null."
+                        ty.Name
+                        case.Name
+                        f.Name
+                        f.Type.Name
+                raise (JsonException msg)
         else
             JsonSerializer.Deserialize(&reader, f.Type, options)
 
@@ -506,7 +516,11 @@ type JsonUnionConverter<'T>
 
     override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
-        | JsonTokenType.Null when isNullableUnion ty -> (null: obj) :?> 'T
+        | JsonTokenType.Null ->
+            nullValue
+            |> ValueOption.defaultWith (fun () ->
+                raise (JsonException(sprintf "Union %s can't be deserialized from null" ty.FullName))
+            )
         | JsonTokenType.String when unwrapFieldlessTags ->
             let case = getCaseByTagReader &reader
             case.Ctor [||] :?> 'T
@@ -646,21 +660,15 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
                 .Invoke([||])
             :?> JsonConverter
         else
-            let cases = FSharpType.GetUnionCases(typeToConvert, true)
-            let mutable fields = Unchecked.defaultof<_>
-            let isUnwrappedSingleCase =
-                fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleCaseUnions
-                && cases.Length = 1
-                && (fields <- cases[ 0 ].GetFields()
-                    fields.Length = 1)
-            if isUnwrappedSingleCase then
+            match tryGetUnwrappedSingleCaseField (fsOptions, typeToConvert) with
+            | true, cases, unwrappedSingleCaseField ->
                 let case = cases[0]
                 jsonUnwrappedUnionConverterTy
-                    .MakeGenericType([| typeToConvert; fields[0].PropertyType |])
+                    .MakeGenericType([| typeToConvert; unwrappedSingleCaseField.PropertyType |])
                     .GetConstructor([| caseTy |])
                     .Invoke([| case |])
                 :?> JsonConverter
-            else
+            | false, cases, _ ->
                 jsonUnionConverterTy
                     .MakeGenericType([| typeToConvert |])
                     .GetConstructor([| optionsTy; fsOptionsTy; casesTy; overridesTy |])

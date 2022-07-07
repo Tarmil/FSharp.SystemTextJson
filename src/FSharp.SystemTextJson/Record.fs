@@ -13,7 +13,7 @@ type internal RecordProperty =
     { Name: string
       Type: Type
       Ignore: bool
-      MustBeNonNull: bool
+      NullValue: obj voption
       MustBePresent: bool
       IsSkip: obj -> bool
       Read: obj -> obj
@@ -76,10 +76,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                     | policy -> policy.ConvertName p.Name
             let ignore =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
-            let canBeNull =
-                ignore
-                || options.IgnoreNullValues
-                || isNullableFieldType fsOptions p.PropertyType
+            let nullValue = tryGetNullValue fsOptions p.PropertyType
             let canBeSkipped =
                 ignore
                 || options.IgnoreNullValues
@@ -90,7 +87,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             { Name = name
               Type = p.PropertyType
               Ignore = ignore
-              MustBeNonNull = not canBeNull
+              NullValue = nullValue
               MustBePresent = not canBeSkipped
               IsSkip = isSkip p.PropertyType
               Read = read
@@ -172,16 +169,18 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 match fieldIndex &reader with
                 | ValueSome (i, p) when not p.Ignore ->
                     if p.MustBePresent then requiredFieldCount <- requiredFieldCount + 1
-
                     reader.Read() |> ignore
-                    if p.MustBeNonNull && reader.TokenType = JsonTokenType.Null then
-                        let msg =
-                            sprintf
-                                "%s.%s was expected to be of type %s, but was null."
-                                recordType.Name
-                                p.Name
-                                p.Type.Name
-                        raise (JsonException msg)
+                    if reader.TokenType = JsonTokenType.Null then
+                        match p.NullValue with
+                        | ValueSome v -> fields[i] <- v
+                        | ValueNone ->
+                            let msg =
+                                sprintf
+                                    "%s.%s was expected to be of type %s, but was null."
+                                    recordType.Name
+                                    p.Name
+                                    p.Type.Name
+                            raise (JsonException msg)
                     else
                         fields[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
                 | _ -> reader.Skip()
