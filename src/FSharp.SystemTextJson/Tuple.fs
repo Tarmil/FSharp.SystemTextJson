@@ -29,9 +29,7 @@ type JsonTupleConverter<'T>(fsOptions) =
             reader.Read() |> ignore
             let value = JsonSerializer.Deserialize(&reader, p.Type, options)
             if p.NeedsNullChecking && isNull (box value) then
-                let msg =
-                    sprintf "Unexpected null inside tuple-array. Expected type %s, but got null." p.Type.Name
-                raise (JsonException msg)
+                failf "Unexpected null inside tuple-array. Expected type %s, but got null." p.Type.Name
             elts[i] <- value
         readExpecting JsonTokenType.EndArray "end of array" &reader typeToConvert
         ctor elts :?> 'T

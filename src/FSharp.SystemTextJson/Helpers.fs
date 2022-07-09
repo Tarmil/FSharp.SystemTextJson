@@ -7,17 +7,19 @@ open System.Text.Json
 open System.Text.Json.Serialization
 open FSharp.Reflection
 
-let fail expected (reader: byref<Utf8JsonReader>) (ty: Type) =
-    sprintf "Failed to parse type %s: expected %s, found %A" ty.FullName expected reader.TokenType
-    |> JsonException
-    |> raise
+let failf format =
+    Printf.kprintf (JsonException >> raise) format
+
+let failExpecting expected (reader: byref<Utf8JsonReader>) (ty: Type) =
+    failf "Failed to parse type %s: expected %s, found %A" ty.FullName expected reader.TokenType
 
 let expectAlreadyRead expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>) ty =
-    if reader.TokenType <> expectedTokenType then fail expectedLabel &reader ty
+    if reader.TokenType <> expectedTokenType then
+        failExpecting expectedLabel &reader ty
 
 let readExpecting expectedTokenType expectedLabel (reader: byref<Utf8JsonReader>) ty =
     if not (reader.Read()) || reader.TokenType <> expectedTokenType then
-        fail expectedLabel &reader ty
+        failExpecting expectedLabel &reader ty
 
 let inline readIsExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
     reader.Read()
@@ -26,7 +28,7 @@ let inline readIsExpectingPropertyNamed (expectedPropertyName: string) (reader: 
 
 let readExpectingPropertyNamed (expectedPropertyName: string) (reader: byref<Utf8JsonReader>) ty =
     if not <| readIsExpectingPropertyNamed expectedPropertyName &reader ty then
-        fail ("\"" + expectedPropertyName + "\"") &reader ty
+        failExpecting ("\"" + expectedPropertyName + "\"") &reader ty
 
 let isNullableUnion (ty: Type) =
     ty.GetCustomAttributes(typeof<CompilationRepresentationAttribute>, false)

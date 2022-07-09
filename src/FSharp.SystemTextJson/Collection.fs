@@ -16,9 +16,7 @@ type JsonListConverter<'T>(fsOptions) =
         if needsNullChecking then
             for elem in array do
                 if isNull (box elem) then
-                    let msg =
-                        sprintf "Unexpected null inside array. Expected only elements of type %s" tType.Name
-                    raise (JsonException msg)
+                    failf "Unexpected null inside array. Expected only elements of type %s" tType.Name
         array |> List.ofArray
 
     override _.Write(writer, value, options) =
@@ -65,9 +63,7 @@ type JsonSetConverter<'T when 'T: comparison>(fsOptions) =
         if needsNullChecking then
             for elem in set do
                 if isNull (box elem) then
-                    let msg =
-                        sprintf "Unexpected null inside set. Expected only elements of type %s" tType.Name
-                    raise (JsonException msg)
+                    failf "Unexpected null inside set. Expected only elements of type %s" tType.Name
         set
 
     override _.Write(writer, value, options) =
@@ -107,7 +103,7 @@ type JsonStringMapConverter<'V>() =
                 let key = reader.GetString()
                 let value = JsonSerializer.Deserialize<'V>(&reader, options)
                 read (Map.add key value acc) &reader options
-            | _ -> fail "JSON field" &reader ty
+            | _ -> failExpecting "JSON field" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
@@ -144,7 +140,7 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
                 let key = reader.GetString()
                 let value = JsonSerializer.Deserialize<'V>(&reader, options)
                 read (Map.add (wrap [| key |] :?> 'K) value acc) &reader options
-            | _ -> fail "JSON field" &reader ty
+            | _ -> failExpecting "JSON field" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
@@ -180,7 +176,7 @@ type JsonMapConverter<'K, 'V when 'K: comparison>() =
                 let value = JsonSerializer.Deserialize<'V>(&reader, options)
                 readExpecting JsonTokenType.EndArray "JSON array" &reader ty
                 read (Map.add key value acc) &reader options
-            | _ -> fail "JSON array" &reader ty
+            | _ -> failExpecting "JSON array" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader ty

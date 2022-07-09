@@ -174,13 +174,11 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                         match p.NullValue with
                         | ValueSome v -> fields[i] <- v
                         | ValueNone ->
-                            let msg =
-                                sprintf
-                                    "%s.%s was expected to be of type %s, but was null."
-                                    recordType.Name
-                                    p.Name
-                                    p.Type.Name
-                            raise (JsonException msg)
+                            failf
+                                "%s.%s was expected to be of type %s, but was null."
+                                recordType.Name
+                                p.Name
+                                p.Type.Name
                     else
                         fields[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
                 | _ -> reader.Skip()
@@ -189,14 +187,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         if requiredFieldCount < minExpectedFieldCount && not options.IgnoreNullValues then
             for i in 0 .. fieldCount - 1 do
                 if isNull fields[i] && fieldProps[i].MustBePresent then
-                    raise (
-                        JsonException(
-                            "Missing field for record type "
-                            + recordType.FullName
-                            + ": "
-                            + fieldProps[i].Name
-                        )
-                    )
+                    failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Name
 
         ctor fields :?> 'T
 

@@ -217,7 +217,7 @@ type JsonUnionConverter<'T>
                 | true, c -> ValueSome c
                 | false, _ -> ValueNone
         match found with
-        | ValueNone -> raise (JsonException("Unknown case for union type " + ty.FullName + ": " + reader.GetString()))
+        | ValueNone -> failf "Unknown case for union type %s: %s" ty.FullName (reader.GetString())
         | ValueSome case -> case
 
     let getCaseByTagString tag =
@@ -238,7 +238,7 @@ type JsonUnionConverter<'T>
                 | true, c -> ValueSome c
                 | false, _ -> ValueNone
         match found with
-        | ValueNone -> raise (JsonException("Unknown case for union type " + ty.FullName + ": " + tag))
+        | ValueNone -> failf "Unknown case for union type %s: %s" ty.FullName tag
         | ValueSome case -> case
 
     let getCaseByFieldName (reader: byref<Utf8JsonReader>) =
@@ -259,15 +259,7 @@ type JsonUnionConverter<'T>
                 | true, p -> ValueSome p
                 | false, _ -> ValueNone
         match found with
-        | ValueNone ->
-            raise (
-                JsonException(
-                    "Unknown case for union type "
-                    + ty.FullName
-                    + " due to unknown field: "
-                    + reader.GetString()
-                )
-            )
+        | ValueNone -> failf "Unknown case for union type %s due to unknown field: %s" ty.FullName (reader.GetString())
         | ValueSome case -> case
 
     let fieldIndexByName (reader: byref<Utf8JsonReader>) (case: Case) =
@@ -293,14 +285,7 @@ type JsonUnionConverter<'T>
             match f.NullValue with
             | ValueSome v -> v
             | ValueNone ->
-                let msg =
-                    sprintf
-                        "%s.%s(%s) was expected to be of type %s, but was null."
-                        ty.Name
-                        case.Name
-                        f.Name
-                        f.Type.Name
-                raise (JsonException msg)
+                failf "%s.%s(%s) was expected to be of type %s, but was null." ty.Name case.Name f.Name f.Type.Name
         else
             JsonSerializer.Deserialize(&reader, f.Type, options)
 
@@ -339,7 +324,7 @@ type JsonUnionConverter<'T>
             | _ -> ()
 
         if fieldsFound < case.MinExpectedFieldCount && not options.IgnoreNullValues then
-            raise (JsonException("Missing field for union type " + ty.FullName))
+            failf "Missing field for union type %s" ty.FullName
         case.Ctor fields :?> 'T
 
     let readFieldsAsRestOfObject
@@ -377,10 +362,7 @@ type JsonUnionConverter<'T>
         let document = JsonDocument.ParseValue(&reader)
         match document.RootElement.TryGetProperty fsOptions.UnionTagName with
         | true, element -> getCaseByTagString (element.GetString())
-        | false, _ ->
-            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionTagName
-            |> JsonException
-            |> raise
+        | false, _ -> failf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionTagName
 
     let getCase (reader: byref<Utf8JsonReader>) =
         let mutable snapshot = reader
@@ -391,9 +373,7 @@ type JsonUnionConverter<'T>
         elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.AllowUnorderedTag then
             struct (getCaseFromDocument reader, true)
         else
-            sprintf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionTagName
-            |> JsonException
-            |> raise
+            failf "Failed to find union case field for %s: expected %s" ty.FullName fsOptions.UnionTagName
 
     let readAdjacentTag (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         expectAlreadyRead JsonTokenType.StartObject "object" &reader ty
@@ -440,8 +420,8 @@ type JsonUnionConverter<'T>
         | JsonTokenType.EndObject ->
             match fieldlessCase with
             | ValueSome case -> case.Ctor [||] :?> 'T
-            | ValueNone -> fail "case field" &reader ty
-        | _ -> fail "case field" &reader ty
+            | ValueNone -> failExpecting "case field" &reader ty
+        | _ -> failExpecting "case field" &reader ty
 
     let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         let fields = case.Fields
@@ -518,9 +498,7 @@ type JsonUnionConverter<'T>
         match reader.TokenType with
         | JsonTokenType.Null ->
             nullValue
-            |> ValueOption.defaultWith (fun () ->
-                raise (JsonException(sprintf "Union %s can't be deserialized from null" ty.FullName))
-            )
+            |> ValueOption.defaultWith (fun () -> failf "Union %s can't be deserialized from null" ty.FullName)
         | JsonTokenType.String when unwrapFieldlessTags ->
             let case = getCaseByTagReader &reader
             case.Ctor [||] :?> 'T
@@ -531,15 +509,11 @@ type JsonUnionConverter<'T>
             | JsonUnionEncoding.InternalTag -> readInternalTag &reader options
             | UntaggedBit ->
                 if not hasDistinctFieldNames then
-                    raise (
-                        JsonException(
-                            sprintf
-                                "Union %s can't be deserialized as Untagged because it has duplicate field names across unions"
-                                ty.FullName
-                        )
-                    )
+                    failf
+                        "Union %s can't be deserialized as Untagged because it has duplicate field names across unions"
+                        ty.FullName
                 readUntagged &reader options
-            | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
+            | _ -> failf "Invalid union encoding: %A" fsOptions.UnionEncoding
 
     override _.Write(writer, value, options) =
         let value = box value
@@ -557,7 +531,7 @@ type JsonUnionConverter<'T>
                 | JsonUnionEncoding.ExternalTag -> writeExternalTag writer case value options
                 | JsonUnionEncoding.InternalTag -> writeInternalTag writer case value options
                 | UntaggedBit -> writeUntagged writer case value options
-                | _ -> raise (JsonException("Invalid union encoding: " + string fsOptions.UnionEncoding))
+                | _ -> failf "Invalid union encoding: %A" fsOptions.UnionEncoding
 
 type JsonSkippableConverter<'T>() =
     inherit JsonConverter<Skippable<'T>>()
