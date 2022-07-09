@@ -53,3 +53,13 @@ let ``regression #100`` () =
         Rec2 { Case = "Rec2"; other = 42 },
         JsonSerializer.Deserialize("""{"Case":"Rec2","other":42}""", options)
     )
+
+type MyRecord = { MyUnion: MyUnion }
+
+and MyUnion = MyUnion of int voption
+
+[<Fact>]
+let ``regression #106`` () =
+    let options = JsonSerializerOptions()
+    options.Converters.Add(JsonFSharpConverter())
+    Assert.Equal({ MyUnion = MyUnion ValueNone }, JsonSerializer.Deserialize("""{"MyUnion":null}""", options))
