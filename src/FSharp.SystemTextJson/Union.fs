@@ -90,6 +90,7 @@ type JsonUnionConverter<'T>
                             name
                         else
                             name + string nameIndex
+                    let canBeSkipped = ignoreNullValues options || isSkippableType p.PropertyType
                     { Type = p.PropertyType
                       Name =
                         let policy =
@@ -100,7 +101,7 @@ type JsonUnionConverter<'T>
                         | null -> name
                         | policy -> policy.ConvertName name
                       NullValue = tryGetNullValue fsOptions p.PropertyType
-                      MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
+                      MustBePresent = not canBeSkipped
                       IsSkip = isSkip p.PropertyType }
                 )
             let fieldsByName =

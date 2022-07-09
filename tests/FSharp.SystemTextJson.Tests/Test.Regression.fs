@@ -63,3 +63,39 @@ let ``regression #106`` () =
     let options = JsonSerializerOptions()
     options.Converters.Add(JsonFSharpConverter())
     Assert.Equal({ MyUnion = MyUnion ValueNone }, JsonSerializer.Deserialize("""{"MyUnion":null}""", options))
+
+type Person = { FirstName: string; LastName: string option; age: int }
+
+[<Fact>]
+let ``regression #123`` () =
+    let fsOptions =
+        JsonFSharpConverter(
+            JsonUnionEncoding.UnwrapSingleCaseUnions
+            ||| JsonUnionEncoding.UnwrapOption
+            ||| JsonUnionEncoding.NamedFields
+            ||| JsonUnionEncoding.UnwrapFieldlessTags
+        )
+
+    let noSkipOptions = JsonSerializerOptions()
+    noSkipOptions.Converters.Add(fsOptions)
+    let ex =
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<Person>("""{"FirstName": "yarr", "age": 5 }""", noSkipOptions)
+            |> ignore
+        )
+    Assert.Equal("Missing field for record type Tests.Regression+Person: LastName", ex.Message)
+
+    let skipOptions =
+        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+    skipOptions.Converters.Add(fsOptions)
+    Assert.Equal(
+        { FirstName = "yarr"; LastName = None; age = 5 },
+        JsonSerializer.Deserialize<Person>("""{"FirstName": "yarr", "age": 5 }""", skipOptions)
+    )
+
+    let skipOptions2 = JsonSerializerOptions(IgnoreNullValues = true)
+    skipOptions2.Converters.Add(fsOptions)
+    Assert.Equal(
+        { FirstName = "yarr"; LastName = None; age = 5 },
+        JsonSerializer.Deserialize<Person>("""{"FirstName": "yarr", "age": 5 }""", skipOptions2)
+    )

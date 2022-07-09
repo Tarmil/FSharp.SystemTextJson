@@ -76,9 +76,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let nullValue = tryGetNullValue fsOptions p.PropertyType
             let canBeSkipped =
-                ignore
-                || ignoreNullValues options
-                || isSkippableFieldType fsOptions p.PropertyType
+                ignore || ignoreNullValues options || isSkippableType p.PropertyType
             let read =
                 let m = p.GetGetMethod()
                 fun o -> m.Invoke(o, Array.empty)
