@@ -136,3 +136,8 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: I
 let ignoreNullValues (options: JsonSerializerOptions) =
     options.IgnoreNullValues
     || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+
+let convertName (policy: JsonNamingPolicy) (name: string) =
+    match policy with
+    | null -> name
+    | policy -> policy.ConvertName(name)

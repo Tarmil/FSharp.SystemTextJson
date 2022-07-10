@@ -68,10 +68,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let name =
                 match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
                 | [| :? JsonPropertyNameAttribute as name |] -> name.Name
-                | _ ->
-                    match options.PropertyNamingPolicy with
-                    | null -> p.Name
-                    | policy -> policy.ConvertName p.Name
+                | _ -> convertName options.PropertyNamingPolicy p.Name
             let ignore =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let nullValue = tryGetNullValue fsOptions p.PropertyType

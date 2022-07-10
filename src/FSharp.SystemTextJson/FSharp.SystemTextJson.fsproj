@@ -18,6 +18,7 @@
     <Compile Include="TypeCache.fs" />
     <Compile Include="Skippable.fs" />
     <Compile Include="Options.fs" />
+    <Compile Include="JsonName.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Collection.fs" />
     <Compile Include="Tuple.fs" />
