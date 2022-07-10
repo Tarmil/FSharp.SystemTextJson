@@ -1,5 +1,7 @@
 namespace System.Text.Json.Serialization
 
+#nowarn "42"
+
 open System
 open System.Collections.Generic
 
@@ -44,7 +46,7 @@ type JsonNameComparer(stringComparer: StringComparer) =
         match x with
         | JsonName.String x -> stringComparer.GetHashCode(x)
         | JsonName.Int x -> x ^^^ 226201
-        | JsonName.Bool b -> b.GetHashCode()
+        | JsonName.Bool b -> (# "" b : int #)
 
     interface IEqualityComparer<JsonName> with
 

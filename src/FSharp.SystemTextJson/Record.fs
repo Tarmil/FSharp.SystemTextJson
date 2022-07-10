@@ -66,9 +66,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         allProperties
         |> Array.mapi (fun i p ->
             let name =
-                match p.GetCustomAttributes(typeof<JsonPropertyNameAttribute>, true) with
-                | [| :? JsonPropertyNameAttribute as name |] -> name.Name
-                | _ -> convertName options.PropertyNamingPolicy p.Name
+                match getJsonName (fun ty -> p.GetCustomAttributes(ty, true)) with
+                | ValueSome name -> name
+                | ValueNone -> JsonName.String(convertName options.PropertyNamingPolicy p.Name)
             let ignore =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let nullValue = tryGetNullValue fsOptions p.PropertyType
@@ -77,7 +77,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let read =
                 let m = p.GetGetMethod()
                 fun o -> m.Invoke(o, Array.empty)
-            { Name = name
+            { Name = name.AsString()
               Type = p.PropertyType
               Ignore = ignore
               NullValue = nullValue

@@ -141,3 +141,11 @@ let convertName (policy: JsonNamingPolicy) (name: string) =
     match policy with
     | null -> name
     | policy -> policy.ConvertName(name)
+
+let getJsonName (getAttributes: Type -> obj[]) =
+    match getAttributes typeof<JsonNameAttribute> with
+    | [| :? JsonNameAttribute as attr |] -> ValueSome attr.Name
+    | _ ->
+        match getAttributes typeof<JsonPropertyNameAttribute> with
+        | [| :? JsonPropertyNameAttribute as attr |] -> ValueSome(JsonName.String attr.Name)
+        | _ -> ValueNone

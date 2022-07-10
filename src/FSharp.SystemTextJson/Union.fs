@@ -52,13 +52,9 @@ type JsonUnionConverter<'T>
         cases
         |> Array.map (fun uci ->
             let name =
-                match uci.GetCustomAttributes(typeof<JsonNameAttribute>) with
-                | [| :? JsonNameAttribute as name |] -> name.Name
-                | _ ->
-                    match uci.GetCustomAttributes(typeof<JsonPropertyNameAttribute>) with
-                    | [| :? JsonPropertyNameAttribute as name |] -> name.Name
-                    | _ -> convertName fsOptions.UnionTagNamingPolicy uci.Name
-                    |> JsonName.String
+                match getJsonName uci.GetCustomAttributes with
+                | ValueSome name -> name
+                | ValueNone -> JsonName.String(convertName fsOptions.UnionTagNamingPolicy uci.Name)
             let fields =
                 let fields = uci.GetFields()
                 let usedFieldNames = Dictionary()
