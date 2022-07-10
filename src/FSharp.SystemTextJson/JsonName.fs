@@ -18,8 +18,7 @@ type JsonName =
         | Bool true -> "true"
         | Bool false -> "false"
 
-// TODO: AllowMultiple = true
-[<AttributeUsage(AttributeTargets.Property)>]
+[<AttributeUsage(AttributeTargets.Property, AllowMultiple = true)>]
 type JsonNameAttribute(name: JsonName) =
     inherit Attribute()
 

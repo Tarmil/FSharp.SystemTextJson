@@ -142,10 +142,10 @@ let convertName (policy: JsonNamingPolicy) (name: string) =
     | null -> name
     | policy -> policy.ConvertName(name)
 
-let getJsonName (getAttributes: Type -> obj[]) =
+let getJsonNames (getAttributes: Type -> obj[]) =
     match getAttributes typeof<JsonNameAttribute> with
-    | [| :? JsonNameAttribute as attr |] -> ValueSome attr.Name
-    | _ ->
+    | [||] ->
         match getAttributes typeof<JsonPropertyNameAttribute> with
-        | [| :? JsonPropertyNameAttribute as attr |] -> ValueSome(JsonName.String attr.Name)
+        | [| :? JsonPropertyNameAttribute as attr |] -> ValueSome [| JsonName.String attr.Name |]
         | _ -> ValueNone
+    | attrs -> attrs |> Array.map (fun attr -> (attr :?> JsonNameAttribute).Name) |> ValueSome
