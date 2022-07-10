@@ -8,7 +8,7 @@ open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
 
 type internal RecordProperty =
-    { Name: string
+    { Names: string[]
       Type: Type
       Ignore: bool
       NullValue: obj voption
@@ -65,10 +65,10 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     let allProps =
         allProperties
         |> Array.mapi (fun i p ->
-            let name =
+            let names =
                 match getJsonNames (fun ty -> p.GetCustomAttributes(ty, true)) with
-                | ValueSome names -> names[0]
-                | ValueNone -> JsonName.String(convertName options.PropertyNamingPolicy p.Name)
+                | ValueSome names -> names |> Array.map (fun n -> n.AsString())
+                | ValueNone -> [| convertName options.PropertyNamingPolicy p.Name |]
             let ignore =
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let nullValue = tryGetNullValue fsOptions p.PropertyType
@@ -77,7 +77,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let read =
                 let m = p.GetGetMethod()
                 fun o -> m.Invoke(o, Array.empty)
-            { Name = name.AsString()
+            { Names = names
               Type = p.PropertyType
               Ignore = ignore
               NullValue = nullValue
@@ -123,7 +123,11 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         if options.PropertyNameCaseInsensitive then
             let d = Dictionary(StringComparer.OrdinalIgnoreCase)
             fieldProps
-            |> Array.iteri (fun i f -> if not f.Ignore then d[f.Name] <- struct (i, f))
+            |> Array.iteri (fun i f ->
+                if not f.Ignore then
+                    for name in f.Names do
+                        d[name] <- struct (i, f)
+            )
             ValueSome d
         else
             ValueNone
@@ -135,10 +139,13 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             let mutable i = 0
             while found.IsNone && i < fieldCount do
                 let p = fieldProps[i]
-                if reader.ValueTextEquals(p.Name) then
-                    found <- ValueSome(struct (i, p))
-                else
-                    i <- i + 1
+                let mutable j = 0
+                while found.IsNone && j < p.Names.Length do
+                    if reader.ValueTextEquals(p.Names[j]) then
+                        found <- ValueSome(struct (i, p))
+                    else
+                        j <- j + 1
+                i <- i + 1
             found
         | ValueSome d ->
             match d.TryGetValue(reader.GetString()) with
@@ -170,7 +177,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                             failf
                                 "%s.%s was expected to be of type %s, but was null."
                                 recordType.Name
-                                p.Name
+                                p.Names[0]
                                 p.Type.Name
                     else
                         fields[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
@@ -180,7 +187,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         if requiredFieldCount < minExpectedFieldCount && not (ignoreNullValues options) then
             for i in 0 .. fieldCount - 1 do
                 if isNull fields[i] && fieldProps[i].MustBePresent then
-                    failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Name
+                    failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Names[0]
 
         ctor fields :?> 'T
 
@@ -193,7 +200,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         for struct (i, p) in writeOrderedFieldProps do
             let v = if i < fieldCount then values[i] else p.Read value
             if not p.Ignore && not (ignoreNullValues options && isNull v) && not (p.IsSkip v) then
-                writer.WritePropertyName(p.Name)
+                writer.WritePropertyName(p.Names[0])
                 JsonSerializer.Serialize(writer, v, p.Type, options)
         writer.WriteEndObject()
 
@@ -202,7 +209,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             box (this.ReadRestOfObject(&reader, options, skipFirstRead))
         member this.WriteRestOfObject(writer, value, options) =
             this.WriteRestOfObject(writer, unbox value, options)
-        member _.FieldNames = fieldProps |> Array.map (fun p -> p.Name)
+        member _.FieldNames = fieldProps |> Array.collect (fun p -> p.Names)
 
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()

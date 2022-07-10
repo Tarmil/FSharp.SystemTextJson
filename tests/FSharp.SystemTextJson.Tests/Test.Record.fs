@@ -155,12 +155,14 @@ module NonStruct =
 
     type PropJsonName =
         { unnamedA: int
-          [<JsonName "namedB">]
+          [<JsonName "namedB"; JsonName "namedB2">]
           unnamedB: string }
 
     [<Fact>]
     let ``deserialize with JsonName`` () =
         let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB":"b"}""", options)
+        Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
+        let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB2":"b"}""", options)
         Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
 
     [<Fact>]
@@ -520,12 +522,14 @@ module Struct =
     [<Struct>]
     type PropJsonName =
         { unnamedA: int
-          [<JsonName "namedB">]
+          [<JsonName "namedB"; JsonName "namedB2">]
           unnamedB: string }
 
     [<Fact>]
     let ``deserialize with JsonName`` () =
         let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB":"b"}""", options)
+        Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
+        let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB2":"b"}""", options)
         Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
 
     [<Fact>]
