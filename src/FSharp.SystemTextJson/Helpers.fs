@@ -1,5 +1,7 @@
 ﻿module internal System.Text.Json.Serialization.Helpers
 
+#nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
+
 open System
 open System.Collections.Generic
 open System.Reflection
@@ -106,9 +108,6 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption 
 let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
     tryGetNullValue fsOptions ty |> ValueOption.isSome
 
-let isSkippableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
-    isNullableFieldType fsOptions ty || isSkippableType ty
-
 let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: IDictionary<Type, JsonFSharpOptions>) =
     let inheritUnionEncoding (options: JsonFSharpOptions) =
         if options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
@@ -133,3 +132,7 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: I
         match overrides.TryGetValue(ty) with
         | true, options -> options |> inheritUnionEncoding
         | false, _ -> applyAttributeOverride ()
+
+let ignoreNullValues (options: JsonSerializerOptions) =
+    options.IgnoreNullValues
+    || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull

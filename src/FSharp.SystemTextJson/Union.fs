@@ -1,7 +1,5 @@
 namespace System.Text.Json.Serialization
 
-#nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
-
 open System
 open System.Collections.Generic
 open System.Text.Json
@@ -92,6 +90,7 @@ type JsonUnionConverter<'T>
                             name
                         else
                             name + string nameIndex
+                    let canBeSkipped = ignoreNullValues options || isSkippableType p.PropertyType
                     { Type = p.PropertyType
                       Name =
                         let policy =
@@ -102,7 +101,7 @@ type JsonUnionConverter<'T>
                         | null -> name
                         | policy -> policy.ConvertName name
                       NullValue = tryGetNullValue fsOptions p.PropertyType
-                      MustBePresent = not (isSkippableFieldType fsOptions p.PropertyType)
+                      MustBePresent = not canBeSkipped
                       IsSkip = isSkip p.PropertyType }
                 )
             let fieldsByName =
@@ -323,7 +322,7 @@ type JsonUnionConverter<'T>
                 | _ -> reader.Skip()
             | _ -> ()
 
-        if fieldsFound < case.MinExpectedFieldCount && not options.IgnoreNullValues then
+        if fieldsFound < case.MinExpectedFieldCount && not (ignoreNullValues options) then
             failf "Missing field for union type %s" ty.FullName
         case.Ctor fields :?> 'T
 
@@ -445,7 +444,7 @@ type JsonUnionConverter<'T>
         for i in 0 .. fields.Length - 1 do
             let f = fields[i]
             let v = values[i]
-            if not (options.IgnoreNullValues && isNull v) && not (f.IsSkip v) then
+            if not (ignoreNullValues options && isNull v) && not (f.IsSkip v) then
                 writer.WritePropertyName(f.Name)
                 JsonSerializer.Serialize(writer, v, f.Type, options)
         writer.WriteEndObject()

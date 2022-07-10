@@ -688,6 +688,13 @@ module NonStruct =
         JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
     )
 
+    let newIgnoreNullOptions =
+        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+
+    newIgnoreNullOptions.Converters.Add(
+        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
+    )
+
     [<AllowNullLiteral>]
     type Cls() =
         class
@@ -704,6 +711,17 @@ module NonStruct =
     [<Fact>]
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize(Foo(1, null), ignoreNullOptions)
+        Assert.Equal("""{"Case":"Foo","x":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual =
+            JsonSerializer.Deserialize("""{"Case":"Foo","x":1}""", newIgnoreNullOptions)
+        Assert.Equal(Foo(1, null), actual)
+
+    [<Fact>]
+    let ``serialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual = JsonSerializer.Serialize(Foo(1, null), newIgnoreNullOptions)
         Assert.Equal("""{"Case":"Foo","x":1}""", actual)
 
     let propertyNamingPolicyOptions =
@@ -1758,6 +1776,13 @@ module Struct =
         JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
     )
 
+    let newIgnoreNullOptions =
+        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+
+    newIgnoreNullOptions.Converters.Add(
+        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
+    )
+
     [<AllowNullLiteral>]
     type Cls() =
         class
@@ -1775,6 +1800,17 @@ module Struct =
     [<Fact>]
     let ``serialize with IgnoreNullValues`` () =
         let actual = JsonSerializer.Serialize(Foo(1, null), ignoreNullOptions)
+        Assert.Equal("""{"Case":"Foo","x":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual =
+            JsonSerializer.Deserialize("""{"Case":"Foo","x":1}""", newIgnoreNullOptions)
+        Assert.Equal(Foo(1, null), actual)
+
+    [<Fact>]
+    let ``serialize with JsonIgnoreCondition.WhenWritingNull`` () =
+        let actual = JsonSerializer.Serialize(Foo(1, null), newIgnoreNullOptions)
         Assert.Equal("""{"Case":"Foo","x":1}""", actual)
 
     let propertyNamingPolicyOptions =
