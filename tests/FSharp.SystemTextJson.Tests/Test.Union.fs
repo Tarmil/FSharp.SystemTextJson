@@ -33,7 +33,7 @@ module NonStruct =
     type JN =
         | [<JsonName "jstring">] JNs of jnsField: int
         | [<JsonName 42>] JNi of jniField: int
-        | [<JsonName true; JsonName "jbool">] JNb of jnbField: int
+        | [<JsonName(true, "jbool")>] JNb of jnbField: int
         | JNn of jnnField: int
 
     let options = JsonSerializerOptions()
@@ -1278,7 +1278,7 @@ module Struct =
     type JN =
         | [<JsonName "jstring">] JNs of jnsField: int
         | [<JsonName 42>] JNi of jniField: int
-        | [<JsonName true; JsonName "jbool">] JNb of jnbField: int
+        | [<JsonName(true, "jbool")>] JNb of jnbField: int
         | JNn of jnnField: int
 
     let options = JsonSerializerOptions()

@@ -18,17 +18,31 @@ type JsonName =
         | Bool true -> "true"
         | Bool false -> "false"
 
-[<AttributeUsage(AttributeTargets.Property, AllowMultiple = true)>]
-type JsonNameAttribute(name: JsonName) =
+[<AttributeUsage(AttributeTargets.Property)>]
+type JsonNameAttribute(name: JsonName, otherNames: JsonName[]) =
     inherit Attribute()
+
+    static let convertName (name: obj) =
+        match name with
+        | :? string as s -> JsonName.String s
+        | :? int as i -> JsonName.Int i
+        | :? bool as b -> JsonName.Bool b
+        | _ -> invalidArg "otherNames" "JsonName must be a string, int or bool"
 
     member _.Name = name
 
-    new(name: string) = JsonNameAttribute(JsonName.String name)
+    member _.OtherNames = otherNames
 
-    new(name: int) = JsonNameAttribute(JsonName.Int name)
+    member _.AllNames = Array.append [| name |] otherNames
 
-    new(name: bool) = JsonNameAttribute(JsonName.Bool name)
+    new(name: string, [<ParamArray>] otherNames: obj[]) =
+        JsonNameAttribute(JsonName.String name, Array.map convertName otherNames)
+
+    new(name: int, [<ParamArray>] otherNames: obj[]) =
+        JsonNameAttribute(JsonName.Int name, Array.map convertName otherNames)
+
+    new(name: bool, [<ParamArray>] otherNames: obj[]) =
+        JsonNameAttribute(JsonName.Bool name, Array.map convertName otherNames)
 
 type JsonNameComparer(stringComparer: StringComparer) =
 

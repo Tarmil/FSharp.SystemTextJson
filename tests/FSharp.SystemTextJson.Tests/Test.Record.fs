@@ -155,7 +155,7 @@ module NonStruct =
 
     type PropJsonName =
         { unnamedA: int
-          [<JsonName "namedB"; JsonName "namedB2">]
+          [<JsonName("namedB", "namedB2")>]
           unnamedB: string }
 
     [<Fact>]
@@ -522,7 +522,7 @@ module Struct =
     [<Struct>]
     type PropJsonName =
         { unnamedA: int
-          [<JsonName "namedB"; JsonName "namedB2">]
+          [<JsonName("namedB", "namedB2")>]
           unnamedB: string }
 
     [<Fact>]
