@@ -136,3 +136,33 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: I
 let ignoreNullValues (options: JsonSerializerOptions) =
     options.IgnoreNullValues
     || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+
+let convertName (policy: JsonNamingPolicy) (name: string) =
+    match policy with
+    | null -> name
+    | policy -> policy.ConvertName(name)
+
+let getJsonNames kind (getAttributes: Type -> obj[]) =
+    match getAttributes typeof<JsonNameAttribute>
+          |> Array.choose (
+              function
+              | :? JsonNameAttribute as attr when isNull attr.Field -> Some attr
+              | _ -> None
+          )
+        with
+    | [||] ->
+        match getAttributes typeof<JsonPropertyNameAttribute> with
+        | [| :? JsonPropertyNameAttribute as attr |] -> ValueSome [| JsonName.String attr.Name |]
+        | _ -> ValueNone
+    | [| attr |] -> ValueSome attr.AllNames
+    | _ ->
+        failf "To provide multiple names for the same %s, use a single JsonNameAttribute with multiple arguments" kind
+
+let getJsonFieldNames (getAttributes: Type -> obj[]) =
+    getAttributes typeof<JsonNameAttribute>
+    |> Seq.choose (
+        function
+        | :? JsonNameAttribute as attr when not (isNull attr.Field) -> Some(attr.Field, attr.AllNames)
+        | _ -> None
+    )
+    |> readOnlyDict

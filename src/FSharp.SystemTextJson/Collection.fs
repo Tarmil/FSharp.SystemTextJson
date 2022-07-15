@@ -112,10 +112,7 @@ type JsonStringMapConverter<'V>() =
     override _.Write(writer, value, options) =
         writer.WriteStartObject()
         for kv in value do
-            let k =
-                match options.DictionaryKeyPolicy with
-                | null -> kv.Key
-                | p -> p.ConvertName kv.Key
+            let k = convertName options.DictionaryKeyPolicy kv.Key
             writer.WritePropertyName(k)
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
@@ -151,9 +148,7 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
         for kv in value do
             let k =
                 let k = (unwrap kv.Key)[0] :?> string
-                match options.DictionaryKeyPolicy with
-                | null -> k
-                | p -> p.ConvertName k
+                convertName options.DictionaryKeyPolicy k
             writer.WritePropertyName(k)
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()

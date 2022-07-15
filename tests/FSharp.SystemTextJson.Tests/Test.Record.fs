@@ -6,10 +6,6 @@ open System.Text.Json
 
 module NonStruct =
 
-    type Foo() =
-        [<JsonPropertyName "Baz">]
-        member val FooBar = 1 with get, set
-
     [<JsonFSharpConverter>]
     type A = { ax: int; ay: string }
 
@@ -156,6 +152,23 @@ module NonStruct =
     let ``serialize with JsonPropertyName`` () =
         let actual = JsonSerializer.Serialize({ unnamedX = 1; unnamedY = "b" }, options)
         Assert.Equal("""{"unnamedX":1,"namedY":"b"}""", actual)
+
+    type PropJsonName =
+        { unnamedA: int
+          [<JsonName("namedB", "namedB2")>]
+          unnamedB: string }
+
+    [<Fact>]
+    let ``deserialize with JsonName`` () =
+        let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB":"b"}""", options)
+        Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
+        let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB2":"b"}""", options)
+        Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
+
+    [<Fact>]
+    let ``serialize with JsonName`` () =
+        let actual = JsonSerializer.Serialize({ unnamedA = 1; unnamedB = "b" }, options)
+        Assert.Equal("""{"unnamedA":1,"namedB":"b"}""", actual)
 
     type IgnoreField =
         { unignoredX: int
@@ -505,6 +518,24 @@ module Struct =
     let ``serialize with JsonPropertyName`` () =
         let actual = JsonSerializer.Serialize({ unnamedX = 1; unnamedY = "b" }, options)
         Assert.Equal("""{"unnamedX":1,"namedY":"b"}""", actual)
+
+    [<Struct>]
+    type PropJsonName =
+        { unnamedA: int
+          [<JsonName("namedB", "namedB2")>]
+          unnamedB: string }
+
+    [<Fact>]
+    let ``deserialize with JsonName`` () =
+        let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB":"b"}""", options)
+        Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
+        let actual = JsonSerializer.Deserialize("""{"unnamedA":1,"namedB2":"b"}""", options)
+        Assert.Equal({ unnamedA = 1; unnamedB = "b" }, actual)
+
+    [<Fact>]
+    let ``serialize with JsonName`` () =
+        let actual = JsonSerializer.Serialize({ unnamedA = 1; unnamedB = "b" }, options)
+        Assert.Equal("""{"unnamedA":1,"namedB":"b"}""", actual)
 
     [<Struct>]
     type IgnoreField =
