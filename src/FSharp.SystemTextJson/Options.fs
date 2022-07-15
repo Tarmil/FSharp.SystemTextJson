@@ -92,6 +92,32 @@ type JsonUnionEncoding =
 type JsonUnionTagName = string
 type JsonUnionFieldsName = string
 
+type JsonFSharpTypes =
+    /// F# records, struct records and anonymous records.
+    | Records = 0x001
+    /// F# discriminated unions and struct discriminated unions.
+    | Unions = 0x002
+    /// Tuples and struct tuples.
+    | Tuples = 0x004
+    /// F# lists.
+    | Lists = 0x010
+    /// F# sets.
+    | Sets = 0x020
+    /// F# maps, including those with non-string keys.
+    | Maps = 0x040
+    /// F# options.
+    | Options = 0x100
+    /// F# value options.
+    | ValueOptions = 0x200
+    /// F# options and value options.
+    | OptionalTypes = 0xf00
+    /// F# lists, sets and maps.
+    | Collections = 0x0f0
+    /// All types not already fully supported by System.Text.Json.
+    | Minimal = 0x046
+    /// All supported types.
+    | All = 0xfff
+
 module internal Default =
 
     [<Literal>]
@@ -118,6 +144,9 @@ module internal Default =
     [<Literal>]
     let AllowNullFields = false
 
+    [<Literal>]
+    let Types = JsonFSharpTypes.All
+
 type JsonFSharpOptions
     (
         [<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding: JsonUnionEncoding,
@@ -128,6 +157,7 @@ type JsonFSharpOptions
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
         [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
         [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
+        [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes,
         [<Optional; DefaultParameterValue(false)>] allowOverride: bool
     ) =
 
@@ -147,6 +177,8 @@ type JsonFSharpOptions
 
     member this.IncludeRecordProperties = includeRecordProperties
 
+    member this.Types = types
+
     member this.AllowOverride = allowOverride
 
     member this.WithUnionEncoding(unionEncoding) =
@@ -159,6 +191,7 @@ type JsonFSharpOptions
             unionTagCaseInsensitive = unionTagCaseInsensitive,
             allowNullFields = allowNullFields,
             includeRecordProperties = includeRecordProperties,
+            types = types,
             allowOverride = allowOverride
         )
 
