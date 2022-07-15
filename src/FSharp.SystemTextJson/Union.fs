@@ -9,7 +9,7 @@ open FSharp.Reflection
 
 type private Field =
     { Type: Type
-      Name: string
+      Names: string[]
       NullValue: obj voption
       MustBePresent: bool
       IsSkip: obj -> bool }
@@ -52,9 +52,10 @@ type JsonUnionConverter<'T>
         cases
         |> Array.map (fun uci ->
             let names =
-                match getJsonNames uci.GetCustomAttributes with
+                match getJsonNames "case" uci.GetCustomAttributes with
                 | ValueSome name -> name
                 | ValueNone -> [| JsonName.String(convertName fsOptions.UnionTagNamingPolicy uci.Name) |]
+            let fieldNames = getJsonFieldNames uci.GetCustomAttributes
             let fields =
                 let fields = uci.GetFields()
                 let usedFieldNames = Dictionary()
@@ -89,13 +90,17 @@ type JsonUnionConverter<'T>
                         else
                             name + string nameIndex
                     let canBeSkipped = ignoreNullValues options || isSkippableType p.PropertyType
+                    let names =
+                        match fieldNames.TryGetValue(name) with
+                        | true, names -> names |> Array.map (fun n -> n.AsString())
+                        | false, _ ->
+                            let policy =
+                                match fsOptions.UnionFieldNamingPolicy with
+                                | null -> options.PropertyNamingPolicy
+                                | policy -> policy
+                            [| convertName policy name |]
                     { Type = p.PropertyType
-                      Name =
-                        let policy =
-                            match fsOptions.UnionFieldNamingPolicy with
-                            | null -> options.PropertyNamingPolicy
-                            | policy -> policy
-                        convertName policy name
+                      Names = names
                       NullValue = tryGetNullValue fsOptions p.PropertyType
                       MustBePresent = not canBeSkipped
                       IsSkip = isSkip p.PropertyType }
@@ -103,7 +108,11 @@ type JsonUnionConverter<'T>
             let fieldsByName =
                 if options.PropertyNameCaseInsensitive then
                     let d = Dictionary(StringComparer.OrdinalIgnoreCase)
-                    fields |> Array.iteri (fun i f -> d[f.Name] <- struct (i, f))
+                    fields
+                    |> Array.iteri (fun i f ->
+                        for name in f.Names do
+                            d[name] <- struct (i, f)
+                    )
                     ValueSome d
                 else
                     ValueNone
@@ -157,7 +166,7 @@ type JsonUnionConverter<'T>
                     | ValueSome _ -> hasDuplicateFieldNames <- true
                     | ValueNone -> fieldlessCase <- ValueSome case
                 match case.UnwrappedRecordField with
-                | ValueNone -> case.Fields |> Array.map (fun f -> f.Name, case)
+                | ValueNone -> case.Fields |> Array.collect (fun f -> f.Names |> Array.map (fun n -> n, case))
                 | ValueSome r -> r.FieldNames |> Array.map (fun n -> n, case)
             )
         let fields =
@@ -362,10 +371,13 @@ type JsonUnionConverter<'T>
             let mutable i = 0
             while found.IsNone && i < case.Fields.Length do
                 let field = case.Fields[i]
-                if reader.ValueTextEquals(field.Name) then
-                    found <- ValueSome(struct (i, field))
-                else
-                    i <- i + 1
+                let mutable j = 0
+                while found.IsNone && j < field.Names.Length do
+                    if reader.ValueTextEquals(field.Names[j]) then
+                        found <- ValueSome(struct (i, field))
+                    else
+                        j <- j + 1
+                i <- i + 1
             found
         | ValueSome d ->
             match d.TryGetValue(reader.GetString()) with
@@ -382,7 +394,7 @@ type JsonUnionConverter<'T>
                     "%s.%s(%s) was expected to be of type %s, but was null."
                     ty.Name
                     (case.Names[ 0 ].AsString())
-                    f.Name
+                    f.Names[0]
                     f.Type.Name
         else
             JsonSerializer.Deserialize(&reader, f.Type, options)
@@ -544,7 +556,7 @@ type JsonUnionConverter<'T>
             let f = fields[i]
             let v = values[i]
             if not (ignoreNullValues options && isNull v) && not (f.IsSkip v) then
-                writer.WritePropertyName(f.Name)
+                writer.WritePropertyName(f.Names[0])
                 JsonSerializer.Serialize(writer, v, f.Type, options)
         writer.WriteEndObject()
 

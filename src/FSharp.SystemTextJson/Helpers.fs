@@ -142,10 +142,27 @@ let convertName (policy: JsonNamingPolicy) (name: string) =
     | null -> name
     | policy -> policy.ConvertName(name)
 
-let getJsonNames (getAttributes: Type -> obj[]) =
-    match getAttributes typeof<JsonNameAttribute> with
-    | [| :? JsonNameAttribute as attr |] -> ValueSome attr.AllNames
-    | _ ->
+let getJsonNames kind (getAttributes: Type -> obj[]) =
+    match getAttributes typeof<JsonNameAttribute>
+          |> Array.choose (
+              function
+              | :? JsonNameAttribute as attr when isNull attr.Field -> Some attr
+              | _ -> None
+          )
+        with
+    | [||] ->
         match getAttributes typeof<JsonPropertyNameAttribute> with
         | [| :? JsonPropertyNameAttribute as attr |] -> ValueSome [| JsonName.String attr.Name |]
         | _ -> ValueNone
+    | [| attr |] -> ValueSome attr.AllNames
+    | _ ->
+        failf "To provide multiple names for the same %s, use a single JsonNameAttribute with multiple arguments" kind
+
+let getJsonFieldNames (getAttributes: Type -> obj[]) =
+    getAttributes typeof<JsonNameAttribute>
+    |> Seq.choose (
+        function
+        | :? JsonNameAttribute as attr when not (isNull attr.Field) -> Some(attr.Field, attr.AllNames)
+        | _ -> None
+    )
+    |> readOnlyDict

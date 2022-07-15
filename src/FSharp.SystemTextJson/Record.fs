@@ -66,7 +66,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         allProperties
         |> Array.mapi (fun i p ->
             let names =
-                match getJsonNames (fun ty -> p.GetCustomAttributes(ty, true)) with
+                match getJsonNames "field" (fun ty -> p.GetCustomAttributes(ty, true)) with
                 | ValueSome names -> names |> Array.map (fun n -> n.AsString())
                 | ValueNone -> [| convertName options.PropertyNamingPolicy p.Name |]
             let ignore =

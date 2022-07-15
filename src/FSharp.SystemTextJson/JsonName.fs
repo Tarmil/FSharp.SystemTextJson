@@ -18,7 +18,7 @@ type JsonName =
         | Bool true -> "true"
         | Bool false -> "false"
 
-[<AttributeUsage(AttributeTargets.Property)>]
+[<AttributeUsage(AttributeTargets.Property, AllowMultiple = true)>]
 type JsonNameAttribute(name: JsonName, otherNames: JsonName[]) =
     inherit Attribute()
 
@@ -34,6 +34,9 @@ type JsonNameAttribute(name: JsonName, otherNames: JsonName[]) =
     member _.OtherNames = otherNames
 
     member _.AllNames = Array.append [| name |] otherNames
+
+    /// The name of the union field that this name applies to.
+    member val Field = null: string with get, set
 
     new(name: string, [<ParamArray>] otherNames: obj[]) =
         JsonNameAttribute(JsonName.String name, Array.map convertName otherNames)
