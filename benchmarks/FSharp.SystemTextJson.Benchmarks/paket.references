@@ -1,3 +1,5 @@
+group test
 FSharp.Core
 BenchmarkDotNet
 Newtonsoft.Json
+System.Text.Json

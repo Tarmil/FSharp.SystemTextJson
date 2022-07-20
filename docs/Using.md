@@ -102,7 +102,7 @@ To use FSharp.SystemTextJson in Giraffe (for example with the `json` function):
     ```fsharp
     open System.Text.Json
     open System.Text.Json.Serialization
-    open Giraffe.Serialization
+    open Giraffe
 
     let configureServices (services: IServiceCollection) =
         services.AddGiraffe() |> ignore

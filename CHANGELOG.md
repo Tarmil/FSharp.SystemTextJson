@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.19
+
+* [#111](https://github.com/Tarmil/FSharp.SystemTextJson/issues/111): Support `JsonKnownNamingPolicy` in `JsonFSharpConverterAttribute`.
+
+* [#112](https://github.com/Tarmil/FSharp.SystemTextJson/issues/112): Add `Options` and `Overrides` properties to `JsonFSharpConverter`.
+
+* [#263](https://github.com/Tarmil/FSharp.SystemTextJson/issues/263): Add a nullary constructor for JsonFSharpConverter.
+
+
+## 0.18
+
+* [#98](https://github.com/Tarmil/FSharp.SystemTextJson/issues/98): Implement `JsonPropertyOrderAttribute` on records.
+
+* [#108](https://github.com/Tarmil/FSharp.SystemTextJson/issues/108): Allow serializing unnamed union fields using their type name, instead of `Item1` etc, using `JsonUnionEncoding.UnionFieldNamesFromTypes`.
+
+* [#100](https://github.com/Tarmil/FSharp.SystemTextJson/issues/100): Allow unionTagName to be part of the record type definition when deserializing union of records.
+
+* [#109](https://github.com/Tarmil/FSharp.SystemTextJson/issues/109): Add .xml with documentation comments to nupkg. Thanks @exyi!
+
+* [#110](https://github.com/Tarmil/FSharp.SystemTextJson/issues/110): Allow customizing the naming policy for union fields with `unionFieldNamingPolicy`.  
+    If not provided, use `JsonSerializerOptions.PropertyNamingPolicy` as before.
+
+## 0.17
+
+* [#87](https://github.com/Tarmil/FSharp.SystemTextJson/issues/87): Fix null checking on value type fields.
+
+* [#93](https://github.com/Tarmil/FSharp.SystemTextJson/issues/93): Allow deserializing F# unions in `AdjacentTag` and `InternalTag` modes where the tag is not the first field in the JSON object.
+    This capability is enabled by new option `JsonUnionEncoding.AllowUnorderedTag`, which is included in `JsonUnionEncoding.Default` and all `JsonUnionEncoding.*Like` combined formats.
+
 ## 0.16
 
 * [#83](https://github.com/Tarmil/FSharp.SystemTextJson/issues/83): Fix null reference exception when deserializing a record that `Skip`s a field with FSharp.Core 5.0.

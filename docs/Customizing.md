@@ -18,10 +18,13 @@
     - [`UnwrapSingleCaseUnions`](#unwrapsinglecaseunions)
     - [`UnwrapSingleFieldCases`](#unwrapsinglefieldcases)
     - [`UnwrapRecordCases`](#unwraprecordcases)
+    - [`UnionFieldNamesFromTypes`](#unionfieldnamesfromtypes)
+    - [`AllowUnorderedTag`](#allowunorderedtag)
   - [Combined flags](#combined-flags)
 - [`unionTagName`](#uniontagname)
 - [`unionFieldsName`](#unionfieldsname)
 - [`unionTagNamingPolicy`](#uniontagnamingpolicy)
+- [`unionFieldNamingPolicy`](#unionfieldnamingpolicy)
 - [`unionTagCaseInsensitive`](#uniontagcaseinsensitive)
 - [`allowNullFields`](#allownullfields)
 
@@ -71,8 +74,6 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
         | MyCase of int
         | MyOtherCase of string
     ```
-
-    Note that due to .NET limitations on the types of arguments that can be passed to an attribute, some options are unavailable for `JsonFSharpConverterAttribute`, such as `unionTagNamingPolicy`.
 
 ## `unionEncoding`
 
@@ -362,7 +363,7 @@ type Location =
     // --> {"Case":"Address","Fields":{"address":"5 Avenue Anatole France"}}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"Case":"ExactLocation","Fields":{"lat":48.858,"long":2.295}}
     //                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //                           Instead of {"Item":{"lat":48.858,"long":2.295}}
@@ -375,7 +376,7 @@ type Location =
     // --> {"Address":{"address":"5 Avenue Anatole France"}}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"ExactLocation":{"lat":48.858,"long":2.295}}
     //                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //           Instead of {"Item":{"lat":48.858,"long":2.295}}
@@ -388,7 +389,7 @@ type Location =
     // --> {"Case":"Address","address":"5 Avenue Anatole France"}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"Case":"ExactLocation","lat":48.858,"long":2.295}
     //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //                  Instead of {"Item":{"lat":48.858,"long":2.295}}
@@ -401,10 +402,54 @@ type Location =
     // --> {"address":"5 Avenue Anatole France"}
     // (same as without UnwrapRecordCases)
 
-    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 })
+    JsonSerializer.Serialize(ExactLocation { lat = 48.858; long = 2.295 }, options)
     // --> {"lat":48.858,"long":2.295}
     // Instead of {"Item":{"lat":48.858,"long":2.295}}
     ```
+
+#### `UnionFieldNamesFromTypes`
+
+When using `NamedFields`, if a field doesn't have a name specified in F# code, then a default name is assigned by the compiler:
+`Item` if the case has a single field, and `Item1`, `Item2`, etc if the case has multiple fields.
+Using `UnionFieldNamesFromTypes`, the unnamed field is serialized using its type name instead.
+
+If there are several fields with the same type, a suffix `1`, `2`, etc is added.
+
+```fsharp
+JsonFSharpConverter(
+    JsonUnionEncoding.Default |||
+    JsonUnionEncoding.InternalTag |||
+    JsonUnionEncoding.NamedFields |||
+    JsonUnionEncoding.UnionFieldNamesFromTypes)
+|> options.Converters.Add
+
+type Pair = Pair of int * string
+
+JsonSerializer.Serialize(Pair(123, "test"), options)
+// --> {"Case":"Pair","Int32":123,"String":"test"}
+```
+
+
+#### `AllowUnorderedTag`
+
+`JsonUnionEncoding.AllowUnorderedTag` is enabled by default.
+It takes effect during deserialization in AdjacentTag and InternalTag modes.
+When it is disabled, the name of the case must be the first field of the JSON object.
+When it is enabled, the name of the case may come later in the object, at the cost of a slight performance penalty if it does.
+
+For example, without `AllowUnorderedTag`, the following will fail to parse:
+
+```fsharp
+JsonSerializer.Deserialize("""{"Fields":[3.14],"Case":"WithOneArg"}""", options)
+// --> Error: Failed to find union case field for Example: expected Case
+```
+
+Whereas with `AllowUnorderedTag`, it will succeed:
+
+```fsharp
+JsonSerializer.Deserialize("""{"Fields":[3.14],"Case":"WithOneArg"}""", options)
+// --> WithOneArg 3.14
+```
 
 ### Combined flags
 
@@ -417,6 +462,7 @@ type Location =
     JsonUnionEncoding.AdjacentTag
     ||| JsonUnionEncoding.UnwrapOption
     ||| JsonUnionEncoding.UnwrapSingleCaseUnions
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
     It is particularly useful if you want to use the default encoding with some additional options, for example:
@@ -430,6 +476,7 @@ type Location =
 
     ```fsharp
     JsonUnionEncoding.AdjacentTag
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
 * `JsonUnionEncoding.ThothLike` causes similar behavior to the library [Thoth.Json](https://thoth-org.github.io/Thoth.Json/).
@@ -438,6 +485,7 @@ type Location =
     ```fsharp
     JsonUnionEncoding.InternalTag
     ||| JsonUnionEncoding.UnwrapFieldlessTags
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
 * `JsonUnionEncoding.FSharpLuLike` causes similar behavior to the library [FSharpLu.Json](https://github.com/microsoft/fsharplu/wiki/FSharpLu.Json) in Compact mode.
@@ -448,6 +496,7 @@ type Location =
     ||| JsonUnionEncoding.UnwrapFieldlessTags
     ||| JsonUnionEncoding.UnwrapOption
     ||| JsonUnionEncoding.UnwrapSingleFieldCases
+    ||| JsonUnionEncoding.AllowUnorderedTag
     ```
 
 ## `unionTagName`
@@ -481,7 +530,7 @@ JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
 ## `unionTagNamingPolicy`
 
 This option sets the naming policy for union case names.
-See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to#customize-json-names-and-values).
+See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-customize-properties).
 
 ```fsharp
 JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
@@ -490,6 +539,28 @@ JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
 JsonSerializer.Serialize(WithArgs(123, "Hello, world!"), options)
 // --> {"Case":"withArgs","Fields":[123,"Hello, world!"]}
 ```
+
+When using the attribute, this option has enum type `JsonKnownNamingPolicy` instead.
+
+## `unionFieldNamingPolicy`
+
+This option sets the naming policy for union field names.
+See [the System.Text.Json documentation about naming policies](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-customize-properties).
+
+If this option is not set, `JsonSerializerOptions.PropertyNamingPolicy` is used as the naming policy for union fields.
+
+```fsharp
+JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields,
+    unionFieldNamingPolicy = JsonNamingPolicy.CamelCase)
+|> options.Converters.Add
+
+type Person = Person of FirstName: string * LastName: string
+
+JsonSerializer.Serialize(Person("John", "Doe"), options)
+// --> {"Case":"Person","firstName":"John","lastName":"Doe"}
+```
+
+When using the attribute, this option has enum type `JsonKnownNamingPolicy` instead.
 
 ## `unionTagCaseInsensitive`
 
@@ -500,7 +571,7 @@ It makes the parsing of union case names case-insensitive.
 JsonFSharpConverter(unionTagCaseInsensitive = true)
 |> options.Converters.Add
 
-JsonSerializer.Deserialize<Example> """{"Case":"wIThArgS","Fields":[123,"Hello, world!"]}"""
+JsonSerializer.Deserialize<Example>("""{"Case":"wIThArgS","Fields":[123,"Hello, world!"]}""", options)
 // --> WithArgs (123, "Hello, world!")
 ```
 
@@ -521,10 +592,13 @@ type Point() =
 
 type Rectangle = { BottomLeft: Point; TopRight: Point }
 
+JsonFSharpConverter(allowNullFields = true)
+|> options.Converters.Add
+
 // With allowNullFields = false: throws an exception
-JsonSerializer.Deserialize<Rectangle> """{"TopRight":{"X":1,"Y":2}}"""
+JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 
 // With allowNullFields = true: succeeds
-JsonSerializer.Deserialize<Rectangle> """{"TopRight":{"X":1,"Y":2}}"""
+JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 // --> { BottomLeft = null; TopRight = Point(X = 1., Y = 2.) }
 ```

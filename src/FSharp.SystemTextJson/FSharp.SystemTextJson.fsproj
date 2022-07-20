@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Provides F# union and record support for System.Text.Json</Description>
     <Authors>Loic Denuziere</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/tarmil/FSharp.SystemTextJson</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tarmil/FSharp.SystemTextJson.git</RepositoryUrl>
     <Tags>F#;FSharp;Json</Tags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- SourceLink settings -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -17,6 +18,7 @@
     <Compile Include="TypeCache.fs" />
     <Compile Include="Skippable.fs" />
     <Compile Include="Options.fs" />
+    <Compile Include="JsonName.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="Collection.fs" />
     <Compile Include="Tuple.fs" />

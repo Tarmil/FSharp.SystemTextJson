@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "5.257.0",
+      "version": "7.1.5",
       "commands": [
         "paket"
       ]
     },
     "fake-cli": {
-      "version": "5.20.2",
+      "version": "5.22.0",
       "commands": [
         "fake"
       ]
@@ -18,6 +18,12 @@
       "version": "3.3.37",
       "commands": [
         "nbgv"
+      ]
+    },
+    "fantomas": {
+      "version": "5.0.0-alpha-009",
+      "commands": [
+        "fantomas"
       ]
     }
   }

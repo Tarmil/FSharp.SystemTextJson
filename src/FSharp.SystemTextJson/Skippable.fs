@@ -49,7 +49,7 @@ module Skippable =
     /// returning Skip if either is Skip.
     let apply mapping skippable =
         match mapping, skippable with
-        | Include f, Include x -> Include (f x)
+        | Include f, Include x -> Include(f x)
         | _ -> Skip
 
     /// Gets the value of the Skippable if the input is Include, otherwise returns
@@ -122,8 +122,10 @@ type Skippable<'T> with
     /// Infix operator for Skippable.apply.
     /// Applies the Skippable-wrapped function to the Skippable-wrapped value,
     /// returning Skip if either is Skip.
-    static member (<*>) (fSkip, xSkip) = Skippable.apply fSkip xSkip
+    static member (<*>)(fSkip, xSkip) =
+        Skippable.apply fSkip xSkip
 
     /// Infix operator for Skippable.map.
     /// Transforms the input using the specified function.
-    static member (<!>) (f, skippable) = Skippable.map f skippable
+    static member (<!>)(f, skippable) =
+        Skippable.map f skippable
