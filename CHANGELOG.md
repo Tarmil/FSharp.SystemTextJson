@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0
+
+* [#89](https://github.com/Tarmil/FSharp.SystemTextJson/issues/89): Add `JsonNameAttribute` as a more powerful substitute for the standard `JsonPropertyNameAttribute`.
+    * When used on a discriminated union case, `JsonNameAttribute` can take a value of type `int` or `bool` instead of `string`.
+    * `JsonNameAttribute` can take multiple values. When deserializing, all these values are treated as equivalent. When serializing, the first one is used.
+    * `JsonNameAttribute` has a settable property `Field: string`. It is used to set the JSON name of a union case field with the given name.
+
+* [#92](https://github.com/Tarmil/FSharp.SystemTextJson/issues/92): Serialization of record properties (in addition to fields).
+    * Add option `includeRecordProperties: bool` to enable serializing record properties.
+    * Also serialize record properties with `JsonIncludeAttribute` even when `includeRecordProperties` is false.
+
+* Add support for the standard `DefaultIgnoreCondition.WhenWritingNull` as a synonym for `IgnoreNullValues = true` that allows `None` and `ValueNone` to be omitted instead of `null`.
+
+* [#123](https://github.com/Tarmil/FSharp.SystemTextJson/issues/123): **BREAKING CHANGE**: Missing fields of type `option` or `voption` now throw an error by default instead of being deserialized to `None` / `ValueNone`. To support missing fields, either enable the option `IgnoreNullValues = true` or `DefaultIgnoreCondition = WhenWritingNull`, or use the type `Skippable` instead of `option` or `voption`.
+
+* [#126](https://github.com/Tarmil/FSharp.SystemTextJson/issues/126): Add option `types: JsonFSharpTypes` that specifies which types the F# converter should handle. Unlisted types will be handled by the default `System.Text.Json`. By default, all supported types are handled.
+
 ## 0.19
 
 * [#111](https://github.com/Tarmil/FSharp.SystemTextJson/issues/111): Support `JsonKnownNamingPolicy` in `JsonFSharpConverterAttribute`.
