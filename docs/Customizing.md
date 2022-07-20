@@ -26,6 +26,7 @@
 - [`unionTagNamingPolicy`](#uniontagnamingpolicy)
 - [`unionFieldNamingPolicy`](#unionfieldnamingpolicy)
 - [`unionTagCaseInsensitive`](#uniontagcaseinsensitive)
+- [`includeRecordProperties`](#includerecordproperties)
 - [`allowNullFields`](#allownullfields)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -573,6 +574,45 @@ JsonFSharpConverter(unionTagCaseInsensitive = true)
 
 JsonSerializer.Deserialize<Example>("""{"Case":"wIThArgS","Fields":[123,"Hello, world!"]}""", options)
 // --> WithArgs (123, "Hello, world!")
+```
+
+## `includeRecordProperties`
+
+By default, only record fields are serialized. When `includeRecordProperties` is set to `true`, record properties are serialized as well.
+
+```fsharp
+JsonFSharpConverter(includeRecordProperties = true)
+|> options.Converters.Add
+
+type Rectangle =
+    { Width: float
+      Height: float }
+
+    member this.Area = this.Width * this.Height
+
+JsonSerializer.Serialize({ Width = 4.; Height = 5. }, options)
+// --> {"Width":4,"Height":5,"Area":20}
+```
+
+Deserialization is unaffected by `includeRecordProperties`.
+
+To include a specific record property in serialization, rather than all of properties of all records, use `JsonIncludeAttribute` on this property.
+
+```fsharp
+JsonFSharpConverter()
+|> options.Converters.Add
+
+type Rectangle =
+    { Width: float
+      Height: float }
+
+    [<JsonInclude>]
+    member this.Area = this.Width * this.Height
+
+    member this.Perimeter = 2. * (this.Width + this.Height)
+
+JsonSerializer.Serialize({ Width = 4.; Height = 5. }, options)
+// --> {"Width":4,"Height":5,"Area":20}
 ```
 
 ## `allowNullFields`
