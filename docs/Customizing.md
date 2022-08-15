@@ -1,8 +1,8 @@
 # Customizing the serialization format
 
+<!-- doctoc --github docs/Customizing.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [How to apply customizations](#how-to-apply-customizations)
 - [`unionEncoding`](#unionencoding)
@@ -280,7 +280,7 @@ It causes the types `'T option` and `'T voption` (aka `ValueOption`) to be treat
 * The value `None` or `ValueNone` is represented as `null`.
 * The value `Some x` or `ValueSome x` is represented the same as `x`, without wrapping it in the union representation for `Some`.
 
-Combined with the option `IgnoreNullValues` on `JsonSerializerOptions`, this can be used to represent optional fields: `Some` is a value that is present in the JSON object, and `None` is a value that is absent from the JSON object.
+Combined with the option `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull` on `JsonSerializerOptions`, this can be used to represent optional fields: `Some` is a value that is present in the JSON object, and `None` is a value that is absent from the JSON object.
 Note that the same effect can also be achieved more explicitly and more safely using [the `Skippable` type](#skippable).
 
 #### `UnwrapSingleCaseUnions`
@@ -642,3 +642,32 @@ JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 // --> { BottomLeft = null; TopRight = Point(X = 1., Y = 2.) }
 ```
+
+## `types`
+
+Since the first release of `FSharp.SystemTextJson`, the base library `System.Text.Json` has added support for a number of F# types, including:
+
+* Records;
+* Lists;
+* Sets;
+* Maps. Only primitive keys are supported.
+* Options and value options. They are serialized as `null` for `None`/`ValueNone`, and the wrapped value directly for `Some`/`ValueSome`. This is the same as `FSharp.SystemTextJson`'s default format, but unlike `FSharp.SystemTextJson`, it is not customizable.
+
+`FSharp.SystemTextJson` still takes over the serialization of these types by befault; but the option `types: JsonFSharpTypes` allows customizing which types should be serialized by `FSharp.SystemTextJson`, and which types should be left to `System.Text.Json`.
+It is an enum of flags:
+
+* `Records`: serialize and deserialize records, struct records and anonymous records.
+* `Unions`: serialize and deserialize discriminated unions and struct discriminated unions.
+* `Tuples`: serialize and deserialize tuples, including those with more than 7 items which are not considered a single tuple by System.Text.Json.
+* `Lists`: serialize and deserialize F# lists.
+* `Sets`: serialize and deserialize F# sets.
+* `Maps`: serialize and deserialize F# maps, including maps with complex key types, which are not supported by System.Text.Json.
+* `Options`: serialize and deserialize the F# option type.
+* `ValueOptions`: serialize and deserialize the F# voption type.
+
+It also includes a few combined flags:
+
+* `OptionalTypes`: Options and ValueOptions.
+* `Collections`: lists, sets and maps.
+* `Minimal`: All types not already fully supported by `System.Text.Json`. As of `FSharp.SystemTextJson` on .NET 6, this includes maps (for complex key types), unions and tuples (for tuples of more than 7 items).
+* `All`: this is the default, `FSharp.SystemTextJson` handles all the types it supports.
