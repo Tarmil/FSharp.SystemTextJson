@@ -34,6 +34,30 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({ bx = 1; by = "b" }, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
 
+    type internal Internal = { ix: int }
+
+    [<Fact>]
+    let ``serialize non-public record`` () =
+        let actual = JsonSerializer.Serialize({ ix = 1 }, options)
+        Assert.Equal("""{"ix":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize non-public record`` () =
+        let actual = JsonSerializer.Deserialize<Internal>("""{"ix":1}""", options)
+        Assert.Equal({ ix = 1 }, actual)
+
+    type PrivateFields = private { px: int }
+
+    [<Fact>]
+    let ``serialize record with private fields`` () =
+        let actual = JsonSerializer.Serialize({ px = 1 }, options)
+        Assert.Equal("""{"px":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize record with private fields`` () =
+        let actual = JsonSerializer.Deserialize<PrivateFields>("""{"px":1}""", options)
+        Assert.Equal({ px = 1 }, actual)
+
     [<Fact>]
     let ``not fill in nulls`` () =
         try
@@ -395,6 +419,32 @@ module Struct =
     let ``serialize via options`` () =
         let actual = JsonSerializer.Serialize({ bx = 1; by = "b" }, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
+
+    [<Struct>]
+    type internal Internal = { ix: int }
+
+    [<Fact>]
+    let ``serialize non-public record`` () =
+        let actual = JsonSerializer.Serialize({ ix = 1 }, options)
+        Assert.Equal("""{"ix":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize non-public record`` () =
+        let actual = JsonSerializer.Deserialize<Internal>("""{"ix":1}""", options)
+        Assert.Equal({ ix = 1 }, actual)
+
+    [<Struct>]
+    type PrivateFields = private { px: int }
+
+    [<Fact>]
+    let ``serialize record with private fields`` () =
+        let actual = JsonSerializer.Serialize({ px = 1 }, options)
+        Assert.Equal("""{"px":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize record with private fields`` () =
+        let actual = JsonSerializer.Deserialize<PrivateFields>("""{"px":1}""", options)
+        Assert.Equal({ px = 1 }, actual)
 
     [<Fact>]
     let ``not fill in nulls`` () =
