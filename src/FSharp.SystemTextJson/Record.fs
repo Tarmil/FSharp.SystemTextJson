@@ -30,7 +30,13 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     let fields = FSharpType.GetRecordFields(recordType, true)
 
     let allProperties =
-        let all = recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
+        let allPublic =
+            recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
+        let all =
+            if fields[0].GetGetMethod(true).IsPublic then
+                allPublic
+            else
+                Array.append fields allPublic
         if fsOptions.IncludeRecordProperties then
             all
         else
