@@ -745,3 +745,12 @@ module Struct =
         let actual =
             JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
         Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
+
+    type MyEnum = x = 0 
+    [<JsonFSharpConverter>]
+    type RecordWithEnum = { e: MyEnum }
+
+    [<Fact>]
+    let ``deserialize default enum`` () =
+        let actual = JsonSerializer.Deserialize<RecordWithEnum>("{}")
+        Assert.Equal({e = MyEnum.x}, actual)

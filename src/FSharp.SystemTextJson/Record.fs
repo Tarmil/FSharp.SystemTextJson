@@ -79,7 +79,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let nullValue = tryGetNullValue fsOptions p.PropertyType
             let canBeSkipped =
-                ignore || ignoreNullValues options || isSkippableType p.PropertyType
+                ignore || ignoreNullValues options || isSkippableType p.PropertyType 
             let read =
                 let m = p.GetGetMethod()
                 fun o -> m.Invoke(o, Array.empty)
@@ -122,6 +122,9 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             if isSkippableType field.Type || isValueOptionType field.Type then
                 let case = FSharpType.GetUnionCases(field.Type)[0]
                 arr[i] <- FSharpValue.MakeUnion(case, [||])
+            match field.NullValue with
+            | ValueSome v -> arr[i] <- v
+            | _ -> ()
         )
         arr
 
@@ -194,7 +197,6 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             for i in 0 .. fieldCount - 1 do
                 if isNull fields[i] && fieldProps[i].MustBePresent then
                     failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Names[0]
-
         ctor fields :?> 'T
 
     override this.Write(writer, value, options) =

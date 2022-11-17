@@ -83,6 +83,8 @@ type Helper =
 let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption =
     if isNullableUnion ty then
         ValueSome null
+    elif ty.IsEnum then
+        ValueSome(Enum.ToObject(ty, 0))
     elif ty = typeof<unit> then
         ValueSome()
     elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
