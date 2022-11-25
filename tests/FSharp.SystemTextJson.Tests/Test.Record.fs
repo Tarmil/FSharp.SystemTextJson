@@ -21,8 +21,7 @@ module NonStruct =
 
     type B = { bx: int; by: string }
 
-    let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter())
+    let options = JsonFSharpOptions().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -87,8 +86,7 @@ module NonStruct =
 
     [<Fact>]
     let allowNullFields () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({ bx = 1; by = null }, actual)
 
@@ -220,13 +218,12 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({ unignoredX = 1; ignoredY = "b" }, options)
         Assert.Equal("""{"unignoredX":1}""", actual)
 
-    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
-    ignoreNullOptions.Converters.Add(JsonFSharpConverter())
+    let ignoreNullOptions =
+        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
-        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
-
-    newIgnoreNullOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
     type Cls() =
@@ -256,9 +253,8 @@ module NonStruct =
         Assert.Equal("""{"y":1}""", actual)
 
     let propertyNamingPolicyOptions =
-        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
-    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
 
     type CamelCase = { CcFirst: int; CcSecond: string }
 
@@ -275,9 +271,7 @@ module NonStruct =
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions().ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize with property case insensitive`` () =
@@ -306,14 +300,16 @@ module NonStruct =
 
     [<Fact>]
     let ``should not override allowNullFields in attribute if AllowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let o = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         Assert.Equal({ x = null }, JsonSerializer.Deserialize<Override>("""{"x":null}""", o))
 
     [<Fact>]
     let ``should override allowNullFields in attribute if AllowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
+        let o =
+            JsonFSharpOptions()
+                .WithAllowNullFields()
+                .WithAllowOverride()
+                .ToJsonSerializerOptions()
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
 
@@ -357,14 +353,14 @@ module NonStruct =
         member _.IgnoredMember = "c"
 
     let includeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     let dontIncludeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties(false)
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``serialize record properties`` () =
@@ -417,8 +413,7 @@ module Struct =
     [<Struct>]
     type B = { bx: int; by: string }
 
-    let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter())
+    let options = JsonFSharpOptions().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -486,8 +481,7 @@ module Struct =
 
     [<Fact>]
     let allowNullFields () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({ bx = 1; by = null }, actual)
 
@@ -614,13 +608,12 @@ module Struct =
         let actual = JsonSerializer.Serialize({ unignoredX = 1; ignoredY = "b" }, options)
         Assert.Equal("""{"unignoredX":1}""", actual)
 
-    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
-    ignoreNullOptions.Converters.Add(JsonFSharpConverter())
+    let ignoreNullOptions =
+        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
-        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
-
-    newIgnoreNullOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
     type Cls() =
@@ -651,9 +644,8 @@ module Struct =
         Assert.Equal("""{"y":1}""", actual)
 
     let propertyNamingPolicyOptions =
-        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
-    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
 
     [<Struct>]
     type CamelCase = { CcFirst: int; CcSecond: string }
@@ -671,9 +663,7 @@ module Struct =
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions().ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize with property case insensitive`` () =
@@ -693,14 +683,16 @@ module Struct =
 
     [<Fact>]
     let ``should not override allowNullFields in attribute if AllowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let o = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         Assert.Equal({ x = null }, JsonSerializer.Deserialize<Override>("""{"x":null}""", o))
 
     [<Fact>]
     let ``should override allowNullFields in attribute if AllowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
+        let o =
+            JsonFSharpOptions()
+                .WithAllowNullFields()
+                .WithAllowOverride()
+                .ToJsonSerializerOptions()
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
 
@@ -713,14 +705,14 @@ module Struct =
         member _.IgnoredMember = "c"
 
     let includeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     let dontIncludeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties(false)
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``serialize record properties`` () =

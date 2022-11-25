@@ -22,7 +22,7 @@ type internal IRecordConverter =
     abstract WriteRestOfObject: Utf8JsonWriter * obj * JsonSerializerOptions -> unit
     abstract FieldNames: string[]
 
-type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
+type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions: JsonFSharpOptionsRecord) =
     inherit JsonConverter<'T>()
 
     let recordType: Type = typeof<'T>
@@ -217,6 +217,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             this.WriteRestOfObject(writer, unbox value, options)
         member _.FieldNames = fieldProps |> Array.collect (fun p -> p.Names)
 
+    new(options, fsOptions: JsonFSharpOptions) = JsonRecordConverter<'T>(options, fsOptions.Record)
+
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
@@ -229,21 +231,23 @@ type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
         (
             typeToConvert: Type,
             options: JsonSerializerOptions,
-            fsOptions: JsonFSharpOptions,
-            overrides: IDictionary<Type, JsonFSharpOptions>
+            fsOptions: JsonFSharpOptions
         ) =
-        let fsOptions = overrideOptions typeToConvert fsOptions overrides
+        let fsOptions = overrideOptions typeToConvert fsOptions
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([| typeToConvert |])
             .GetConstructor(
+                BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Instance,
+                null,
                 [| typeof<JsonSerializerOptions>
-                   typeof<JsonFSharpOptions> |]
+                   typeof<JsonFSharpOptionsRecord> |],
+                null
             )
-            .Invoke([| options; fsOptions |])
+            .Invoke([| options; fsOptions.Record |])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions, null)
+        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)

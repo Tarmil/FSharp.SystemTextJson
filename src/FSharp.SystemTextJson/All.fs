@@ -2,15 +2,22 @@ namespace System.Text.Json.Serialization
 
 open System
 open System.Collections.Generic
+open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open System.Text.Json
 
 type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: IDictionary<Type, JsonFSharpOptions>) =
     inherit JsonConverterFactory()
 
+    let fsOptions =
+        if isNull overrides || overrides.Count = 0 then
+            fsOptions
+        else
+            fsOptions.WithOverrides(overrides)
+
     member _.Options = fsOptions
 
-    member _.Overrides = overrides
+    member _.Overrides = fsOptions.Overrides
 
     override _.CanConvert(typeToConvert) =
         match TypeCache.getKind typeToConvert with
@@ -32,18 +39,18 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
                 fsOptions.Types.HasFlag JsonFSharpTypes.Unions
         | _ -> false
 
-    static member internal CreateConverter(typeToConvert, options, fsOptions, overrides) =
+    static member internal CreateConverter(typeToConvert, options, fsOptions) =
         match TypeCache.getKind typeToConvert with
         | TypeCache.TypeKind.List -> JsonListConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Set -> JsonSetConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Map -> JsonMapConverter.CreateConverter(typeToConvert)
         | TypeCache.TypeKind.Tuple -> JsonTupleConverter.CreateConverter(typeToConvert, fsOptions)
-        | TypeCache.TypeKind.Record -> JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
-        | TypeCache.TypeKind.Union -> JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
+        | TypeCache.TypeKind.Record -> JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
+        | TypeCache.TypeKind.Union -> JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)
         | _ -> invalidOp ("Not an F# type: " + typeToConvert.FullName)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions, overrides)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
 
     new() = JsonFSharpConverter(JsonFSharpOptions())
 
@@ -70,8 +77,8 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
                 includeRecordProperties = includeRecordProperties,
                 types = types,
                 allowOverride = allowOverride
-            ),
-            overrides
+            )
+                .WithOverrides(overrides)
         )
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
@@ -112,7 +119,28 @@ type JsonFSharpConverterAttribute
         )
 
     override _.CreateConverter(typeToConvert) =
-        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions, null)
+        JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
 
     interface IJsonFSharpConverterAttribute with
         member this.Options = fsOptions
+
+[<Extension>]
+type JsonFSharpConverterExtensions =
+
+    [<Extension>]
+    static member AddToJsonSerializerOptions(this: JsonFSharpConverter, jsonSerializerOptions: JsonSerializerOptions) =
+        jsonSerializerOptions.Converters.Add(this)
+
+    [<Extension>]
+    static member ToJsonSerializerOptions(this: JsonFSharpConverter) =
+        let jsonSerializerOptions = JsonSerializerOptions()
+        this.AddToJsonSerializerOptions(jsonSerializerOptions)
+        jsonSerializerOptions
+
+    [<Extension>]
+    static member AddToJsonSerializerOptions(this: JsonFSharpOptions, jsonSerializerOptions: JsonSerializerOptions) =
+        JsonFSharpConverter(this).AddToJsonSerializerOptions(jsonSerializerOptions)
+
+    [<Extension>]
+    static member ToJsonSerializerOptions(this: JsonFSharpOptions) =
+        JsonFSharpConverter(this).ToJsonSerializerOptions()
