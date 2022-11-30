@@ -1147,7 +1147,7 @@ module NonStruct =
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
 
     [<Fact>]
-    let ``should apply explicit overrides if allowOverride = false`` () =
+    let ``should apply explicit overrides from Default if allowOverride = false`` () =
         let o =
             JsonFSharpOptions
                 .Default()
@@ -1157,12 +1157,32 @@ module NonStruct =
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
-    let ``should apply explicit overrides if allowOverride = true`` () =
+    let ``should apply explicit overrides from function if allowOverride = false`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride(false)
+                .WithOverrides(fun o -> dict [ typeof<Override>, o.WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides from Default if allowOverride = true`` () =
         let o =
             JsonFSharpOptions
                 .Default()
                 .WithAllowOverride()
                 .WithOverrides(dict [ typeof<Override>, JsonFSharpOptions.Default().WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides from function if allowOverride = true`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride()
+                .WithOverrides(fun o -> dict [ typeof<Override>, o.WithUnionInternalTag() ])
                 .ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 

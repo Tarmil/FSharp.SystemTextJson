@@ -160,7 +160,7 @@ type internal JsonFSharpOptionsRecord =
       IncludeRecordProperties: bool
       Types: JsonFSharpTypes
       AllowOverride: bool
-      Overrides: IDictionary<Type, JsonFSharpOptions> }
+      Overrides: JsonFSharpOptions -> IDictionary<Type, JsonFSharpOptions> }
 
 and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
@@ -189,7 +189,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               IncludeRecordProperties = includeRecordProperties
               Types = types
               AllowOverride = allowOverride
-              Overrides = null }
+              Overrides = fun _ -> null }
         )
 
     static member Default() =
@@ -254,6 +254,9 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
     member _.WithOverrides(overrides) =
         JsonFSharpOptions({ options with Overrides = overrides })
+
+    member _.WithOverrides(overrides) =
+        JsonFSharpOptions({ options with Overrides = fun _ -> overrides })
 
     member private this.WithUnionEncodingFlag(flag, set) =
         if set then

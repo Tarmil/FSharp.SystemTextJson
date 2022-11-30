@@ -126,10 +126,11 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
         else
             defaultOptions
 
-    if isNull defaultOptions.Overrides then
+    let overrides = defaultOptions.Overrides defaultOptions
+    if isNull overrides then
         applyAttributeOverride ()
     else
-        match defaultOptions.Overrides.TryGetValue(ty) with
+        match overrides.TryGetValue(ty) with
         | true, options -> options |> inheritUnionEncoding
         | false, _ -> applyAttributeOverride ()
 
