@@ -13,6 +13,8 @@
 
 * Add support for the standard `DefaultIgnoreCondition.WhenWritingNull` as a synonym for `IgnoreNullValues = true` that allows `None` and `ValueNone` to be omitted instead of `null`.
 
+* [#106](https://github.com/Tarmil/FSharp.SystemTextJson/issues/106): Fix deserialization of single-case union containing a legitimate `null` value.
+
 * [#123](https://github.com/Tarmil/FSharp.SystemTextJson/issues/123): **BREAKING CHANGE**: Missing fields of type `option` or `voption` now throw an error by default instead of being deserialized to `None` / `ValueNone`. To support missing fields, either enable the option `IgnoreNullValues = true` or `DefaultIgnoreCondition = WhenWritingNull`, or use the type `Skippable` instead of `option` or `voption`.
 
 * [#126](https://github.com/Tarmil/FSharp.SystemTextJson/issues/126): Add option `types: JsonFSharpTypes` that specifies which types the F# converter should handle. Unlisted types will be handled by the default `System.Text.Json`. By default, all supported types are handled.
