@@ -162,6 +162,16 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({| x = 1; y = "b" |}, options)
         Assert.Equal("""{"x":1,"y":"b"}""", actual)
 
+    [<Fact>]
+    let ``deserialize empty anonymous`` () =
+        let actual = JsonSerializer.Deserialize("{}", options)
+        Assert.Equal({|  |}, actual)
+
+    [<Fact>]
+    let ``serialize empty anonymous`` () =
+        let actual = JsonSerializer.Serialize({|  |}, options)
+        Assert.Equal("{}", actual)
+
     type PropName =
         { unnamedX: int
           [<JsonPropertyName "namedY">]
