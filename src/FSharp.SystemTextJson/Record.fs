@@ -33,7 +33,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         let allPublic =
             recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
         let all =
-            if fields[0].GetGetMethod(true).IsPublic then
+            if fields.Length = 0 || fields[0].GetGetMethod(true).IsPublic then
                 allPublic
             else
                 Array.append fields allPublic
