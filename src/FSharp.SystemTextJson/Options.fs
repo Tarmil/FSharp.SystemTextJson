@@ -276,7 +276,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
         else
             this.WithUnionEncoding(options.UnionEncoding &&& ~~~flag)
 
-    member private this.WithBaseUnionEncoding(flag) =
+    member internal this.WithBaseUnionEncoding(flag) =
         this.WithUnionEncoding(options.UnionEncoding &&& removeBaseEncodings ||| flag)
 
     /// Encode unions as a 2-valued object:

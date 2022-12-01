@@ -1114,7 +1114,7 @@ module NonStruct =
             let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
             Assert.Equal(V 42, actual)
 
-    [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
+    [<JsonFSharpConverter(UnionTagName = "tag", UnionFieldsName = "val")>]
     type Override = A of x: int * y: string
 
     [<Fact>]
@@ -1138,7 +1138,7 @@ module NonStruct =
                 .ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
-    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    [<JsonFSharpConverter(UnionEncoding = JsonUnionEncoding.InternalTag)>]
     type Override2 = A of int * string
 
     [<Fact>]
@@ -2407,7 +2407,7 @@ module Struct =
             let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
             Assert.Equal(V 42, actual)
 
-    [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
+    [<JsonFSharpConverter(UnionTagName = "tag", UnionFieldsName = "val")>]
     [<Struct>]
     type Override = A of x: int * y: string
 
@@ -2432,7 +2432,7 @@ module Struct =
                 .ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
-    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    [<JsonFSharpConverter(UnionEncoding = JsonUnionEncoding.InternalTag)>]
     [<Struct>]
     type Override2 = A of int * string
 

@@ -295,7 +295,7 @@ module NonStruct =
         with :? JsonException as e ->
             Assert.Equal("Missing field for record type Tests.Record+NonStruct+D: dx", e.Message)
 
-    [<JsonFSharpConverter(allowNullFields = false)>]
+    [<JsonFSharpConverter(AllowNullFields = false)>]
     type Override = { x: string }
 
     [<Fact>]
@@ -677,7 +677,7 @@ module Struct =
             JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, propertyNameCaseInsensitiveOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
 
-    [<JsonFSharpConverter(allowNullFields = false)>]
+    [<JsonFSharpConverter(AllowNullFields = false)>]
     [<Struct>]
     type Override = { x: string }
 

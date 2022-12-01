@@ -82,9 +82,57 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
         )
 
 [<AttributeUsage(AttributeTargets.Class ||| AttributeTargets.Struct)>]
-type JsonFSharpConverterAttribute
-    (
-        [<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding: JsonUnionEncoding,
+type JsonFSharpConverterAttribute(fsOptions: JsonFSharpOptions) =
+    inherit JsonConverterAttribute()
+
+    let mutable fsOptions = fsOptions
+
+    static let namingPolicy =
+        function
+        | JsonKnownNamingPolicy.Unspecified -> null
+        | JsonKnownNamingPolicy.CamelCase -> JsonNamingPolicy.CamelCase
+        | p -> failwithf "Unknown naming policy: %A" p
+
+    member _.UnionEncoding
+        with set v = fsOptions <- fsOptions.WithUnionEncoding(v)
+    member _.BaseUnionEncoding
+        with set v = fsOptions <- fsOptions.WithBaseUnionEncoding(v)
+    member _.UnionTagName
+        with set v = fsOptions <- fsOptions.WithUnionTagName(v)
+    member _.UnionFieldsName
+        with set v = fsOptions <- fsOptions.WithUnionFieldsName(v)
+    member _.UnionTagNamingPolicy
+        with set v = fsOptions <- fsOptions.WithUnionTagNamingPolicy(namingPolicy v)
+    member _.UnionFieldNamingPolicy
+        with set v = fsOptions <- fsOptions.WithUnionFieldNamingPolicy(namingPolicy v)
+    member _.UnionTagCaseSensitive
+        with set v = fsOptions <- fsOptions.WithUnionTagCaseInsensitive(v)
+    member _.AllowNullFields
+        with set v = fsOptions <- fsOptions.WithAllowNullFields(v)
+    member _.IncludeRecordProperties
+        with set v = fsOptions <- fsOptions.WithIncludeRecordProperties(v)
+    member _.Types
+        with set v = fsOptions <- fsOptions.WithTypes(v)
+    member _.UnionNamedFields
+        with set v = fsOptions <- fsOptions.WithUnionNamedFields(v)
+    member _.UnionUnwrapFieldlessTags
+        with set v = fsOptions <- fsOptions.WithUnionUnwrapFieldlessTags(v)
+    member _.UnwrapOption
+        with set v = fsOptions <- fsOptions.WithUnwrapOption(v)
+    member _.UnionUnwrapSingleCaseUnions
+        with set v = fsOptions <- fsOptions.WithUnionUnwrapSingleCaseUnions(v)
+    member _.UnionUnwrapSingleFieldCases
+        with set v = fsOptions <- fsOptions.WithUnionUnwrapSingleFieldCases(v)
+    member _.UnionUnwrapRecordCases
+        with set v = fsOptions <- fsOptions.WithUnionUnwrapRecordCases(v)
+    member _.UnionAllowUnorderedTag
+        with set v = fsOptions <- fsOptions.WithUnionAllowUnorderedTag(v)
+    member _.UnionFieldNamesFromTypes
+        with set v = fsOptions <- fsOptions.WithUnionFieldNamesFromTypes(v)
+
+    new() = JsonFSharpConverterAttribute(JsonFSharpOptions())
+
+    new([<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding: JsonUnionEncoding,
         [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
         [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
         [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionTagNamingPolicy: JsonKnownNamingPolicy,
@@ -92,33 +140,24 @@ type JsonFSharpConverterAttribute
         [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
         [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
         [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
-        [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes
-    ) =
-    inherit JsonConverterAttribute()
-
-    let options = JsonSerializerOptions()
-
-    let namingPolicy =
-        function
-        | JsonKnownNamingPolicy.Unspecified -> null
-        | JsonKnownNamingPolicy.CamelCase -> JsonNamingPolicy.CamelCase
-        | p -> failwithf "Unknown naming policy: %A" p
-
-    let fsOptions =
-        JsonFSharpOptions(
-            unionEncoding = unionEncoding,
-            unionTagName = unionTagName,
-            unionFieldsName = unionFieldsName,
-            unionTagNamingPolicy = namingPolicy unionTagNamingPolicy,
-            unionFieldNamingPolicy = namingPolicy unionFieldNamingPolicy,
-            unionTagCaseInsensitive = unionTagCaseInsensitive,
-            allowNullFields = allowNullFields,
-            includeRecordProperties = includeRecordProperties,
-            types = types,
-            allowOverride = false
-        )
+        [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes) =
+        let fsOptions =
+            JsonFSharpOptions(
+                unionEncoding = unionEncoding,
+                unionTagName = unionTagName,
+                unionFieldsName = unionFieldsName,
+                unionTagNamingPolicy = namingPolicy unionTagNamingPolicy,
+                unionFieldNamingPolicy = namingPolicy unionFieldNamingPolicy,
+                unionTagCaseInsensitive = unionTagCaseInsensitive,
+                allowNullFields = allowNullFields,
+                includeRecordProperties = includeRecordProperties,
+                types = types,
+                allowOverride = false
+            )
+        JsonFSharpConverterAttribute(fsOptions)
 
     override _.CreateConverter(typeToConvert) =
+        let options = JsonSerializerOptions()
         JsonFSharpConverter.CreateConverter(typeToConvert, options, fsOptions)
 
     interface IJsonFSharpConverterAttribute with
