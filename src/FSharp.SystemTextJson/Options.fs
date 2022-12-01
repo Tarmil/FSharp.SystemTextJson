@@ -166,6 +166,9 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
     let removeBaseEncodings = enum<JsonUnionEncoding> ~~~ 0x00_00_00_FF
 
+    static let emptyOverrides (_: JsonFSharpOptions) =
+        null
+
     // Note: For binary compatibility, don't add options to this constructor.
     // New options will only be settable via fluent API.
     new([<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding: JsonUnionEncoding,
@@ -189,7 +192,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               IncludeRecordProperties = includeRecordProperties
               Types = types
               AllowOverride = allowOverride
-              Overrides = fun _ -> null }
+              Overrides = emptyOverrides }
         )
 
     static member Default() =
@@ -197,6 +200,15 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
     static member InheritUnionEncoding() =
         JsonFSharpOptions(JsonUnionEncoding.Inherit)
+
+    static member NewtonsoftLike() =
+        JsonFSharpOptions(JsonUnionEncoding.NewtonsoftLike)
+
+    static member ThothLike() =
+        JsonFSharpOptions(JsonUnionEncoding.ThothLike)
+
+    static member FSharpLuLike() =
+        JsonFSharpOptions(JsonUnionEncoding.FSharpLuLike)
 
     member internal _.Record = options
 
