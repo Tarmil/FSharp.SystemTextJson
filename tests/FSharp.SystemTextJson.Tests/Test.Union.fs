@@ -2017,6 +2017,49 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), unwrapSingleFieldCasesOptions)
         )
 
+    let untaggedUnwrappedSingleFieldCasesOptions = JsonSerializerOptions()
+
+    untaggedUnwrappedSingleFieldCasesOptions.Converters.Add(
+        JsonFSharpConverter(JsonUnionEncoding.Untagged ||| JsonUnionEncoding.UnwrapSingleFieldCases)
+    )
+
+    type Object = { name: string }
+    type ChoiceOf5 = Choice<int, string, bool, int list, Object>
+
+    [<Fact>]
+    let ``serialize untagged unwrapped single-field cases`` () =
+        Assert.Equal("1", JsonSerializer.Serialize(Choice1Of5 1, untaggedUnwrappedSingleFieldCasesOptions))
+        Assert.Equal("\"F#\"", JsonSerializer.Serialize(Choice2Of5 "F#", untaggedUnwrappedSingleFieldCasesOptions))
+        Assert.Equal("false", JsonSerializer.Serialize(Choice3Of5 false, untaggedUnwrappedSingleFieldCasesOptions))
+        Assert.Equal("[1,2]", JsonSerializer.Serialize(Choice4Of5 [ 1; 2 ], untaggedUnwrappedSingleFieldCasesOptions))
+        Assert.Equal(
+            "{name:\"Object\"}",
+            JsonSerializer.Serialize(Choice5Of5 { name = "Object" }, untaggedUnwrappedSingleFieldCasesOptions)
+        )
+
+    [<Fact>]
+    let ``deserialize untagged unwrapped single-field cases`` () =
+        let choice1 =
+            JsonSerializer.Deserialize<ChoiceOf5>("1", untaggedUnwrappedSingleFieldCasesOptions)
+        Assert.Equal(Choice1Of5 1, choice1)
+
+        let choice2 =
+            JsonSerializer.Deserialize<ChoiceOf5>("\"F#\"", untaggedUnwrappedSingleFieldCasesOptions)
+        let expected2: ChoiceOf5 = Choice2Of5 "F#"
+        Assert.Equal(expected2, choice2)
+
+        let choice3 =
+            JsonSerializer.Deserialize<ChoiceOf5>("false", untaggedUnwrappedSingleFieldCasesOptions)
+        Assert.Equal(Choice3Of5 false, choice3)
+
+        let choice4 =
+            JsonSerializer.Deserialize<ChoiceOf5>("[1,2]", untaggedUnwrappedSingleFieldCasesOptions)
+        Assert.Equal(Choice4Of5 [ 1; 2 ], choice4)
+
+        let choice5 =
+            JsonSerializer.Deserialize<ChoiceOf5>("""{"name":"Object"}""", untaggedUnwrappedSingleFieldCasesOptions)
+        Assert.Equal(Choice5Of5 { name = "Object" }, choice5)
+
     let unwrapFieldlessTagsOptions = JsonSerializerOptions()
     unwrapFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags))
 

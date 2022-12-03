@@ -210,6 +210,38 @@ type JsonUnionConverter<'T>
         else
             ValueNone
 
+    let casesByJsonType =
+        if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.Untagged
+           && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases then
+            let dict = Dictionary<JsonTokenType, Case>()
+            for c in cases do
+                let clrType = c.Fields[0].Type
+                let typeCode = Type.GetTypeCode(c.Fields[0].Type)
+                match typeCode with
+                | TypeCode.Byte
+                | TypeCode.SByte
+                | TypeCode.UInt16
+                | TypeCode.UInt32
+                | TypeCode.UInt64
+                | TypeCode.Int16
+                | TypeCode.Int32
+                | TypeCode.Int64
+                | TypeCode.Decimal
+                | TypeCode.Double
+                | TypeCode.Single -> dict[JsonTokenType.Number] <- c
+                | TypeCode.Boolean ->
+                    dict[JsonTokenType.True] <- c
+                    dict[JsonTokenType.False] <- c
+                | TypeCode.DateTime
+                | TypeCode.String -> dict[JsonTokenType.String] <- c
+                | TypeCode.Object when typeof<System.Collections.IEnumerable>.IsAssignableFrom (clrType) ->
+                    dict[JsonTokenType.StartArray] <- c
+                | TypeCode.Object -> dict[JsonTokenType.StartObject] <- c
+                | _ -> ()
+            ValueSome dict
+        else
+            ValueNone
+
     let getJsonName (reader: byref<Utf8JsonReader>) =
         match reader.TokenType with
         | JsonTokenType.True -> JsonName.Bool true
@@ -533,6 +565,24 @@ type JsonUnionConverter<'T>
             | ValueNone -> failExpecting "case field" &reader ty
         | _ -> failExpecting "case field" &reader ty
 
+    let getCaseByElementType (reader: byref<Utf8JsonReader>) =
+        let found =
+            match casesByJsonType with
+            | ValueNone -> ValueNone
+            | ValueSome d ->
+                match d.TryGetValue(reader.TokenType) with
+                | true, p -> ValueSome p
+                | false, _ -> ValueNone
+        match found with
+        | ValueNone ->
+            failf "Unknown case for union type %s due to unmatched field type: %s" ty.FullName (reader.GetString())
+        | ValueSome case -> case
+
+    let readUnwrapedUntagged (reader: byref<Utf8JsonReader>) =
+        let case = getCaseByElementType &reader
+        let field = JsonSerializer.Deserialize(&reader, case.Fields[0].Type, options)
+        case.Ctor [| field |] :?> 'T
+
     let writeFieldsAsRestOfArray (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         let fields = case.Fields
         let values = case.Dector value
@@ -614,7 +664,10 @@ type JsonUnionConverter<'T>
             writeFieldsAsRestOfArray writer case value options
 
     let writeUntagged (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
-        writeFieldsAsObject writer case value options
+        if case.UnwrappedSingleField then
+            JsonSerializer.Serialize(writer, (case.Dector value)[0], case.Fields[0].Type, options)
+        else
+            writeFieldsAsObject writer case value options
 
     override _.Read(reader, _typeToConvert, options) =
         match reader.TokenType with
@@ -633,11 +686,14 @@ type JsonUnionConverter<'T>
             | JsonUnionEncoding.ExternalTag -> readExternalTag &reader options
             | JsonUnionEncoding.InternalTag -> readInternalTag &reader options
             | UntaggedBit ->
-                if not hasDistinctFieldNames then
+                if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleFieldCases then
+                    readUnwrapedUntagged &reader
+                elif not hasDistinctFieldNames then
                     failf
                         "Union %s can't be deserialized as Untagged because it has duplicate field names across unions"
                         ty.FullName
-                readUntagged &reader options
+                else
+                    readUntagged &reader options
             | _ -> failf "Invalid union encoding: %A" fsOptions.UnionEncoding
 
     override _.Write(writer, value, options) =
