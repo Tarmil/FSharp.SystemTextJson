@@ -104,7 +104,7 @@ Target.create
         DotNet.exec
             (fun o -> { o with WorkingDirectory = Paths.benchmarks })
             "run"
-            "-c release --runtimes netcoreapp50 --filter \"*\""
+            "-c release --filter \"*\""
         |> checkOk "Benchmarks"
     )
 
