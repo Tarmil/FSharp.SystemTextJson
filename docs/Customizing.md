@@ -243,7 +243,7 @@ JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
 // --> {"anInt":123,"aString":"Hello world!"}
 ```
 
-This flag also sets the `NamedFields` additional flag (see [below](#namedfields)).
+This flag also sets the `NamedFields` additional flag (see [below](#named-union-fields)).
 
 #### Base union encoding with `JsonFSharpConverterAttribute`
 
@@ -335,7 +335,7 @@ Its exact effect depends on the base format:
     // Instead of ["WithArgs",123,"Hello, world!"]
     ```
 
-    The name `"Case"` can be customized (see [`unionTagName`](#uniontagname) below).
+    The name `"Case"` can be customized (see [`UnionTagName`](#union-tag-name) below).
 
 * `UnionUntagged` is unchanged by `UnionNamedFields`.
 
@@ -371,7 +371,7 @@ It causes the types `'T option` and `'T voption` (aka `ValueOption`) to be treat
 * The value `Some x` or `ValueSome x` is represented the same as `x`, without wrapping it in the union representation for `Some`.
 
 Combined with the option `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull` on `JsonSerializerOptions`, this can be used to represent optional fields: `Some` is a value that is present in the JSON object, and `None` is a value that is absent from the JSON object.
-Note that the same effect can also be achieved more explicitly and more safely using [the `Skippable` type](#skippable).
+Note that the same effect can also be achieved more explicitly and more safely using [the `Skippable` type](Format.md#skippable).
 
 ### Unwrap single-case unions
 
@@ -452,7 +452,7 @@ The exact effect depends on the base format:
 
 ### Unwrap union cases with a record field
 
-`UnionUnwrapRecordCases` implicitly sets [`NamedFields`](#namedfields).
+`UnionUnwrapRecordCases` implicitly sets [`NamedFields`](#named-union-fields).
 If a union case has a single field which is a record, then this record's fields are used directly as the fields of the object representing the union.
 The exact effect depends on the base format:
 
