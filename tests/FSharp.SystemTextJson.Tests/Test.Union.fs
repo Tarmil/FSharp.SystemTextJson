@@ -566,6 +566,50 @@ module NonStruct =
             )
         )
 
+    type SkO = SkO of a: int * b: int option * c: int option voption * d: int voption option
+
+    [<Fact>]
+    let ``deserialize InternalTag NamedFields with Skippable options`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        Assert.Equal(SkO(1, None, ValueNone, None), JsonSerializer.Deserialize("""{"Case":"SkO","a":1}""", options))
+        Assert.Equal(
+            SkO(1, Some 2, ValueSome None, Some ValueNone),
+            JsonSerializer.Deserialize("""{"Case":"SkO","a":1,"b":2,"c":null,"d":null}""", options)
+        )
+        Assert.Equal(
+            SkO(1, Some 2, ValueSome(Some 3), Some(ValueSome 4)),
+            JsonSerializer.Deserialize("""{"Case":"SkO","a":1,"b":2,"c":3,"d":4}""", options)
+        )
+        Assert.Equal(
+            SkO(1, Some 2, ValueSome(Some 3), Some(ValueSome 4)),
+            JsonSerializer.Deserialize("""{"a":1,"b":2,"Case":"SkO","c":3,"d":4}""", options)
+        )
+
+    [<Fact>]
+    let ``serialize InternalTag NamedFields with Skippable options`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        Assert.Equal("""{"Case":"SkO","a":1}""", JsonSerializer.Serialize(SkO(1, None, ValueNone, None), options))
+        Assert.Equal(
+            """{"Case":"SkO","a":1,"b":2,"c":null,"d":null}""",
+            JsonSerializer.Serialize(SkO(1, Some 2, ValueSome None, Some ValueNone), options)
+        )
+        Assert.Equal(
+            """{"Case":"SkO","a":1,"b":2,"c":3,"d":4}""",
+            JsonSerializer.Serialize(SkO(1, Some 2, ValueSome(Some 3), Some(ValueSome 4)), options)
+        )
+
     let internalTagNamedFieldsTagPolicyOptions =
         JsonFSharpOptions
             .Default()
@@ -1882,6 +1926,51 @@ module Struct =
                 S(1, Include 2, Include(Some 3), Include(ValueSome 4)),
                 internalTagNamedFieldsOptions
             )
+        )
+
+    [<Struct>]
+    type SkO = SkO of a: int * b: int option * c: int option voption * d: int voption option
+
+    [<Fact>]
+    let ``deserialize InternalTag NamedFields with Skippable options`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        Assert.Equal(SkO(1, None, ValueNone, None), JsonSerializer.Deserialize("""{"Case":"SkO","a":1}""", options))
+        Assert.Equal(
+            SkO(1, Some 2, ValueSome None, Some ValueNone),
+            JsonSerializer.Deserialize("""{"Case":"SkO","a":1,"b":2,"c":null,"d":null}""", options)
+        )
+        Assert.Equal(
+            SkO(1, Some 2, ValueSome(Some 3), Some(ValueSome 4)),
+            JsonSerializer.Deserialize("""{"Case":"SkO","a":1,"b":2,"c":3,"d":4}""", options)
+        )
+        Assert.Equal(
+            SkO(1, Some 2, ValueSome(Some 3), Some(ValueSome 4)),
+            JsonSerializer.Deserialize("""{"a":1,"b":2,"Case":"SkO","c":3,"d":4}""", options)
+        )
+
+    [<Fact>]
+    let ``serialize InternalTag NamedFields with Skippable options`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        Assert.Equal("""{"Case":"SkO","a":1}""", JsonSerializer.Serialize(SkO(1, None, ValueNone, None), options))
+        Assert.Equal(
+            """{"Case":"SkO","a":1,"b":2,"c":null,"d":null}""",
+            JsonSerializer.Serialize(SkO(1, Some 2, ValueSome None, Some ValueNone), options)
+        )
+        Assert.Equal(
+            """{"Case":"SkO","a":1,"b":2,"c":3,"d":4}""",
+            JsonSerializer.Serialize(SkO(1, Some 2, ValueSome(Some 3), Some(ValueSome 4)), options)
         )
 
     let internalTagNamedFieldsTagPolicyOptions =

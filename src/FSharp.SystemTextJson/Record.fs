@@ -79,7 +79,7 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
                 p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
             let nullValue = tryGetNullValue fsOptions p.PropertyType
             let canBeSkipped =
-                ignore || ignoreNullValues options || isSkippableType p.PropertyType
+                ignore || ignoreNullValues options || isSkippableType fsOptions p.PropertyType
             let read =
                 let m = p.GetGetMethod()
                 fun o -> m.Invoke(o, Array.empty)
@@ -88,7 +88,7 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
               Ignore = ignore
               NullValue = nullValue
               MustBePresent = not canBeSkipped
-              IsSkip = isSkip p.PropertyType
+              IsSkip = isSkip fsOptions p.PropertyType
               Read = read
               WriteOrder =
                 match fieldOrderIndices with
@@ -119,7 +119,7 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
         let arr = Array.zeroCreate fieldCount
         fieldProps
         |> Array.iteri (fun i field ->
-            if isSkippableType field.Type || isValueOptionType field.Type then
+            if isSkippableType fsOptions field.Type || isValueOptionType field.Type then
                 let case = FSharpType.GetUnionCases(field.Type)[0]
                 arr[i] <- FSharpValue.MakeUnion(case, [||])
         )
