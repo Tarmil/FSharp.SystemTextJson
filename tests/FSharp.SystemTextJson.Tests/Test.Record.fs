@@ -74,15 +74,19 @@ module NonStruct =
             Assert.Equal("Missing field for record type Tests.Record+NonStruct+B: by", e.Message)
 
     type SomeSearchApi =
-        { filter: string option
+        { filter: string voption
           limit: int option
           offset: int option }
 
-    let ``allow omitting fields that are optional`` () =
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
-        Assert.Equal(result, { filter = None; limit = None; offset = None })
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
-        Assert.Equal(result, { filter = None; limit = Some 50; offset = None })
+    [<Fact>]
+    let ``dont allow omitting fields that are optional`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options) |> ignore)
+        |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+            |> ignore
+        )
+        |> ignore
 
     [<Fact>]
     let allowNullFields () =
@@ -469,15 +473,19 @@ module Struct =
 
     [<Struct>]
     type SomeSearchApi =
-        { filter: string option
+        { filter: string voption
           limit: int option
           offset: int option }
 
-    let ``allow omitting fields that are optional`` () =
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
-        Assert.Equal(result, { filter = None; limit = None; offset = None })
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
-        Assert.Equal(result, { filter = None; limit = Some 50; offset = None })
+    [<Fact>]
+    let ``dont allow omitting fields that are optional`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options) |> ignore)
+        |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+            |> ignore
+        )
+        |> ignore
 
     [<Fact>]
     let allowNullFields () =
