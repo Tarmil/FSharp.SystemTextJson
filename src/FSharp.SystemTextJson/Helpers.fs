@@ -67,7 +67,7 @@ type Helper =
 
     static member tryGetUnwrappedSingleCaseField
         (
-            fsOptions: JsonFSharpOptions,
+            fsOptions: JsonFSharpOptionsRecord,
             ty: Type,
             cases: UnionCaseInfo[] outref,
             property: PropertyInfo outref
@@ -80,7 +80,7 @@ type Helper =
 /// If null is a valid JSON representation for ty,
 /// then return ValueSome with the value represented by null,
 /// else return ValueNone.
-let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption =
+let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj voption =
     if isNullableUnion ty then
         ValueSome null
     elif ty = typeof<unit> then
@@ -105,10 +105,10 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption 
             |> ValueOption.map (fun x -> FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[0], [| x |], true))
         | false, _, _ -> ValueNone
 
-let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
+let rec isNullableFieldType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
     tryGetNullValue fsOptions ty |> ValueOption.isSome
 
-let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: IDictionary<Type, JsonFSharpOptions>) =
+let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
     let inheritUnionEncoding (options: JsonFSharpOptions) =
         if options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
             options.WithUnionEncoding(defaultOptions.UnionEncoding)
@@ -126,6 +126,7 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: I
         else
             defaultOptions
 
+    let overrides = defaultOptions.Overrides defaultOptions
     if isNull overrides then
         applyAttributeOverride ()
     else

@@ -36,8 +36,7 @@ module NonStruct =
         | [<JsonName(true, "jbool")>] JNb of jnbField: int
         | JNn of jnnField: int
 
-    let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter())
+    let options = JsonFSharpOptions.Default().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -63,14 +62,17 @@ module NonStruct =
 
     [<Fact>]
     let allowNullFields () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options =
+            JsonFSharpOptions.Default().WithAllowNullFields().ToJsonSerializerOptions()
         let actual =
             JsonSerializer.Deserialize("""{"Case":"Bc","Fields":[null,true]}""", options)
         Assert.Equal(Bc(null, true), actual)
 
-    let tagPolicyOptions = JsonSerializerOptions()
-    tagPolicyOptions.Converters.Add(JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
+    let tagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag with tag policy`` () =
@@ -94,8 +96,11 @@ module NonStruct =
             JsonSerializer.Serialize(Bc("test", true), tagPolicyOptions)
         )
 
-    let tagCaseInsensitiveOptions = JsonSerializerOptions()
-    tagCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter(unionTagCaseInsensitive = true))
+    let tagCaseInsensitiveOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionTagCaseInsensitive()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag with case insensitive tag`` () =
@@ -150,8 +155,8 @@ module NonStruct =
         Assert.Equal("""null""", JsonSerializer.Serialize(Ca, options))
         Assert.Equal("""{"Case":"Cb","Fields":[32]}""", JsonSerializer.Serialize(Cb 32, options))
 
-    let externalTagOptions = JsonSerializerOptions()
-    externalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.ExternalTag))
+    let externalTagOptions =
+        JsonFSharpOptions.Default().WithUnionExternalTag().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag`` () =
@@ -165,11 +170,12 @@ module NonStruct =
         Assert.Equal("""{"Bb":[32]}""", JsonSerializer.Serialize(Bb 32, externalTagOptions))
         Assert.Equal("""{"Bc":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), externalTagOptions))
 
-    let externalTagPolicyOptions = JsonSerializerOptions()
-
-    externalTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.ExternalTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
-    )
+    let externalTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionExternalTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag with tag policy`` () =
@@ -198,8 +204,8 @@ module NonStruct =
         Assert.Equal("""{"true":[1]}""", JsonSerializer.Serialize(JNb 1, externalTagOptions))
         Assert.Equal("""{"JNn":[1]}""", JsonSerializer.Serialize(JNn 1, externalTagOptions))
 
-    let internalTagOptions = JsonSerializerOptions()
-    internalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag))
+    let internalTagOptions =
+        JsonFSharpOptions.Default().WithUnionInternalTag().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag`` () =
@@ -213,11 +219,12 @@ module NonStruct =
         Assert.Equal("""["Bb",32]""", JsonSerializer.Serialize(Bb 32, internalTagOptions))
         Assert.Equal("""["Bc","test",true]""", JsonSerializer.Serialize(Bc("test", true), internalTagOptions))
 
-    let internalTagPolicyOptions = JsonSerializerOptions()
-
-    internalTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
-    )
+    let internalTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag with tag policy`` () =
@@ -246,8 +253,8 @@ module NonStruct =
         Assert.Equal("""[true,1]""", JsonSerializer.Serialize(JNb 1, internalTagOptions))
         Assert.Equal("""["JNn",1]""", JsonSerializer.Serialize(JNn 1, internalTagOptions))
 
-    let untaggedOptions = JsonSerializerOptions()
-    untaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+    let untaggedOptions =
+        JsonFSharpOptions.Default().WithUnionUntagged().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize Untagged`` () =
@@ -275,15 +282,13 @@ module NonStruct =
         Assert.Equal("""{"jnbField":1}""", JsonSerializer.Serialize(JNb 1, untaggedOptions))
         Assert.Equal("""{"jnnField":1}""", JsonSerializer.Serialize(JNn 1, untaggedOptions))
 
-    let adjacentTagNamedFieldsOptions = JsonSerializerOptions()
-
-    adjacentTagNamedFieldsOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.AdjacentTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag
-        )
-    )
+    let adjacentTagNamedFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields`` () =
@@ -319,16 +324,14 @@ module NonStruct =
             JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsOptions)
         )
 
-    let adjacentTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-
-    adjacentTagNamedFieldsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.AdjacentTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag,
-            unionTagNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let adjacentTagNamedFieldsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields with tag policy`` () =
@@ -416,11 +419,12 @@ module NonStruct =
             JsonSerializer.Serialize(JNn 1, adjacentTagNamedFieldsOptions)
         )
 
-    let externalTagNamedFieldsOptions = JsonSerializerOptions()
-
-    externalTagNamedFieldsOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+    let externalTagNamedFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionExternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag NamedFields`` () =
@@ -440,14 +444,13 @@ module NonStruct =
             JsonSerializer.Serialize(Bc("test", true), externalTagNamedFieldsOptions)
         )
 
-    let externalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-
-    externalTagNamedFieldsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields,
-            unionTagNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let externalTagNamedFieldsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionExternalTag()
+            .WithUnionNamedFields()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag NamedFields with tag policy`` () =
@@ -495,15 +498,12 @@ module NonStruct =
         Assert.Equal("""{"true":{"jnbField":1}}""", JsonSerializer.Serialize(JNb 1, externalTagNamedFieldsOptions))
         Assert.Equal("""{"JNn":{"jnnField":1}}""", JsonSerializer.Serialize(JNn 1, externalTagNamedFieldsOptions))
 
-    let internalTagNamedFieldsOptions = JsonSerializerOptions()
-
-    internalTagNamedFieldsOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.Default
-        )
-    )
+    let internalTagNamedFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields`` () =
@@ -566,16 +566,14 @@ module NonStruct =
             )
         )
 
-    let internalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-
-    internalTagNamedFieldsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag,
-            unionTagNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let internalTagNamedFieldsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields with tag policy`` () =
@@ -642,16 +640,14 @@ module NonStruct =
         Assert.Equal("""{"Case":true,"jnbField":1}""", JsonSerializer.Serialize(JNb 1, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"JNn","jnnField":1}""", JsonSerializer.Serialize(JNn 1, internalTagNamedFieldsOptions))
 
-    let internalTagNamedFieldsConfiguredTagOptions = JsonSerializerOptions()
-
-    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag,
-            "type"
-        )
-    )
+    let internalTagNamedFieldsConfiguredTagOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagName("type")
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields alternative Tag`` () =
@@ -687,11 +683,14 @@ module NonStruct =
             JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions)
         )
 
-    let adjacentTagNamedFieldsConfiguredFieldsOptions = JsonSerializerOptions()
-
-    adjacentTagNamedFieldsConfiguredFieldsOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.AllowUnorderedTag, "type", "args")
-    )
+    let adjacentTagNamedFieldsConfiguredFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagName("type")
+            .WithUnionFieldsName("args")
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields alternative Fields`` () =
@@ -727,11 +726,11 @@ module NonStruct =
             JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsConfiguredFieldsOptions)
         )
 
-    let unwrapSingleFieldCasesOptions = JsonSerializerOptions()
-
-    unwrapSingleFieldCasesOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.Default ||| JsonUnionEncoding.UnwrapSingleFieldCases)
-    )
+    let unwrapSingleFieldCasesOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapSingleFieldCases()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize unwrapped single-field cases`` () =
@@ -763,8 +762,11 @@ module NonStruct =
         Assert.Equal({ o = Some 123 }, JsonSerializer.Deserialize("""{"o":123}""", options))
         Assert.Equal({ o = None }, JsonSerializer.Deserialize("""{"o":null}""", options))
 
-    let unwrapFieldlessTagsOptions = JsonSerializerOptions()
-    unwrapFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags))
+    let unwrapFieldlessTagsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapFieldlessTags()
+            .ToJsonSerializerOptions()
 
     type S = { b: B }
 
@@ -786,11 +788,12 @@ module NonStruct =
             JsonSerializer.Serialize(Bc("test", true), unwrapFieldlessTagsOptions)
         )
 
-    let unwrapFieldlessTagsTagPolicyOptions = JsonSerializerOptions()
-
-    unwrapFieldlessTagsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags, unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
-    )
+    let unwrapFieldlessTagsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapFieldlessTags()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize UnwrapFieldlessTags with tag policy`` () =
@@ -836,8 +839,12 @@ module NonStruct =
             JsonSerializer.Serialize(NamedWithArgs 42, unwrapFieldlessTagsOptions)
         )
 
-    let nonUnwrapOptionOptions = JsonSerializerOptions()
-    nonUnwrapOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+    let nonUnwrapOptionOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnwrapOption(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``serialize non-UnwrapOption`` () =
@@ -855,18 +862,19 @@ module NonStruct =
         )
         Assert.Equal({ o = None }, JsonSerializer.Deserialize("""{"o":null}""", nonUnwrapOptionOptions))
 
-    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
-
-    ignoreNullOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+    let ignoreNullOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
-        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
-
-    newIgnoreNullOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
     type Cls() =
@@ -898,9 +906,10 @@ module NonStruct =
         Assert.Equal("""{"Case":"Foo","x":1}""", actual)
 
     let propertyNamingPolicyOptions =
-        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
-    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUntagged()
+            .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
 
     type CamelCase = CCA of CcFirst: int * CcSecond: string
 
@@ -916,11 +925,11 @@ module NonStruct =
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize with property case insensitive`` () =
@@ -938,9 +947,10 @@ module NonStruct =
         Assert.Equal("""{"Case":"CCA","CcFirst":1,"CcSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveUntaggedOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveUntaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUntagged()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize untagged with property case insensitive`` () =
@@ -964,11 +974,11 @@ module NonStruct =
     let ``serialize unwrapped single-case`` () =
         Assert.Equal("\"foo\"", JsonSerializer.Serialize(Unwrapped "foo", options))
 
-    let noNewtypeOptions = JsonSerializerOptions()
-
-    noNewtypeOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.UnwrapSingleCaseUnions)
-    )
+    let noNewtypeOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapSingleCaseUnions(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize non-unwrapped single-case`` () =
@@ -989,16 +999,20 @@ module NonStruct =
     [<Fact>]
     let ``serializes union with unit field`` () =
         let options =
-            JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-        options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+            JsonFSharpOptions
+                .Default()
+                .WithUnionAdjacentTag()
+                .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
         let actual = JsonSerializer.Serialize(UWUF(42, ()), options)
         Assert.Equal("""{"Case":"UWUF","Fields":[42,null]}""", actual)
 
     [<Fact>]
     let ``deserializes union with unit field`` () =
         let options =
-            JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-        options.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+            JsonFSharpOptions
+                .Default()
+                .WithUnionAdjacentTag()
+                .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
         let actual =
             JsonSerializer.Deserialize("""{"Case":"UWUF","Fields":[42,null]}""", options)
         Assert.Equal(UWUF(42, ()), actual)
@@ -1011,11 +1025,12 @@ module NonStruct =
 
         and R = { x: int; y: float }
 
-        let adjacentTagOptions = JsonSerializerOptions()
-
-        adjacentTagOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let adjacentTagOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionAdjacentTag()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with AdjacentTag`` () =
@@ -1033,11 +1048,12 @@ module NonStruct =
                 JsonSerializer.Deserialize("""{"Case":"V","Fields":{"v":42}}""", adjacentTagOptions)
             Assert.Equal(V 42, actual)
 
-        let externalTagOptions = JsonSerializerOptions()
-
-        externalTagOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let externalTagOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionExternalTag()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with externalTag`` () =
@@ -1054,11 +1070,12 @@ module NonStruct =
             let actual = JsonSerializer.Deserialize("""{"V":{"v":42}}""", externalTagOptions)
             Assert.Equal(V 42, actual)
 
-        let internalTagOptions = JsonSerializerOptions()
-
-        internalTagOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let internalTagOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with internalTag`` () =
@@ -1076,11 +1093,12 @@ module NonStruct =
                 JsonSerializer.Deserialize("""{"Case":"V","v":42}""", internalTagOptions)
             Assert.Equal(V 42, actual)
 
-        let untaggedOptions = JsonSerializerOptions()
-
-        untaggedOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.Untagged ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let untaggedOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionUntagged()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with untagged`` () =
@@ -1096,84 +1114,109 @@ module NonStruct =
             let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
             Assert.Equal(V 42, actual)
 
-    [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
+    [<JsonFSharpConverter(UnionTagName = "tag", UnionFieldsName = "val")>]
     type Override = A of x: int * y: string
 
     [<Fact>]
     let ``should not override tag name in attribute if AllowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter())
+        let o = JsonFSharpOptions.Default().ToJsonSerializerOptions()
         Assert.Equal("""{"Case":"A","Fields":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should override tag name in attribute if AllowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        let o = JsonFSharpOptions.Default().WithAllowOverride().ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","val":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should not override JsonEncoding if not specified`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, allowOverride = true)
-        )
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithAllowOverride()
+                .ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
-    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    [<JsonFSharpConverter(UnionEncoding = JsonUnionEncoding.InternalTag)>]
     type Override2 = A of int * string
 
     [<Fact>]
     let ``should override JsonEncoding if specified`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        let o = JsonFSharpOptions.Default().WithAllowOverride().ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
 
     [<Fact>]
-    let ``should apply explicit overrides if allowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(overrides = dict [ typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag) ])
-        )
+    let ``should apply explicit overrides from Default if allowOverride = false`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride(false)
+                .WithOverrides(dict [ typeof<Override>, JsonFSharpOptions.Default().WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
-    let ``should apply explicit overrides if allowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(
-                allowOverride = true,
-                overrides = dict [ typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag) ]
-            )
-        )
+    let ``should apply explicit overrides from function if allowOverride = false`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride(false)
+                .WithOverrides(fun o -> dict [ typeof<Override>, o.WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides from Default if allowOverride = true`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride()
+                .WithOverrides(dict [ typeof<Override>, JsonFSharpOptions.Default().WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
+        Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+
+    [<Fact>]
+    let ``should apply explicit overrides from function if allowOverride = true`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride()
+                .WithOverrides(fun o -> dict [ typeof<Override>, o.WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should apply explicit overrides inheriting JsonUnionEncoding`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(
-                JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields,
-                overrides = dict [ typeof<Override>, JsonFSharpOptions(unionTagName = "tag") ]
-            )
-        )
-        Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithOverrides(
+                    dict [ typeof<Override>, JsonFSharpOptions.InheritUnionEncoding().WithUnionTagName("tag2") ]
+                )
+                .ToJsonSerializerOptions()
+        Assert.Equal("""{"tag2":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
-    type NamedAfterTypes =
-        | NTA of int
-        | NTB of int * string
-        | NTC of X: int
-        | NTD of X: int * Y: string
-        | NTE of string * string
+    type NamedAfterTypesA = NTA of int
 
-    let namedAfterTypesOptions = JsonSerializerOptions()
+    type NamedAfterTypesB = NTB of int * string
 
-    namedAfterTypesOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.UnionFieldNamesFromTypes
-        )
-    )
+    type NamedAfterTypesC = NTC of X: int
+
+    type NamedAfterTypesD = NTD of X: int * Y: string
+
+    type NamedAfterTypesE = NTE of string * string
+
+    let namedAfterTypesOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionFieldNamesFromTypes()
+            .WithUnionUnwrapSingleCaseUnions(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``serialize UnionFieldNamesFromTypes`` () =
@@ -1209,16 +1252,15 @@ module NonStruct =
             JsonSerializer.Deserialize("""{"Case":"NTE","String1":"123","String2":"test"}""", namedAfterTypesOptions)
         )
 
-    let namedAfterTypesOptionsWithNamingPolicy = JsonSerializerOptions()
-
-    namedAfterTypesOptionsWithNamingPolicy.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.UnionFieldNamesFromTypes,
-            unionFieldNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let namedAfterTypesOptionsWithNamingPolicy =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionFieldNamesFromTypes()
+            .WithUnionFieldNamingPolicy(JsonNamingPolicy.CamelCase)
+            .WithUnionUnwrapSingleCaseUnions(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``serialize UnionFieldNamesFromTypes with unionFieldNamingPolicy`` () =
@@ -1305,8 +1347,7 @@ module Struct =
         | [<JsonName(true, "jbool")>] JNb of jnbField: int
         | JNn of jnnField: int
 
-    let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter())
+    let options = JsonFSharpOptions.Default().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -1332,8 +1373,8 @@ module Struct =
 
     [<Fact>]
     let allowNullFields () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options =
+            JsonFSharpOptions.Default().WithAllowNullFields().ToJsonSerializerOptions()
         let actual =
             JsonSerializer.Deserialize("""{"Case":"Bc","Fields":[null,true]}""", options)
         Assert.Equal(Bc(null, true), actual)
@@ -1351,8 +1392,11 @@ module Struct =
         Assert.Equal({ vo = ValueSome 123 }, JsonSerializer.Deserialize("""{"vo":123}""", options))
         Assert.Equal({ vo = ValueNone }, JsonSerializer.Deserialize("""{"vo":null}""", options))
 
-    let tagPolicyOptions = JsonSerializerOptions()
-    tagPolicyOptions.Converters.Add(JsonFSharpConverter(unionTagNamingPolicy = JsonNamingPolicy.CamelCase))
+    let tagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag with tag policy`` () =
@@ -1376,8 +1420,11 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), tagPolicyOptions)
         )
 
-    let tagCaseInsensitiveOptions = JsonSerializerOptions()
-    tagCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter(unionTagCaseInsensitive = true))
+    let tagCaseInsensitiveOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionTagCaseInsensitive()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag with case insensitive tag`` () =
@@ -1416,8 +1463,8 @@ module Struct =
         Assert.Equal("""{"Case":true,"Fields":[1]}""", JsonSerializer.Serialize(JNb 1, options))
         Assert.Equal("""{"Case":"JNn","Fields":[1]}""", JsonSerializer.Serialize(JNn 1, options))
 
-    let externalTagOptions = JsonSerializerOptions()
-    externalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.ExternalTag))
+    let externalTagOptions =
+        JsonFSharpOptions.Default().WithUnionExternalTag().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag`` () =
@@ -1431,11 +1478,12 @@ module Struct =
         Assert.Equal("""{"Bb":[32]}""", JsonSerializer.Serialize(Bb 32, externalTagOptions))
         Assert.Equal("""{"Bc":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), externalTagOptions))
 
-    let externalTagPolicyOptions = JsonSerializerOptions()
-
-    externalTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.ExternalTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
-    )
+    let externalTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionExternalTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag with tag policy`` () =
@@ -1464,8 +1512,8 @@ module Struct =
         Assert.Equal("""{"true":[1]}""", JsonSerializer.Serialize(JNb 1, externalTagOptions))
         Assert.Equal("""{"JNn":[1]}""", JsonSerializer.Serialize(JNn 1, externalTagOptions))
 
-    let internalTagOptions = JsonSerializerOptions()
-    internalTagOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.InternalTag))
+    let internalTagOptions =
+        JsonFSharpOptions.Default().WithUnionInternalTag().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag`` () =
@@ -1479,11 +1527,12 @@ module Struct =
         Assert.Equal("""["Bb",32]""", JsonSerializer.Serialize(Bb 32, internalTagOptions))
         Assert.Equal("""["Bc","test",true]""", JsonSerializer.Serialize(Bc("test", true), internalTagOptions))
 
-    let internalTagPolicyOptions = JsonSerializerOptions()
-
-    internalTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag, unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
-    )
+    let internalTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag with tag policy`` () =
@@ -1512,8 +1561,8 @@ module Struct =
         Assert.Equal("""[true,1]""", JsonSerializer.Serialize(JNb 1, internalTagOptions))
         Assert.Equal("""["JNn",1]""", JsonSerializer.Serialize(JNn 1, internalTagOptions))
 
-    let untaggedOptions = JsonSerializerOptions()
-    untaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+    let untaggedOptions =
+        JsonFSharpOptions.Default().WithUnionUntagged().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize Untagged`` () =
@@ -1542,15 +1591,13 @@ module Struct =
         Assert.Equal("""{"jnbField":1}""", JsonSerializer.Serialize(JNb 1, untaggedOptions))
         Assert.Equal("""{"jnnField":1}""", JsonSerializer.Serialize(JNn 1, untaggedOptions))
 
-    let adjacentTagNamedFieldsOptions = JsonSerializerOptions()
-
-    adjacentTagNamedFieldsOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.AdjacentTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag
-        )
-    )
+    let adjacentTagNamedFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields`` () =
@@ -1586,16 +1633,14 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), adjacentTagNamedFieldsOptions)
         )
 
-    let adjacentTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-
-    adjacentTagNamedFieldsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.AdjacentTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag,
-            unionTagNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let adjacentTagNamedFieldsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields with tag policy`` () =
@@ -1683,11 +1728,12 @@ module Struct =
             JsonSerializer.Serialize(JNn 1, adjacentTagNamedFieldsOptions)
         )
 
-    let externalTagNamedFieldsOptions = JsonSerializerOptions()
-
-    externalTagNamedFieldsOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+    let externalTagNamedFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionExternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag NamedFields`` () =
@@ -1707,14 +1753,13 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), externalTagNamedFieldsOptions)
         )
 
-    let externalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-
-    externalTagNamedFieldsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.NamedFields,
-            unionTagNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let externalTagNamedFieldsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionExternalTag()
+            .WithUnionNamedFields()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize ExternalTag NamedFields with tag policy`` () =
@@ -1762,7 +1807,12 @@ module Struct =
         Assert.Equal("""{"true":{"jnbField":1}}""", JsonSerializer.Serialize(JNb 1, externalTagNamedFieldsOptions))
         Assert.Equal("""{"JNn":{"jnnField":1}}""", JsonSerializer.Serialize(JNn 1, externalTagNamedFieldsOptions))
 
-    let internalTagNamedFieldsOptions = JsonSerializerOptions()
+    let internalTagNamedFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions()
 
     internalTagNamedFieldsOptions.Converters.Add(
         JsonFSharpConverter(
@@ -1834,16 +1884,14 @@ module Struct =
             )
         )
 
-    let internalTagNamedFieldsTagPolicyOptions = JsonSerializerOptions()
-
-    internalTagNamedFieldsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag,
-            unionTagNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let internalTagNamedFieldsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields with tag policy`` () =
@@ -1910,16 +1958,14 @@ module Struct =
         Assert.Equal("""{"Case":true,"jnbField":1}""", JsonSerializer.Serialize(JNb 1, internalTagNamedFieldsOptions))
         Assert.Equal("""{"Case":"JNn","jnnField":1}""", JsonSerializer.Serialize(JNn 1, internalTagNamedFieldsOptions))
 
-    let internalTagNamedFieldsConfiguredTagOptions = JsonSerializerOptions()
-
-    internalTagNamedFieldsConfiguredTagOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.AllowUnorderedTag,
-            "type"
-        )
-    )
+    let internalTagNamedFieldsConfiguredTagOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagName("type")
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize InternalTag NamedFields alternative Tag`` () =
@@ -1955,11 +2001,14 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), internalTagNamedFieldsConfiguredTagOptions)
         )
 
-    let adjacentTagConfiguredFieldsOptions = JsonSerializerOptions()
-
-    adjacentTagConfiguredFieldsOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.AllowUnorderedTag, "type", "args")
-    )
+    let adjacentTagConfiguredFieldsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnionAllowUnorderedTag()
+            .WithUnionTagName("type")
+            .WithUnionFieldsName("args")
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize AdjacentTag NamedFields alternative Fields`` () =
@@ -1989,11 +2038,11 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), adjacentTagConfiguredFieldsOptions)
         )
 
-    let unwrapSingleFieldCasesOptions = JsonSerializerOptions()
-
-    unwrapSingleFieldCasesOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.Default ||| JsonUnionEncoding.UnwrapSingleFieldCases)
-    )
+    let unwrapSingleFieldCasesOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapSingleFieldCases()
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize unwrapped single-field cases`` () =
@@ -2017,8 +2066,11 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), unwrapSingleFieldCasesOptions)
         )
 
-    let unwrapFieldlessTagsOptions = JsonSerializerOptions()
-    unwrapFieldlessTagsOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags))
+    let unwrapFieldlessTagsOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapFieldlessTags()
+            .ToJsonSerializerOptions()
 
     [<Struct>]
     type S = { b: B }
@@ -2041,11 +2093,12 @@ module Struct =
             JsonSerializer.Serialize(Bc("test", true), unwrapFieldlessTagsOptions)
         )
 
-    let unwrapFieldlessTagsTagPolicyOptions = JsonSerializerOptions()
-
-    unwrapFieldlessTagsTagPolicyOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.UnwrapFieldlessTags, unionTagNamingPolicy = JsonNamingPolicy.CamelCase)
-    )
+    let unwrapFieldlessTagsTagPolicyOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapFieldlessTags()
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.CamelCase)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize UnwrapFieldlessTags with tag policy`` () =
@@ -2092,8 +2145,12 @@ module Struct =
             JsonSerializer.Serialize(NamedWithArgs 42, unwrapFieldlessTagsOptions)
         )
 
-    let nonUnwrapOptionOptions = JsonSerializerOptions()
-    nonUnwrapOptionOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.AdjacentTag))
+    let nonUnwrapOptionOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionAdjacentTag()
+            .WithUnwrapOption(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``serialize non-UnwrapOption`` () =
@@ -2117,18 +2174,19 @@ module Struct =
             JsonSerializer.Deserialize("""{"vo":{"Case":"ValueNone"}}""", nonUnwrapOptionOptions)
         )
 
-    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
-
-    ignoreNullOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+    let ignoreNullOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
-        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
-
-    newIgnoreNullOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
     type Cls() =
@@ -2161,9 +2219,10 @@ module Struct =
         Assert.Equal("""{"Case":"Foo","x":1}""", actual)
 
     let propertyNamingPolicyOptions =
-        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
-    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUntagged()
+            .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
 
     [<Struct>]
     type CamelCase = CCA of CcFirst: int * CcSecond: string
@@ -2180,11 +2239,11 @@ module Struct =
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields)
-    )
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize with property case insensitive`` () =
@@ -2202,9 +2261,10 @@ module Struct =
         Assert.Equal("""{"Case":"CCA","CcFirst":1,"CcSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveUntaggedOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveUntaggedOptions.Converters.Add(JsonFSharpConverter(JsonUnionEncoding.Untagged))
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUntagged()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize untagged with property case insensitive`` () =
@@ -2229,11 +2289,11 @@ module Struct =
     let ``serialize unwrapped single-case`` () =
         Assert.Equal("\"foo\"", JsonSerializer.Serialize(Unwrapped "foo", options))
 
-    let noNewtypeOptions = JsonSerializerOptions()
-
-    noNewtypeOptions.Converters.Add(
-        JsonFSharpConverter(JsonUnionEncoding.Default &&& ~~~JsonUnionEncoding.UnwrapSingleCaseUnions)
-    )
+    let noNewtypeOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapSingleCaseUnions(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize non-unwrapped single-case`` () =
@@ -2258,11 +2318,12 @@ module Struct =
 
         and [<Struct>] R = { x: int; y: float }
 
-        let adjacentTagOptions = JsonSerializerOptions()
-
-        adjacentTagOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.AdjacentTag ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let adjacentTagOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionAdjacentTag()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with AdjacentTag`` () =
@@ -2280,11 +2341,12 @@ module Struct =
                 JsonSerializer.Deserialize("""{"Case":"V","Fields":{"v":42}}""", adjacentTagOptions)
             Assert.Equal(V 42, actual)
 
-        let externalTagOptions = JsonSerializerOptions()
-
-        externalTagOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.ExternalTag ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let externalTagOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionExternalTag()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with externalTag`` () =
@@ -2301,11 +2363,12 @@ module Struct =
             let actual = JsonSerializer.Deserialize("""{"V":{"v":42}}""", externalTagOptions)
             Assert.Equal(V 42, actual)
 
-        let internalTagOptions = JsonSerializerOptions()
-
-        internalTagOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let internalTagOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with internalTag`` () =
@@ -2323,11 +2386,12 @@ module Struct =
                 JsonSerializer.Deserialize("""{"Case":"V","v":42}""", internalTagOptions)
             Assert.Equal(V 42, actual)
 
-        let untaggedOptions = JsonSerializerOptions()
-
-        untaggedOptions.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.Untagged ||| JsonUnionEncoding.UnwrapRecordCases)
-        )
+        let untaggedOptions =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionUntagged()
+                .WithUnionUnwrapRecordCases()
+                .ToJsonSerializerOptions()
 
         [<Fact>]
         let ``serialize with untagged`` () =
@@ -2343,68 +2407,71 @@ module Struct =
             let actual = JsonSerializer.Deserialize("""{"v":42}""", untaggedOptions)
             Assert.Equal(V 42, actual)
 
-    [<JsonFSharpConverter(unionTagName = "tag", unionFieldsName = "val")>]
+    [<JsonFSharpConverter(UnionTagName = "tag", UnionFieldsName = "val")>]
     [<Struct>]
     type Override = A of x: int * y: string
 
     [<Fact>]
     let ``should not override tag name in attribute if AllowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter())
+        let o = JsonFSharpOptions.Default().ToJsonSerializerOptions()
         Assert.Equal("""{"Case":"A","Fields":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should override tag name in attribute if AllowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        let o = JsonFSharpOptions.Default().WithAllowOverride().ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","val":[123,"abc"]}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should not override JsonEncoding if not specified`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields, allowOverride = true)
-        )
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithAllowOverride()
+                .ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
-    [<JsonFSharpConverter(JsonUnionEncoding.InternalTag)>]
+    [<JsonFSharpConverter(UnionEncoding = JsonUnionEncoding.InternalTag)>]
     [<Struct>]
     type Override2 = A of int * string
 
     [<Fact>]
     let ``should override JsonEncoding if specified`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowOverride = true))
+        let o = JsonFSharpOptions.Default().WithAllowOverride().ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override2.A(123, "abc"), o))
 
     [<Fact>]
     let ``should apply explicit overrides if allowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(overrides = dict [ typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag) ])
-        )
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride(false)
+                .WithOverrides(dict [ typeof<Override>, JsonFSharpOptions.Default().WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should apply explicit overrides if allowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(
-                allowOverride = true,
-                overrides = dict [ typeof<Override>, JsonFSharpOptions(JsonUnionEncoding.InternalTag) ]
-            )
-        )
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithAllowOverride()
+                .WithOverrides(dict [ typeof<Override>, JsonFSharpOptions.Default().WithUnionInternalTag() ])
+                .ToJsonSerializerOptions()
         Assert.Equal("""["A",123,"abc"]""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Fact>]
     let ``should apply explicit overrides inheriting JsonUnionEncoding`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(
-            JsonFSharpConverter(
-                JsonUnionEncoding.InternalTag ||| JsonUnionEncoding.NamedFields,
-                overrides = dict [ typeof<Override>, JsonFSharpOptions(unionTagName = "tag") ]
-            )
-        )
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithOverrides(
+                    dict [ typeof<Override>, JsonFSharpOptions.InheritUnionEncoding().WithUnionTagName("tag") ]
+                )
+                .ToJsonSerializerOptions()
         Assert.Equal("""{"tag":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
     [<Struct>]
@@ -2422,15 +2489,14 @@ module Struct =
     [<Struct>]
     type NamedAfterTypesE = NTE of string * string
 
-    let namedAfterTypesOptions = JsonSerializerOptions()
-
-    namedAfterTypesOptions.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.UnionFieldNamesFromTypes
-        )
-    )
+    let namedAfterTypesOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionFieldNamesFromTypes()
+            .WithUnionUnwrapSingleCaseUnions(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``serialize UnionFieldNamesFromTypes`` () =
@@ -2466,16 +2532,15 @@ module Struct =
             JsonSerializer.Deserialize("""{"Case":"NTE","String1":"123","String2":"test"}""", namedAfterTypesOptions)
         )
 
-    let namedAfterTypesOptionsWithNamingPolicy = JsonSerializerOptions()
-
-    namedAfterTypesOptionsWithNamingPolicy.Converters.Add(
-        JsonFSharpConverter(
-            JsonUnionEncoding.InternalTag
-            ||| JsonUnionEncoding.NamedFields
-            ||| JsonUnionEncoding.UnionFieldNamesFromTypes,
-            unionFieldNamingPolicy = JsonNamingPolicy.CamelCase
-        )
-    )
+    let namedAfterTypesOptionsWithNamingPolicy =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionInternalTag()
+            .WithUnionNamedFields()
+            .WithUnionFieldNamesFromTypes()
+            .WithUnionFieldNamingPolicy(JsonNamingPolicy.CamelCase)
+            .WithUnionUnwrapSingleCaseUnions(false)
+            .ToJsonSerializerOptions()
 
     [<Fact>]
     let ``serialize UnionFieldNamesFromTypes with unionFieldNamingPolicy`` () =

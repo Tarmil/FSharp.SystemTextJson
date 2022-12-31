@@ -2,6 +2,7 @@ namespace System.Text.Json.Serialization
 
 open System
 open System.Collections.Generic
+open System.Reflection
 open System.Text.Json
 open System.Text.Json.Serialization
 open System.Text.Json.Serialization.Helpers
@@ -27,11 +28,11 @@ type private Case =
       MinExpectedFieldCount: int }
 
 type JsonUnionConverter<'T>
+    internal
     (
         options: JsonSerializerOptions,
-        fsOptions: JsonFSharpOptions,
-        cases: UnionCaseInfo[],
-        overrides: IDictionary<Type, JsonFSharpOptions>
+        fsOptions: JsonFSharpOptionsRecord,
+        cases: UnionCaseInfo[]
     ) =
     inherit JsonConverter<'T>()
 
@@ -121,7 +122,7 @@ type JsonUnionConverter<'T>
                    && fields.Length = 1
                    && FSharpType.IsRecord(fields[0].Type, true)
                    && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapRecordCases then
-                    JsonRecordConverter.CreateConverter(fields[0].Type, options, fsOptions, overrides)
+                    JsonRecordConverter.CreateConverter(fields[0].Type, options, JsonFSharpOptions fsOptions)
                     |> box
                     :?> IRecordConverter
                     |> ValueSome
@@ -658,6 +659,8 @@ type JsonUnionConverter<'T>
                 | UntaggedBit -> writeUntagged writer case value options
                 | _ -> failf "Invalid union encoding: %A" fsOptions.UnionEncoding
 
+    new(options, fsOptions: JsonFSharpOptions, cases) = JsonUnionConverter<'T>(options, fsOptions.Record, cases)
+
 type JsonSkippableConverter<'T>() =
     inherit JsonConverter<Skippable<'T>>()
 
@@ -719,10 +722,9 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     static let jsonUnwrappedUnionConverterTy = typedefof<JsonUnwrappedUnionConverter<_, _>>
     static let jsonSkippableConverterTy = typedefof<JsonSkippableConverter<_>>
     static let optionsTy = typeof<JsonSerializerOptions>
-    static let fsOptionsTy = typeof<JsonFSharpOptions>
+    static let fsOptionsRecordTy = typeof<JsonFSharpOptionsRecord>
     static let caseTy = typeof<UnionCaseInfo>
     static let casesTy = typeof<UnionCaseInfo[]>
-    static let overridesTy = typeof<IDictionary<Type, JsonFSharpOptions>>
 
     static member internal CanConvert(typeToConvert) =
         TypeCache.isUnion typeToConvert
@@ -731,10 +733,9 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         (
             typeToConvert: Type,
             options: JsonSerializerOptions,
-            fsOptions: JsonFSharpOptions,
-            overrides: IDictionary<Type, JsonFSharpOptions>
+            fsOptions: JsonFSharpOptions
         ) =
-        let fsOptions = overrideOptions typeToConvert fsOptions overrides
+        let fsOptions = overrideOptions typeToConvert fsOptions
         if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
            && typeToConvert.IsGenericType
            && typeToConvert.GetGenericTypeDefinition() = optionTy then
@@ -759,7 +760,7 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
                 .Invoke([||])
             :?> JsonConverter
         else
-            match tryGetUnwrappedSingleCaseField (fsOptions, typeToConvert) with
+            match tryGetUnwrappedSingleCaseField (fsOptions.Record, typeToConvert) with
             | true, cases, unwrappedSingleCaseField ->
                 let case = cases[0]
                 jsonUnwrappedUnionConverterTy
@@ -770,12 +771,17 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
             | false, cases, _ ->
                 jsonUnionConverterTy
                     .MakeGenericType([| typeToConvert |])
-                    .GetConstructor([| optionsTy; fsOptionsTy; casesTy; overridesTy |])
-                    .Invoke([| options; fsOptions; cases; overrides |])
+                    .GetConstructor(
+                        BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Instance,
+                        null,
+                        [| optionsTy; fsOptionsRecordTy; casesTy |],
+                        null
+                    )
+                    .Invoke([| options; fsOptions.Record; cases |])
                 :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonUnionConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions, null)
+        JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)

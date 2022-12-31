@@ -5,7 +5,7 @@ open System.Text.Json
 open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
-type JsonListConverter<'T>(fsOptions) =
+type JsonListConverter<'T> internal (fsOptions) =
     inherit JsonConverter<list<'T>>()
     let tType = typeof<'T>
     let tIsNullable = isNullableFieldType fsOptions tType
@@ -21,6 +21,8 @@ type JsonListConverter<'T>(fsOptions) =
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
+
+    new(fsOptions: JsonFSharpOptions) = JsonListConverter<'T>(fsOptions.Record)
 
 type JsonListConverter(fsOptions) =
     inherit JsonConverterFactory()
@@ -41,7 +43,7 @@ type JsonListConverter(fsOptions) =
     override _.CreateConverter(typeToConvert, _options) =
         JsonListConverter.CreateConverter(typeToConvert, fsOptions)
 
-type JsonSetConverter<'T when 'T: comparison>(fsOptions) =
+type JsonSetConverter<'T when 'T: comparison> internal (fsOptions) =
     inherit JsonConverter<Set<'T>>()
     let tType = typeof<'T>
     let tIsNullable = isNullableFieldType fsOptions tType
@@ -68,6 +70,8 @@ type JsonSetConverter<'T when 'T: comparison>(fsOptions) =
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
+
+    new(fsOptions: JsonFSharpOptions) = JsonSetConverter<'T>(fsOptions.Record)
 
 type JsonSetConverter(fsOptions) =
     inherit JsonConverterFactory()

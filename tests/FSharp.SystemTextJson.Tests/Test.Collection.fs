@@ -7,8 +7,7 @@ open Xunit
 open FsCheck
 open FsCheck.Xunit
 
-let options = JsonSerializerOptions()
-options.Converters.Add(JsonFSharpConverter())
+let options = JsonFSharpOptions().ToJsonSerializerOptions()
 
 [<Property>]
 let ``deserialize list of ints`` (l: list<int>) =
@@ -52,8 +51,7 @@ module NullsInsideList =
 
     [<Fact>]
     let ``allow nulls inside array if allowNullFields is true `` () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         let ser = """["hello", null]"""
         let actual = JsonSerializer.Deserialize<string list>(ser, options)
         Assert.Equal<string list>([ "hello"; null ], actual)
@@ -121,9 +119,8 @@ let ``serialize struct-newtype-string-keyed map`` (m: Map<NonNull<string>, int>)
     Assert.Equal(expected, actual)
 
 let keyPolicyOptions =
-    JsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
-
-keyPolicyOptions.Converters.Add(JsonFSharpConverter())
+    JsonFSharpOptions()
+        .ToJsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
 
 [<Property>]
 let ``deserialize string-keyed map with key policy`` (m: Map<NonNull<string>, int>) =
