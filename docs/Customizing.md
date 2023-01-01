@@ -29,6 +29,7 @@ The serialization and deserialization of `FSharp.SystemTextJson` can be customiz
   - [Union field naming policy](#union-field-naming-policy)
   - [Union tag case-insensitive](#union-tag-case-insensitive)
   - [Include record properties](#include-record-properties)
+  - [Skippable option fields](#skippable-option-fields)
   - [Allowing null fields](#allowing-null-fields)
   - [Changing the supported types](#changing-the-supported-types)
 - [Attributes](#attributes)
@@ -370,8 +371,7 @@ It causes the types `'T option` and `'T voption` (aka `ValueOption`) to be treat
 * The value `None` or `ValueNone` is represented as `null`.
 * The value `Some x` or `ValueSome x` is represented the same as `x`, without wrapping it in the union representation for `Some`.
 
-Combined with the option `DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull` on `JsonSerializerOptions`, this can be used to represent optional fields: `Some` is a value that is present in the JSON object, and `None` is a value that is absent from the JSON object.
-Note that the same effect can also be achieved more explicitly and more safely using [the `Skippable` type](Format.md#skippable).
+To represent `None` or `ValueNone` as the absence of a field instead, see [Skippable option fields](#skippable-option-fields) or [the Skippable type](Format.md#skippable).
 
 ### Unwrap single-case unions
 
@@ -717,6 +717,34 @@ type Rectangle =
 
 JsonSerializer.Serialize({ Width = 4.; Height = 5. }, options)
 // --> {"Width":4,"Height":5,"Area":20}
+```
+
+### Skippable option fields
+
+The option `SkippableOptionFields` allows record and union fields of type `option` or `voption` to behave similarly to the type [`Skippable`](Format.md#skippable):
+
+* `None` / `ValueNone` is represented as a missing JSON field;
+* `Some` / `ValueSome` is represented as an actual JSON field.
+
+```fsharp
+let options =
+    JsonFSharpOptions.Default()
+        .WithSkippableOptionFields()
+        .ToJsonSerializerOptions()
+
+type Range =
+    {
+        min: int
+        max: int option
+    }
+
+let betweenOneAndTwo = { min = 1; max = Some 2 }
+JsonSerializer.Serialize(betweenOneAndTwo, options)
+// --> {"min":1,"max":2}
+
+let fromThreeToInfinity = { min = 3; max = None }
+JsonSerializer.Serialize(fromThreeToInfinity, options)
+// --> {"min":3}
 ```
 
 ### Allowing null fields
