@@ -158,6 +158,7 @@ type internal JsonFSharpOptionsRecord =
       UnionTagCaseInsensitive: bool
       AllowNullFields: bool
       IncludeRecordProperties: bool
+      SkippableOptionFields: bool
       Types: JsonFSharpTypes
       AllowOverride: bool
       Overrides: JsonFSharpOptions -> IDictionary<Type, JsonFSharpOptions> }
@@ -190,6 +191,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               UnionTagCaseInsensitive = unionTagCaseInsensitive
               AllowNullFields = allowNullFields
               IncludeRecordProperties = includeRecordProperties
+              SkippableOptionFields = false
               Types = types
               AllowOverride = allowOverride
               Overrides = emptyOverrides }
@@ -228,6 +230,8 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
     member _.IncludeRecordProperties = options.IncludeRecordProperties
 
+    member _.SkippableOptionFields = options.SkippableOptionFields
+
     member _.Types = options.Types
 
     member _.AllowOverride = options.AllowOverride
@@ -257,6 +261,17 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
     member _.WithIncludeRecordProperties([<Optional; DefaultParameterValue true>] includeRecordProperties) =
         JsonFSharpOptions({ options with IncludeRecordProperties = includeRecordProperties })
+
+    member _.WithSkippableOptionFields([<Optional; DefaultParameterValue true>] skippableOptionFields) =
+        JsonFSharpOptions(
+            { options with
+                SkippableOptionFields = skippableOptionFields
+                UnionEncoding =
+                    if skippableOptionFields then
+                        options.UnionEncoding ||| JsonUnionEncoding.UnwrapOption
+                    else
+                        options.UnionEncoding }
+        )
 
     member _.WithTypes(types) =
         JsonFSharpOptions({ options with Types = types })

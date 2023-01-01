@@ -129,6 +129,8 @@ type JsonFSharpConverterAttribute(fsOptions: JsonFSharpOptions) =
         with set v = fsOptions <- fsOptions.WithUnionAllowUnorderedTag(v)
     member _.UnionFieldNamesFromTypes
         with set v = fsOptions <- fsOptions.WithUnionFieldNamesFromTypes(v)
+    member _.SkippableOptionFields
+        with set v = fsOptions <- fsOptions.WithSkippableOptionFields(v)
 
     new() = JsonFSharpConverterAttribute(JsonFSharpOptions())
 

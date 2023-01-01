@@ -74,15 +74,19 @@ module NonStruct =
             Assert.Equal("Missing field for record type Tests.Record+NonStruct+B: by", e.Message)
 
     type SomeSearchApi =
-        { filter: string option
+        { filter: string voption
           limit: int option
           offset: int option }
 
-    let ``allow omitting fields that are optional`` () =
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
-        Assert.Equal(result, { filter = None; limit = None; offset = None })
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
-        Assert.Equal(result, { filter = None; limit = Some 50; offset = None })
+    [<Fact>]
+    let ``dont allow omitting fields that are optional`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options) |> ignore)
+        |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+            |> ignore
+        )
+        |> ignore
 
     [<Fact>]
     let allowNullFields () =
@@ -90,7 +94,7 @@ module NonStruct =
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({ bx = 1; by = null }, actual)
 
-    type S =
+    type Sk =
         { sa: int
           sb: Skippable<int>
           sc: Skippable<int option>
@@ -139,6 +143,69 @@ module NonStruct =
                   sb = Include 2
                   sc = Include(Some 3)
                   sd = Include(ValueSome 4) },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
+
+    type SkO =
+        { sa: int
+          sb: int option
+          sc: int option voption
+          sd: int voption option }
+
+    [<Fact>]
+    let ``deserialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"sa":1}""", options)
+        Assert.Equal({ sa = 1; sb = None; sc = ValueNone; sd = None }, actual)
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":null,"sd":null}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome None
+              sd = Some ValueNone },
+            actual
+        )
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":3,"sd":4}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome(Some 3)
+              sd = Some(ValueSome 4) },
+            actual
+        )
+
+    [<Fact>]
+    let ``serialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual =
+            JsonSerializer.Serialize({ sa = 1; sb = None; sc = ValueNone; sd = None }, options)
+        Assert.Equal("""{"sa":1}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome None
+                  sd = Some ValueNone },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":null,"sd":null}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome(Some 3)
+                  sd = Some(ValueSome 4) },
                 options
             )
         Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
@@ -469,15 +536,19 @@ module Struct =
 
     [<Struct>]
     type SomeSearchApi =
-        { filter: string option
+        { filter: string voption
           limit: int option
           offset: int option }
 
-    let ``allow omitting fields that are optional`` () =
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
-        Assert.Equal(result, { filter = None; limit = None; offset = None })
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
-        Assert.Equal(result, { filter = None; limit = Some 50; offset = None })
+    [<Fact>]
+    let ``dont allow omitting fields that are optional`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options) |> ignore)
+        |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+            |> ignore
+        )
+        |> ignore
 
     [<Fact>]
     let allowNullFields () =
@@ -486,7 +557,7 @@ module Struct =
         Assert.Equal({ bx = 1; by = null }, actual)
 
     [<Struct>]
-    type S =
+    type Sk =
         { sa: int
           sb: Skippable<int>
           sc: Skippable<int option>
@@ -535,6 +606,70 @@ module Struct =
                   sb = Include 2
                   sc = Include(Some 3)
                   sd = Include(ValueSome 4) },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
+
+    [<Struct>]
+    type SkO =
+        { sa: int
+          sb: int option
+          sc: int option voption
+          sd: int voption option }
+
+    [<Fact>]
+    let ``deserialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"sa":1}""", options)
+        Assert.Equal({ sa = 1; sb = None; sc = ValueNone; sd = None }, actual)
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":null,"sd":null}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome None
+              sd = Some ValueNone },
+            actual
+        )
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":3,"sd":4}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome(Some 3)
+              sd = Some(ValueSome 4) },
+            actual
+        )
+
+    [<Fact>]
+    let ``serialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual =
+            JsonSerializer.Serialize({ sa = 1; sb = None; sc = ValueNone; sd = None }, options)
+        Assert.Equal("""{"sa":1}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome None
+                  sd = Some ValueNone },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":null,"sd":null}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome(Some 3)
+                  sd = Some(ValueSome 4) },
                 options
             )
         Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)

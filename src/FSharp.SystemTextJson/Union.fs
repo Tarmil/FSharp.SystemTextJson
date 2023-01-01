@@ -8,17 +8,76 @@ open System.Text.Json.Serialization
 open System.Text.Json.Serialization.Helpers
 open FSharp.Reflection
 
-type private Field =
-    { Type: Type
-      Names: string[]
-      NullValue: obj voption
-      MustBePresent: bool
-      IsSkip: obj -> bool }
+type private UnionField
+    (
+        fsOptions: JsonFSharpOptionsRecord,
+        options: JsonSerializerOptions,
+        fieldNames: IReadOnlyDictionary<string, JsonName[]>,
+        p: PropertyInfo,
+        name: string
+    ) =
+    let isSkippableType = isSkippableType fsOptions p.PropertyType
 
-type private Case =
-    { Fields: Field[]
+    let canBeSkipped = ignoreNullValues options || isSkippableType
+
+    let names =
+        match fieldNames.TryGetValue(name) with
+        | true, names -> names |> Array.map (fun n -> n.AsString())
+        | false, _ ->
+            let policy =
+                match fsOptions.UnionFieldNamingPolicy with
+                | null -> options.PropertyNamingPolicy
+                | policy -> policy
+            [| convertName policy name |]
+
+    let nullValue = tryGetNullValue fsOptions p.PropertyType
+
+    let isSkip = isSkip fsOptions p.PropertyType
+
+    let deserializeType =
+        if isSkippableType then
+            p.PropertyType.GenericTypeArguments[0]
+        else
+            p.PropertyType
+
+    let wrapDeserialized =
+        if isSkippableType then
+            let case = FSharpType.GetUnionCases(p.PropertyType)[1]
+            let f = FSharpValue.PreComputeUnionConstructor(case, true)
+            fun x -> f [| box x |]
+        else
+            id
+
+    member _.Type = p.PropertyType
+
+    member _.Names = names
+
+    member _.NullValue = nullValue
+
+    member _.MustBePresent = not canBeSkipped
+
+    member _.IsSkip(x) =
+        isSkip x
+
+    member _.Deserialize(reader: byref<Utf8JsonReader>, case: Case, containerType: Type) =
+        if reader.TokenType = JsonTokenType.Null && not isSkippableType then
+            match nullValue with
+            | ValueSome v -> v
+            | ValueNone ->
+                failf
+                    "%s.%s(%s) was expected to be of type %s, but was null."
+                    containerType.Name
+                    (case.Names[ 0 ].AsString())
+                    names[0]
+                    p.PropertyType.Name
+        else
+            JsonSerializer.Deserialize(&reader, deserializeType, options)
+            |> wrapDeserialized
+
+and private Case =
+    { Fields: UnionField[]
       DefaultFields: obj[]
-      FieldsByName: Dictionary<string, struct (int * Field)> voption
+      FieldsByName: Dictionary<string, struct (int * UnionField)> voption
       Ctor: obj[] -> obj
       Dector: obj -> obj[]
       Names: JsonName[]
@@ -90,21 +149,7 @@ type JsonUnionConverter<'T>
                             name
                         else
                             name + string nameIndex
-                    let canBeSkipped = ignoreNullValues options || isSkippableType p.PropertyType
-                    let names =
-                        match fieldNames.TryGetValue(name) with
-                        | true, names -> names |> Array.map (fun n -> n.AsString())
-                        | false, _ ->
-                            let policy =
-                                match fsOptions.UnionFieldNamingPolicy with
-                                | null -> options.PropertyNamingPolicy
-                                | policy -> policy
-                            [| convertName policy name |]
-                    { Type = p.PropertyType
-                      Names = names
-                      NullValue = tryGetNullValue fsOptions p.PropertyType
-                      MustBePresent = not canBeSkipped
-                      IsSkip = isSkip p.PropertyType }
+                    UnionField(fsOptions, options, fieldNames, p, name)
                 )
             let fieldsByName =
                 if options.PropertyNameCaseInsensitive then
@@ -136,7 +181,7 @@ type JsonUnionConverter<'T>
                 let arr = Array.zeroCreate fields.Length
                 fields
                 |> Array.iteri (fun i field ->
-                    if isSkippableType field.Type || isValueOptionType field.Type then
+                    if isSkippableType fsOptions field.Type || isValueOptionType field.Type then
                         let case = FSharpType.GetUnionCases(field.Type)[0]
                         arr[i] <- FSharpValue.MakeUnion(case, [||])
                 )
@@ -385,26 +430,15 @@ type JsonUnionConverter<'T>
             | true, p -> ValueSome p
             | false, _ -> ValueNone
 
-    let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: Field) (options: JsonSerializerOptions) =
+    let readField (reader: byref<Utf8JsonReader>) (case: Case) (f: UnionField) =
         reader.Read() |> ignore
-        if reader.TokenType = JsonTokenType.Null then
-            match f.NullValue with
-            | ValueSome v -> v
-            | ValueNone ->
-                failf
-                    "%s.%s(%s) was expected to be of type %s, but was null."
-                    ty.Name
-                    (case.Names[ 0 ].AsString())
-                    f.Names[0]
-                    f.Type.Name
-        else
-            JsonSerializer.Deserialize(&reader, f.Type, options)
+        f.Deserialize(&reader, case, ty)
 
     let readFieldsAsRestOfArray (reader: byref<Utf8JsonReader>) (case: Case) (options: JsonSerializerOptions) =
         let fieldCount = case.Fields.Length
         let fields = Array.copy case.DefaultFields
         for i in 0 .. fieldCount - 1 do
-            fields[i] <- readField &reader case case.Fields[i] options
+            fields[i] <- readField &reader case case.Fields[i]
         readExpecting JsonTokenType.EndArray "end of array" &reader ty
         case.Ctor fields :?> 'T
 
@@ -430,7 +464,7 @@ type JsonUnionConverter<'T>
                 match fieldIndexByName &reader case with
                 | ValueSome (i, f) ->
                     fieldsFound <- fieldsFound + 1
-                    fields[i] <- readField &reader case f options
+                    fields[i] <- readField &reader case f
                 | _ -> reader.Skip()
             | _ -> ()
 
@@ -461,7 +495,7 @@ type JsonUnionConverter<'T>
             case.Ctor [| field |] :?> 'T
         | ValueNone ->
             if case.UnwrappedSingleField then
-                let field = readField &reader case case.Fields[0] options
+                let field = readField &reader case case.Fields[0]
                 case.Ctor [| field |] :?> 'T
             elif namedFields then
                 readFieldsAsObject &reader case options
