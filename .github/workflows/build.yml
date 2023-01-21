@@ -16,7 +16,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.203'
+          dotnet-version: '7.0.102'
           include-prerelease: true
 
       - name: NuGet cache
@@ -38,7 +38,7 @@ jobs:
           if echo "${{github.ref}}" | grep -q "^refs/heads/"; then
             git checkout "$(echo ${{github.ref}} | sed -E 's|^refs/heads/||')";
           fi
-          DOTNET_RUNTIME_IDENTIFIER=linux-x64 ./build.sh
+          DOTNET_RUNTIME_IDENTIFIER=linux-x64 ./build.ps1
 
       - name: Upload nupkg
         uses: actions/upload-artifact@v1
@@ -54,7 +54,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.203'
+          dotnet-version: '7.0.102'
           include-prerelease: true
 
       - name: Download nupkg
@@ -79,7 +79,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.203'
+          dotnet-version: '7.0.102'
           include-prerelease: true
 
       - name: Prepare

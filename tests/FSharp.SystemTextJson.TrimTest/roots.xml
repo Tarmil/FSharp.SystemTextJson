@@ -1,0 +1,3 @@
+<linker>
+  <assembly fullname="xunit.execution.dotnet" preserve="all" />
+</linker>
