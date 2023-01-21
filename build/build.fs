@@ -1,13 +1,5 @@
-#r "paket:
-nuget Fake.DotNet.Cli
-nuget Fake.IO.FileSystem
-nuget Fake.Core.Target
-//"
-#load ".fake/build.fsx/intellisense.fsx"
 #nowarn "52"
 
-open System.IO
-open System.Net
 open Fake.Core
 open Fake.DotNet
 open Fake.IO
@@ -15,7 +7,12 @@ open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
 
-let ctx = Context.forceFakeContext ()
+let ctx =
+    match System.Environment.GetCommandLineArgs() |> List.ofArray with
+    | cmd :: args -> Context.FakeExecutionContext.Create false cmd args
+    | _ -> failwith "Impossible"
+
+Context.setExecutionContext (Context.Fake ctx)
 
 module Cli =
     let rec hasFlag f =
@@ -32,8 +29,9 @@ module Cli =
     let clean = hasFlag [ "-c"; "--clean" ] ctx.Arguments
 
 module Paths =
-    let root = __SOURCE_DIRECTORY__
+    let root = Path.getDirectory __SOURCE_DIRECTORY__
     let sln = root </> "FSharp.SystemTextJson.sln"
+    let src = root </> "src" </> "FSharp.SystemTextJson"
     let out = root </> "bin"
     let nugetOut = out </> "nuget"
     let test = root </> "tests" </> "FSharp.SystemTextJson.Tests"
@@ -44,7 +42,7 @@ module Paths =
         trimTest
         </> "bin"
         </> "Release"
-        </> "net6.0"
+        </> "net7.0"
         </> rti
         </> "publish"
         </> "FSharp.SystemTextJson.TrimTest.dll"
@@ -62,7 +60,7 @@ Target.create
                     OutputPath = Some Paths.nugetOut
                     MSBuildParams = { o.MSBuildParams with NoWarn = Some [ "NU5105" ] } }
             )
-            Paths.sln
+            Paths.src
     )
 
 Target.create
@@ -85,14 +83,7 @@ let checkOk (name: string) (r: ProcessResult) =
 Target.create "TestTrim"
 <| fun _ ->
     let rti = Environment.environVarOrDefault "DOTNET_RUNTIME_IDENTIFIER" "win-x64"
-    DotNet.publish
-        (fun o ->
-            { o with
-                SelfContained = Some true
-                Runtime = Some rti
-                MSBuildParams = { o.MSBuildParams with Properties = [ "PublishTrimmed", "true"; "TrimMode", "Link" ] } }
-        )
-        Paths.trimTest
+    DotNet.publish (fun o -> { o with SelfContained = Some true; Runtime = Some rti }) Paths.trimTest
     let dll = Paths.trimTestOut rti
     DotNet.exec id dll dll |> checkOk "Trim test"
 

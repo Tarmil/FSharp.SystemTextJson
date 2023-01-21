@@ -8,12 +8,6 @@
         "paket"
       ]
     },
-    "fake-cli": {
-      "version": "5.22.0",
-      "commands": [
-        "fake"
-      ]
-    },
     "nbgv": {
       "version": "3.3.37",
       "commands": [
