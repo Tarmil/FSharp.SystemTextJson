@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1
+
+* [#141](https://github.com/Tarmil/FSharp.SystemTextJson/issues/141): Add fluent options builder. `JsonFSharpOptions` has the following new methods:
+    * static methods that create options with default settings: `.Default()`, `.NewtonsoftLike()`, `.FSharpLuLike()` and `.ThothLike()`.
+    * instance methods `.WithOptionAbc(?bool)` for each flag `JsonUnionEncoding.Abc`, that sets or unsets this option and returns a new `JsonFSharpOptions`.
+    * instance methods `.WithAbc(value)` for each optional argument `abc` of its constructor, that sets this option and returns a new `JsonFSharpOptions`.
+    * an instance method `.ToJsonSerializerOptions()` that returns a new `JsonSerializerOptions` with the corresponding `JsonFSharpConverter` configured.
+    * an instance method `.AddToJsonSerializerOptions(options)` that takes an existing `JsonSerializerOptions`, configures the corresponding `JsonFSharpConverter` and returns `unit`.
+
+    The above is now the recommended way of configuring the library, and future options may be only made available using fluent methods and not using constructor arguments.
+
+* [#146](https://github.com/Tarmil/FSharp.SystemTextJson/issues/146): Add option `.WithSkippableOptionFields(?bool)` that makes fields of type `option` and `voption` behave like `Skippable`: `None` / `ValueNone` is represented by a missing field instead of a `null` value.
+
+    This is equivalent to the pre-1.0 default behavior, and is now recommended if this behavior is desired instead of `IgnoreNullValues = true` or `DefaultIgnoreCondition = WhenWritingNull`.
+
 ## 1.0
 
 * [#89](https://github.com/Tarmil/FSharp.SystemTextJson/issues/89): Add `JsonNameAttribute` as a more powerful substitute for the standard `JsonPropertyNameAttribute`.
