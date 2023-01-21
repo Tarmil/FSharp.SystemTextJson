@@ -99,7 +99,6 @@ type ReflectionComparison() =
 let config =
     ManualConfig
         .Create(DefaultConfig.Instance)
-        .AddJob(Job.ShortRun.WithRuntime(CoreRuntime.Core31))
         .AddDiagnoser(MemoryDiagnoser.Default)
         .AddExporter(MarkdownExporter.GitHub)
         .AddValidator(ExecutionValidator.FailOnError)

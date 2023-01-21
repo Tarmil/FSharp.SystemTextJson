@@ -92,10 +92,7 @@ Target.create "TestTrim"
 Target.create
     "Benchmark"
     (fun _ ->
-        DotNet.exec
-            (fun o -> { o with WorkingDirectory = Paths.benchmarks })
-            "run"
-            "-c release --runtimes netcoreapp50 --filter \"*\""
+        DotNet.exec (fun o -> { o with WorkingDirectory = Paths.benchmarks }) "run" "-c release --filter \"*\""
         |> checkOk "Benchmarks"
     )
 
