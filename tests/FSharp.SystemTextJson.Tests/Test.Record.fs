@@ -21,8 +21,7 @@ module NonStruct =
 
     type B = { bx: int; by: string }
 
-    let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter())
+    let options = JsonFSharpOptions().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -33,6 +32,30 @@ module NonStruct =
     let ``serialize via options`` () =
         let actual = JsonSerializer.Serialize({ bx = 1; by = "b" }, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
+
+    type internal Internal = { ix: int }
+
+    [<Fact>]
+    let ``serialize non-public record`` () =
+        let actual = JsonSerializer.Serialize({ ix = 1 }, options)
+        Assert.Equal("""{"ix":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize non-public record`` () =
+        let actual = JsonSerializer.Deserialize<Internal>("""{"ix":1}""", options)
+        Assert.Equal({ ix = 1 }, actual)
+
+    type PrivateFields = private { px: int }
+
+    [<Fact>]
+    let ``serialize record with private fields`` () =
+        let actual = JsonSerializer.Serialize({ px = 1 }, options)
+        Assert.Equal("""{"px":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize record with private fields`` () =
+        let actual = JsonSerializer.Deserialize<PrivateFields>("""{"px":1}""", options)
+        Assert.Equal({ px = 1 }, actual)
 
     [<Fact>]
     let ``not fill in nulls`` () =
@@ -51,24 +74,27 @@ module NonStruct =
             Assert.Equal("Missing field for record type Tests.Record+NonStruct+B: by", e.Message)
 
     type SomeSearchApi =
-        { filter: string option
+        { filter: string voption
           limit: int option
           offset: int option }
 
-    let ``allow omitting fields that are optional`` () =
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
-        Assert.Equal(result, { filter = None; limit = None; offset = None })
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
-        Assert.Equal(result, { filter = None; limit = Some 50; offset = None })
+    [<Fact>]
+    let ``dont allow omitting fields that are optional`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options) |> ignore)
+        |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+            |> ignore
+        )
+        |> ignore
 
     [<Fact>]
     let allowNullFields () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({ bx = 1; by = null }, actual)
 
-    type S =
+    type Sk =
         { sa: int
           sb: Skippable<int>
           sc: Skippable<int option>
@@ -121,6 +147,69 @@ module NonStruct =
             )
         Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
 
+    type SkO =
+        { sa: int
+          sb: int option
+          sc: int option voption
+          sd: int voption option }
+
+    [<Fact>]
+    let ``deserialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"sa":1}""", options)
+        Assert.Equal({ sa = 1; sb = None; sc = ValueNone; sd = None }, actual)
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":null,"sd":null}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome None
+              sd = Some ValueNone },
+            actual
+        )
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":3,"sd":4}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome(Some 3)
+              sd = Some(ValueSome 4) },
+            actual
+        )
+
+    [<Fact>]
+    let ``serialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual =
+            JsonSerializer.Serialize({ sa = 1; sb = None; sc = ValueNone; sd = None }, options)
+        Assert.Equal("""{"sa":1}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome None
+                  sd = Some ValueNone },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":null,"sd":null}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome(Some 3)
+                  sd = Some(ValueSome 4) },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
+
     type C = { cx: B }
 
     [<Fact>]
@@ -137,6 +226,16 @@ module NonStruct =
     let ``serialize anonymous`` () =
         let actual = JsonSerializer.Serialize({| x = 1; y = "b" |}, options)
         Assert.Equal("""{"x":1,"y":"b"}""", actual)
+
+    [<Fact>]
+    let ``deserialize empty anonymous`` () =
+        let actual = JsonSerializer.Deserialize("{}", options)
+        Assert.Equal({|  |}, actual)
+
+    [<Fact>]
+    let ``serialize empty anonymous`` () =
+        let actual = JsonSerializer.Serialize({|  |}, options)
+        Assert.Equal("{}", actual)
 
     type PropName =
         { unnamedX: int
@@ -186,13 +285,12 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({ unignoredX = 1; ignoredY = "b" }, options)
         Assert.Equal("""{"unignoredX":1}""", actual)
 
-    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
-    ignoreNullOptions.Converters.Add(JsonFSharpConverter())
+    let ignoreNullOptions =
+        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
-        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
-
-    newIgnoreNullOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
     type Cls() =
@@ -222,9 +320,8 @@ module NonStruct =
         Assert.Equal("""{"y":1}""", actual)
 
     let propertyNamingPolicyOptions =
-        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
-    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
 
     type CamelCase = { CcFirst: int; CcSecond: string }
 
@@ -241,9 +338,7 @@ module NonStruct =
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions().ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize with property case insensitive`` () =
@@ -267,19 +362,21 @@ module NonStruct =
         with :? JsonException as e ->
             Assert.Equal("Missing field for record type Tests.Record+NonStruct+D: dx", e.Message)
 
-    [<JsonFSharpConverter(allowNullFields = false)>]
+    [<JsonFSharpConverter(AllowNullFields = false)>]
     type Override = { x: string }
 
     [<Fact>]
     let ``should not override allowNullFields in attribute if AllowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let o = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         Assert.Equal({ x = null }, JsonSerializer.Deserialize<Override>("""{"x":null}""", o))
 
     [<Fact>]
     let ``should override allowNullFields in attribute if AllowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
+        let o =
+            JsonFSharpOptions()
+                .WithAllowNullFields()
+                .WithAllowOverride()
+                .ToJsonSerializerOptions()
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
 
@@ -323,14 +420,14 @@ module NonStruct =
         member _.IgnoredMember = "c"
 
     let includeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     let dontIncludeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties(false)
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``serialize record properties`` () =
@@ -383,8 +480,7 @@ module Struct =
     [<Struct>]
     type B = { bx: int; by: string }
 
-    let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter())
+    let options = JsonFSharpOptions().ToJsonSerializerOptions()
 
     [<Fact>]
     let ``deserialize via options`` () =
@@ -395,6 +491,32 @@ module Struct =
     let ``serialize via options`` () =
         let actual = JsonSerializer.Serialize({ bx = 1; by = "b" }, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
+
+    [<Struct>]
+    type internal Internal = { ix: int }
+
+    [<Fact>]
+    let ``serialize non-public record`` () =
+        let actual = JsonSerializer.Serialize({ ix = 1 }, options)
+        Assert.Equal("""{"ix":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize non-public record`` () =
+        let actual = JsonSerializer.Deserialize<Internal>("""{"ix":1}""", options)
+        Assert.Equal({ ix = 1 }, actual)
+
+    [<Struct>]
+    type PrivateFields = private { px: int }
+
+    [<Fact>]
+    let ``serialize record with private fields`` () =
+        let actual = JsonSerializer.Serialize({ px = 1 }, options)
+        Assert.Equal("""{"px":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize record with private fields`` () =
+        let actual = JsonSerializer.Deserialize<PrivateFields>("""{"px":1}""", options)
+        Assert.Equal({ px = 1 }, actual)
 
     [<Fact>]
     let ``not fill in nulls`` () =
@@ -414,25 +536,28 @@ module Struct =
 
     [<Struct>]
     type SomeSearchApi =
-        { filter: string option
+        { filter: string voption
           limit: int option
           offset: int option }
 
-    let ``allow omitting fields that are optional`` () =
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options)
-        Assert.Equal(result, { filter = None; limit = None; offset = None })
-        let result = JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
-        Assert.Equal(result, { filter = None; limit = Some 50; offset = None })
+    [<Fact>]
+    let ``dont allow omitting fields that are optional`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<SomeSearchApi>("""{}""", options) |> ignore)
+        |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<SomeSearchApi>("""{"limit": 50}""", options)
+            |> ignore
+        )
+        |> ignore
 
     [<Fact>]
     let allowNullFields () =
-        let options = JsonSerializerOptions()
-        options.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let options = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         let actual = JsonSerializer.Deserialize("""{"bx":1,"by":null}""", options)
         Assert.Equal({ bx = 1; by = null }, actual)
 
     [<Struct>]
-    type S =
+    type Sk =
         { sa: int
           sb: Skippable<int>
           sc: Skippable<int option>
@@ -481,6 +606,70 @@ module Struct =
                   sb = Include 2
                   sc = Include(Some 3)
                   sd = Include(ValueSome 4) },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
+
+    [<Struct>]
+    type SkO =
+        { sa: int
+          sb: int option
+          sc: int option voption
+          sd: int voption option }
+
+    [<Fact>]
+    let ``deserialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"sa":1}""", options)
+        Assert.Equal({ sa = 1; sb = None; sc = ValueNone; sd = None }, actual)
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":null,"sd":null}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome None
+              sd = Some ValueNone },
+            actual
+        )
+        let actual =
+            JsonSerializer.Deserialize("""{"sa":1,"sb":2,"sc":3,"sd":4}""", options)
+        Assert.Equal(
+            { sa = 1
+              sb = Some 2
+              sc = ValueSome(Some 3)
+              sd = Some(ValueSome 4) },
+            actual
+        )
+
+    [<Fact>]
+    let ``serialize skippable union field`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields()
+                .ToJsonSerializerOptions()
+        let actual =
+            JsonSerializer.Serialize({ sa = 1; sb = None; sc = ValueNone; sd = None }, options)
+        Assert.Equal("""{"sa":1}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome None
+                  sd = Some ValueNone },
+                options
+            )
+        Assert.Equal("""{"sa":1,"sb":2,"sc":null,"sd":null}""", actual)
+        let actual =
+            JsonSerializer.Serialize(
+                { sa = 1
+                  sb = Some 2
+                  sc = ValueSome(Some 3)
+                  sd = Some(ValueSome 4) },
                 options
             )
         Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
@@ -554,13 +743,12 @@ module Struct =
         let actual = JsonSerializer.Serialize({ unignoredX = 1; ignoredY = "b" }, options)
         Assert.Equal("""{"unignoredX":1}""", actual)
 
-    let ignoreNullOptions = JsonSerializerOptions(IgnoreNullValues = true)
-    ignoreNullOptions.Converters.Add(JsonFSharpConverter())
+    let ignoreNullOptions =
+        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
-        JsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
-
-    newIgnoreNullOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
     type Cls() =
@@ -591,9 +779,8 @@ module Struct =
         Assert.Equal("""{"y":1}""", actual)
 
     let propertyNamingPolicyOptions =
-        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
-
-    propertyNamingPolicyOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions()
+            .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
 
     [<Struct>]
     type CamelCase = { CcFirst: int; CcSecond: string }
@@ -611,9 +798,7 @@ module Struct =
         Assert.Equal("""{"ccFirst":1,"ccSecond":"a"}""", actual)
 
     let propertyNameCaseInsensitiveOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    propertyNameCaseInsensitiveOptions.Converters.Add(JsonFSharpConverter())
+        JsonFSharpOptions().ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``deserialize with property case insensitive`` () =
@@ -627,20 +812,22 @@ module Struct =
             JsonSerializer.Serialize({ CcFirst = 1; CcSecond = "a" }, propertyNameCaseInsensitiveOptions)
         Assert.Equal("""{"CcFirst":1,"CcSecond":"a"}""", actual)
 
-    [<JsonFSharpConverter(allowNullFields = false)>]
+    [<JsonFSharpConverter(AllowNullFields = false)>]
     [<Struct>]
     type Override = { x: string }
 
     [<Fact>]
     let ``should not override allowNullFields in attribute if AllowOverride = false`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true))
+        let o = JsonFSharpOptions().WithAllowNullFields().ToJsonSerializerOptions()
         Assert.Equal({ x = null }, JsonSerializer.Deserialize<Override>("""{"x":null}""", o))
 
     [<Fact>]
     let ``should override allowNullFields in attribute if AllowOverride = true`` () =
-        let o = JsonSerializerOptions()
-        o.Converters.Add(JsonFSharpConverter(allowNullFields = true, allowOverride = true))
+        let o =
+            JsonFSharpOptions()
+                .WithAllowNullFields()
+                .WithAllowOverride()
+                .ToJsonSerializerOptions()
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Override>("""{"x":null}""", o) |> ignore)
         |> ignore
 
@@ -653,14 +840,14 @@ module Struct =
         member _.IgnoredMember = "c"
 
     let includeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    includeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = true))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties()
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     let dontIncludeRecordPropertiesOptions =
-        JsonSerializerOptions(PropertyNameCaseInsensitive = true)
-
-    dontIncludeRecordPropertiesOptions.Converters.Add(JsonFSharpConverter(includeRecordProperties = false))
+        JsonFSharpOptions()
+            .WithIncludeRecordProperties(false)
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
 
     [<Fact>]
     let ``serialize record properties`` () =

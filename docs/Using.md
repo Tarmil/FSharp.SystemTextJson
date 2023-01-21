@@ -29,15 +29,25 @@ You can also apply it to specific types with an attribute.
 
 ### Using options
 
-Add `JsonFSharpConverter` to the converters in `JsonSerializerOptions`, and the format will be applied to all F# types.
+Create a `JsonSerializerOptions` from `JsonFSharpOptions`, or add your `JsonFSharpOptions` to an existing `JsonSerializerOptions`,
+and the format will be applied to all F# types.
 
 ```fsharp
 open System.Text.Json
 open System.Text.Json.Serialization
 
-let options = JsonSerializerOptions()
-options.Converters.Add(JsonFSharpConverter())
+// 1. Either create the serializer options from the F# options...
+let options =
+    JsonFSharpOptions.Default()
+        // Add any .WithXXX() calls here to customize the format
+        .ToJsonSerializerOptions()
 
+// 2. ... Or add the F# options to existing serializer options.
+JsonFSharpOptions.Default()
+    // Add any .WithXXX() calls here to customize the format
+    .AddToJsonSerializerOptions(options)
+
+// 3. Either way, pass the options to Serialize/Deserialize.
 JsonSerializer.Serialize({| x = "Hello"; y = "world!" |}, options)
 // --> {"x":"Hello","y":"world!"}
 ```
@@ -79,7 +89,8 @@ To use F# types in MVC controllers, add the following to your startup `Configure
     member this.ConfigureServices(services: IServiceCollection) =
         services.AddControllersWithViews() // or whichever method you're using to get an IMvcBuilder
             .AddJsonOptions(fun options ->
-                options.JsonSerializerOptions.Converters.Add(JsonFSharpConverter()))
+                JsonFSharpOptions.Default()
+                    .AddToJsonSerializerOptions(options.JsonSerializerOptions))
         |> ignore
 ```
 
@@ -107,8 +118,9 @@ To use FSharp.SystemTextJson in Giraffe (for example with the `json` function):
     let configureServices (services: IServiceCollection) =
         services.AddGiraffe() |> ignore
 
-        let jsonOptions = JsonSerializerOptions()
-        jsonOptions.Converters.Add(JsonFSharpConverter())
+        let jsonOptions =
+            JsonFSharpOptions.Default()
+                .ToJsonSerializerOptions()
         services.AddSingleton<Json.ISerializer>(SystemTextJson.Serializer(jsonOptions)) |> ignore
         // ...
     ```
@@ -140,7 +152,8 @@ To use F# types in SignalR hubs, add the following to your startup `ConfigureSer
     member this.ConfigureServices(services: IServiceCollection) =
         services.AddSignalR()
             .AddJsonProtocol(fun options ->
-                options.PayloadSerializerOptions.Converters.Add(JsonFSharpConverter()))
+                JsonFSharpOptions.Default()
+                    .AddToJsonSerializerOptions(options.PayloadSerializerOptions))
         |> ignore
 ```
 
@@ -170,8 +183,8 @@ module Program =
 
     // Customize here
     let serializerOptions (options: JsonSerializerOptions) =
-        let converter = JsonFSharpConverter(JsonUnionEncoding.ThothLike)
-        options.Converters.Add(converter)
+        JsonFSharpOptions.Default()
+            .AddToJsonSerializerOptions(options)
 
     [<EntryPoint>]
     let Main args =

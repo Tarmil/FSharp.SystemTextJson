@@ -7,7 +7,77 @@ open System.Text.Json
 open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
 
-type internal RecordProperty =
+type private RecordField
+    (
+        fsOptions: JsonFSharpOptionsRecord,
+        options: JsonSerializerOptions,
+        i: int,
+        p: PropertyInfo,
+        fieldOrderIndices: int[] voption
+    ) =
+    let names =
+        match getJsonNames "field" (fun ty -> p.GetCustomAttributes(ty, true)) with
+        | ValueSome names -> names |> Array.map (fun n -> n.AsString())
+        | ValueNone -> [| convertName options.PropertyNamingPolicy p.Name |]
+
+    let ignore =
+        p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
+
+    let nullValue = tryGetNullValue fsOptions p.PropertyType
+
+    let isSkippableType = isSkippableType fsOptions p.PropertyType
+
+    let canBeSkipped = ignore || ignoreNullValues options || isSkippableType
+
+    let read =
+        let m = p.GetGetMethod()
+        fun o -> m.Invoke(o, Array.empty)
+
+    let deserializeType =
+        if isSkippableType then
+            p.PropertyType.GenericTypeArguments[0]
+        else
+            p.PropertyType
+
+    let wrapDeserialized =
+        if isSkippableType then
+            let case = FSharpType.GetUnionCases(p.PropertyType)[1]
+            let f = FSharpValue.PreComputeUnionConstructor(case, true)
+            fun x -> f [| box x |]
+        else
+            id
+
+    member _.Names = names
+
+    member _.Type = p.PropertyType
+
+    member _.Ignore = ignore
+
+    member _.NullValue = nullValue
+
+    member _.MustBePresent = not canBeSkipped
+
+    member _.IsSkip = isSkip fsOptions p.PropertyType
+
+    member _.Read(value: obj) =
+        read value
+
+    member _.WriteOrder =
+        match fieldOrderIndices with
+        | ValueSome a -> a[i]
+        | ValueNone -> i
+
+    member _.Deserialize(reader: byref<Utf8JsonReader>, recordType: Type) =
+        if reader.TokenType = JsonTokenType.Null && not isSkippableType then
+            match nullValue with
+            | ValueSome v -> v
+            | ValueNone ->
+                failf "%s.%s was expected to be of type %s, but was null." recordType.Name names[0] p.PropertyType.Name
+        else
+            JsonSerializer.Deserialize(&reader, deserializeType, options)
+            |> wrapDeserialized
+
+type private RecordField1 =
     { Names: string[]
       Type: Type
       Ignore: bool
@@ -22,7 +92,7 @@ type internal IRecordConverter =
     abstract WriteRestOfObject: Utf8JsonWriter * obj * JsonSerializerOptions -> unit
     abstract FieldNames: string[]
 
-type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSharpOptions) =
+type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions: JsonFSharpOptionsRecord) =
     inherit JsonConverter<'T>()
 
     let recordType: Type = typeof<'T>
@@ -30,7 +100,13 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
     let fields = FSharpType.GetRecordFields(recordType, true)
 
     let allProperties =
-        let all = recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
+        let allPublic =
+            recordType.GetProperties(BindingFlags.Instance ||| BindingFlags.Public)
+        let all =
+            if fields.Length = 0 || fields[0].GetGetMethod(true).IsPublic then
+                allPublic
+            else
+                Array.append fields allPublic
         if fsOptions.IncludeRecordProperties then
             all
         else
@@ -64,31 +140,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
 
     let allProps =
         allProperties
-        |> Array.mapi (fun i p ->
-            let names =
-                match getJsonNames "field" (fun ty -> p.GetCustomAttributes(ty, true)) with
-                | ValueSome names -> names |> Array.map (fun n -> n.AsString())
-                | ValueNone -> [| convertName options.PropertyNamingPolicy p.Name |]
-            let ignore =
-                p.GetCustomAttributes(typeof<JsonIgnoreAttribute>, true) |> Array.isEmpty |> not
-            let nullValue = tryGetNullValue fsOptions p.PropertyType
-            let canBeSkipped =
-                ignore || ignoreNullValues options || isSkippableType p.PropertyType
-            let read =
-                let m = p.GetGetMethod()
-                fun o -> m.Invoke(o, Array.empty)
-            { Names = names
-              Type = p.PropertyType
-              Ignore = ignore
-              NullValue = nullValue
-              MustBePresent = not canBeSkipped
-              IsSkip = isSkip p.PropertyType
-              Read = read
-              WriteOrder =
-                match fieldOrderIndices with
-                | ValueSome a -> a[i]
-                | ValueNone -> i }
-        )
+        |> Array.mapi (fun i p -> RecordField(fsOptions, options, i, p, fieldOrderIndices))
 
     let fieldProps =
         if fsOptions.IncludeRecordProperties then
@@ -113,7 +165,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
         let arr = Array.zeroCreate fieldCount
         fieldProps
         |> Array.iteri (fun i field ->
-            if isSkippableType field.Type || isValueOptionType field.Type then
+            if isSkippableType fsOptions field.Type || isValueOptionType field.Type then
                 let case = FSharpType.GetUnionCases(field.Type)[0]
                 arr[i] <- FSharpValue.MakeUnion(case, [||])
         )
@@ -170,17 +222,7 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
                 | ValueSome (i, p) when not p.Ignore ->
                     if p.MustBePresent then requiredFieldCount <- requiredFieldCount + 1
                     reader.Read() |> ignore
-                    if reader.TokenType = JsonTokenType.Null then
-                        match p.NullValue with
-                        | ValueSome v -> fields[i] <- v
-                        | ValueNone ->
-                            failf
-                                "%s.%s was expected to be of type %s, but was null."
-                                recordType.Name
-                                p.Names[0]
-                                p.Type.Name
-                    else
-                        fields[i] <- JsonSerializer.Deserialize(&reader, p.Type, options)
+                    fields[i] <- p.Deserialize(&reader, recordType)
                 | _ -> reader.Skip()
             | _ -> ()
 
@@ -211,6 +253,8 @@ type JsonRecordConverter<'T>(options: JsonSerializerOptions, fsOptions: JsonFSha
             this.WriteRestOfObject(writer, unbox value, options)
         member _.FieldNames = fieldProps |> Array.collect (fun p -> p.Names)
 
+    new(options, fsOptions: JsonFSharpOptions) = JsonRecordConverter<'T>(options, fsOptions.Record)
+
 type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
@@ -223,21 +267,23 @@ type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
         (
             typeToConvert: Type,
             options: JsonSerializerOptions,
-            fsOptions: JsonFSharpOptions,
-            overrides: IDictionary<Type, JsonFSharpOptions>
+            fsOptions: JsonFSharpOptions
         ) =
-        let fsOptions = overrideOptions typeToConvert fsOptions overrides
+        let fsOptions = overrideOptions typeToConvert fsOptions
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([| typeToConvert |])
             .GetConstructor(
+                BindingFlags.Public ||| BindingFlags.NonPublic ||| BindingFlags.Instance,
+                null,
                 [| typeof<JsonSerializerOptions>
-                   typeof<JsonFSharpOptions> |]
+                   typeof<JsonFSharpOptionsRecord> |],
+                null
             )
-            .Invoke([| options; fsOptions |])
+            .Invoke([| options; fsOptions.Record |])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonRecordConverter.CanConvert(typeToConvert)
 
     override _.CreateConverter(typeToConvert, options) =
-        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions, null)
+        JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)

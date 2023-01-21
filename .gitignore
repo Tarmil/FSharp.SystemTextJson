@@ -1,4 +1,4 @@
-﻿.paket/*
+.paket/*
 !.paket/Paket.Restore.targets
 !.paket/paket.bootstrapper.proj
 paket-files/

@@ -1,0 +1,4 @@
+group fake
+Fake.DotNet.Cli
+Fake.IO.FileSystem
+Fake.Core.Target

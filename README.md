@@ -36,15 +36,15 @@ To supersede it, use an explicit `JsonUnionEncoding` that does not include `Unwr
 
 * Does FSharp.SystemTextJson support `JsonPropertyNameAttribute` and `JsonIgnoreAttribute` on record fields?
 
-Yes!
+Yes! It also provides [a more powerful `JsonNameAttribute`](docs/Customizing.md#jsonname) that supports non-string union tags.
 
 * Does FSharp.SystemTextJson support options such as `PropertyNamingPolicy` and `IgnoreNullValues`?
 
-Yes!
+Yes! It also supports naming policy [for union tags](docs/Customizing.md#uniontagnamingpolicy).
 
 * Can I customize the format for a specific type?
 
-[Yes!](docs/Customizing.md#how-to-apply-customizations)
+[Yes!](docs/Customizing.md#how-to-apply-options)
 
 * Does FSharp.SystemTextJson allocate memory?
 

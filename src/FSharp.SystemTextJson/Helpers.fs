@@ -3,7 +3,6 @@
 #nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
 
 open System
-open System.Collections.Generic
 open System.Reflection
 open System.Text.Json
 open System.Text.Json.Serialization
@@ -39,14 +38,20 @@ let isNullableUnion (ty: Type) =
         x.Flags.HasFlag(CompilationRepresentationFlags.UseNullAsTrueValue)
     )
 
-let isSkippableType (ty: Type) =
-    ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<Skippable<_>>
+let isSkippableType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
+    if ty.IsGenericType then
+        let genTy = ty.GetGenericTypeDefinition()
+        genTy = typedefof<Skippable<_>>
+        || (fsOptions.SkippableOptionFields
+            && (genTy = typedefof<option<_>> || genTy = typedefof<voption<_>>))
+    else
+        false
 
 let isValueOptionType (ty: Type) =
     ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<ValueOption<_>>
 
-let isSkip (ty: Type) =
-    if isSkippableType ty then
+let isSkip (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
+    if isSkippableType fsOptions ty then
         let getTag = FSharpValue.PreComputeUnionTagReader(ty)
         fun x -> getTag x = 0
     else
@@ -67,7 +72,7 @@ type Helper =
 
     static member tryGetUnwrappedSingleCaseField
         (
-            fsOptions: JsonFSharpOptions,
+            fsOptions: JsonFSharpOptionsRecord,
             ty: Type,
             cases: UnionCaseInfo[] outref,
             property: PropertyInfo outref
@@ -80,7 +85,7 @@ type Helper =
 /// If null is a valid JSON representation for ty,
 /// then return ValueSome with the value represented by null,
 /// else return ValueNone.
-let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption =
+let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj voption =
     if isNullableUnion ty then
         ValueSome null
     elif ty = typeof<unit> then
@@ -88,7 +93,7 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption 
     elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
          && isValueOptionType ty then
         ValueSome(FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[0], [||], true))
-    elif isSkippableType ty then
+    elif isSkippableType fsOptions ty then
         tryGetNullValue fsOptions (ty.GetGenericArguments()[0])
         |> ValueOption.map (fun x -> FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[1], [| x |], true))
     elif
@@ -105,10 +110,10 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptions) (ty: Type) : obj voption 
             |> ValueOption.map (fun x -> FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[0], [| x |], true))
         | false, _, _ -> ValueNone
 
-let rec isNullableFieldType (fsOptions: JsonFSharpOptions) (ty: Type) =
+let rec isNullableFieldType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
     tryGetNullValue fsOptions ty |> ValueOption.isSome
 
-let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: IDictionary<Type, JsonFSharpOptions>) =
+let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
     let inheritUnionEncoding (options: JsonFSharpOptions) =
         if options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
             options.WithUnionEncoding(defaultOptions.UnionEncoding)
@@ -126,6 +131,7 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) (overrides: I
         else
             defaultOptions
 
+    let overrides = defaultOptions.Overrides defaultOptions
     if isNull overrides then
         applyAttributeOverride ()
     else

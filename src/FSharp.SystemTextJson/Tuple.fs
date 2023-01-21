@@ -7,7 +7,7 @@ open FSharp.Reflection
 
 type internal TupleProperty = { Type: Type; NeedsNullChecking: bool }
 
-type JsonTupleConverter<'T>(fsOptions) =
+type JsonTupleConverter<'T> internal (fsOptions) =
     inherit JsonConverter<'T>()
 
     let ty = typeof<'T>
@@ -40,6 +40,8 @@ type JsonTupleConverter<'T>(fsOptions) =
         for i in 0 .. fieldProps.Length - 1 do
             JsonSerializer.Serialize(writer, values[i], fieldProps[i].Type, options)
         writer.WriteEndArray()
+
+    new(fsOptions: JsonFSharpOptions) = JsonTupleConverter<'T>(fsOptions.Record)
 
 type JsonTupleConverter(fsOptions) =
     inherit JsonConverterFactory()
