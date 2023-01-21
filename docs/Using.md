@@ -116,11 +116,12 @@ To use FSharp.SystemTextJson in Giraffe (for example with the `json` function):
     open Giraffe
 
     let configureServices (services: IServiceCollection) =
+        services.AddGiraffe() |> ignore
+
         let jsonOptions =
             JsonFSharpOptions.Default()
                 .ToJsonSerializerOptions()
-        services.AddSingleton(jsonOptions) |> ignore
-        services.AddSingleton<Json.ISerializer, SystemTextJson.Serializer>() |> ignore 
+        services.AddSingleton<Json.ISerializer>(SystemTextJson.Serializer(jsonOptions)) |> ignore
         // ...
     ```
     
