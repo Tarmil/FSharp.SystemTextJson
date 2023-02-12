@@ -68,7 +68,7 @@ type private RecordField
         | ValueNone -> i
 
     member _.Deserialize(reader: byref<Utf8JsonReader>, recordType: Type) =
-        if reader.TokenType = JsonTokenType.Null && not isSkippableType then
+        if reader.TokenType = JsonTokenType.Null then
             match nullValue with
             | ValueSome v -> v
             | ValueNone ->

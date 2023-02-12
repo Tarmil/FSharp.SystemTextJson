@@ -167,8 +167,8 @@ module NonStruct =
         Assert.Equal(
             { sa = 1
               sb = Some 2
-              sc = ValueSome None
-              sd = Some ValueNone },
+              sc = ValueNone
+              sd = None },
             actual
         )
         let actual =
@@ -631,8 +631,8 @@ module Struct =
         Assert.Equal(
             { sa = 1
               sb = Some 2
-              sc = ValueSome None
-              sd = Some ValueNone },
+              sc = ValueNone
+              sd = None },
             actual
         )
         let actual =

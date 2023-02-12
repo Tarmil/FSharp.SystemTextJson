@@ -99,3 +99,14 @@ let ``regression #123`` () =
         { FirstName = "yarr"; LastName = None; age = 5 },
         JsonSerializer.Deserialize<Person>("""{"FirstName": "yarr", "age": 5 }""", skipOptions2)
     )
+
+[<Fact>]
+let ``regression #151`` () =  
+    let skippableOptionFieldsOptions =
+        JsonFSharpOptions.Default()
+            .WithSkippableOptionFields()
+            .ToJsonSerializerOptions()                           
+    
+    let person = JsonSerializer.Deserialize<{| FirstName: string option |}>("""{"FirstName":null}""", skippableOptionFieldsOptions)
+    
+    Assert.Equal({| FirstName = None |}, person)
