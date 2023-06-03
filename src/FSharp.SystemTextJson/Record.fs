@@ -237,6 +237,8 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
         writer.WriteStartObject()
         this.WriteRestOfObject(writer, value, options)
 
+    override this.HandleNull = true
+
     member internal _.WriteRestOfObject(writer, value, options) =
         let values = dector value
         for struct (i, p) in writeOrderedFieldProps do

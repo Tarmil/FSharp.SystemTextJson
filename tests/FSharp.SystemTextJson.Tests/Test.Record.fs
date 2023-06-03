@@ -33,6 +33,11 @@ module NonStruct =
         let actual = JsonSerializer.Serialize({ bx = 1; by = "b" }, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
 
+    [<Fact>]
+    let ``disallow null records`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<B>("null", options) |> ignore)
+        |> ignore
+
     type internal Internal = { ix: int }
 
     [<Fact>]
@@ -491,6 +496,11 @@ module Struct =
     let ``serialize via options`` () =
         let actual = JsonSerializer.Serialize({ bx = 1; by = "b" }, options)
         Assert.Equal("""{"bx":1,"by":"b"}""", actual)
+
+    [<Fact>]
+    let ``disallow null records`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<B>("null", options) |> ignore)
+        |> ignore
 
     [<Struct>]
     type internal Internal = { ix: int }
