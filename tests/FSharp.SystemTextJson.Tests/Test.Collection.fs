@@ -227,3 +227,25 @@ let ``serialize struct 8-tuple`` (a, b, c, d, e, f, g, h as t: struct (int * int
     let expected = sprintf "[%i,%i,%i,%i,%i,%i,%i,%i]" a b c d e f g h
     let actual = JsonSerializer.Serialize(t, options)
     Assert.Equal(expected, actual)
+
+module NullCollections =
+
+    [<Fact>]
+    let ``disallow null list`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<int list>("null", options) |> ignore)
+        |> ignore
+
+    [<Fact>]
+    let ``disallow null set`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Set<int>>("null", options) |> ignore)
+        |> ignore
+
+    [<Fact>]
+    let ``disallow null string maps`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Map<string, int>>("null", options) |> ignore)
+        |> ignore
+
+    [<Fact>]
+    let ``disallow null non-string maps`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Map<int, int>>("null", options) |> ignore)
+        |> ignore

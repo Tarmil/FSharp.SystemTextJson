@@ -11,7 +11,8 @@ type JsonListConverter<'T> internal (fsOptions) =
     let tIsNullable = isNullableFieldType fsOptions tType
     let needsNullChecking = not tIsNullable && not tType.IsValueType
 
-    override _.Read(reader, _typeToConvert, options) =
+    override _.Read(reader, typeToConvert, options) =
+        expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
         let array = JsonSerializer.Deserialize(&reader, typeof<'T[]>, options) :?> 'T[]
         if needsNullChecking then
             for elem in array do
@@ -21,6 +22,8 @@ type JsonListConverter<'T> internal (fsOptions) =
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
+
+    override _.HandleNull = true
 
     new(fsOptions: JsonFSharpOptions) = JsonListConverter<'T>(fsOptions.Record)
 
@@ -71,6 +74,8 @@ type JsonSetConverter<'T when 'T: comparison> internal (fsOptions) =
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)
 
+    override _.HandleNull = true
+
     new(fsOptions: JsonFSharpOptions) = JsonSetConverter<'T>(fsOptions.Record)
 
 type JsonSetConverter(fsOptions) =
@@ -120,6 +125,8 @@ type JsonStringMapConverter<'V>() =
             writer.WritePropertyName(k)
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
+
+    override _.HandleNull = true
 
 type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
     inherit JsonConverter<Map<'K, 'V>>()
@@ -189,6 +196,8 @@ type JsonMapConverter<'K, 'V when 'K: comparison>() =
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
             writer.WriteEndArray()
         writer.WriteEndArray()
+
+    override _.HandleNull = true
 
 type JsonMapConverter() =
     inherit JsonConverterFactory()
