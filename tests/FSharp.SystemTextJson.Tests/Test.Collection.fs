@@ -249,3 +249,30 @@ module NullCollections =
     let ``disallow null non-string maps`` () =
         Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<Map<int, int>>("null", options) |> ignore)
         |> ignore
+
+    [<Fact>]
+    let ``disallow null 2-tuple`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<int * int>("null", options) |> ignore)
+        |> ignore
+
+    [<Fact>]
+    let ``disallow null 8-tuple`` () =
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<int * int * int * int * int * int * int * int>("null", options)
+            |> ignore
+        )
+        |> ignore
+
+    [<Fact>]
+    let ``disallow null struct 2-tuple`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<struct (int * int)>("null", options) |> ignore
+        )
+        |> ignore
+
+    [<Fact>]
+    let ``disallow null struct 8-tuple`` () =
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<struct (int * int * int * int * int * int * int * int)>("null", options)
+            |> ignore
+        )
+        |> ignore
