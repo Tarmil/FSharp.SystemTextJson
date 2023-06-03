@@ -693,6 +693,8 @@ type JsonUnionConverter<'T>
                 | UntaggedBit -> writeUntagged writer case value options
                 | _ -> failf "Invalid union encoding: %A" fsOptions.UnionEncoding
 
+    override _.HandleNull = true
+
     new(options, fsOptions: JsonFSharpOptions, cases) = JsonUnionConverter<'T>(options, fsOptions.Record, cases)
 
 type JsonSkippableConverter<'T>() =
