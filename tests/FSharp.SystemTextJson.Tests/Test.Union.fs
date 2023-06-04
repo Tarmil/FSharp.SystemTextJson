@@ -52,6 +52,11 @@ module NonStruct =
         Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), options))
 
     [<Fact>]
+    let ``disallow null unions`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<B>("null", options) |> ignore)
+        |> ignore
+
+    [<Fact>]
     let ``not fill in nulls`` () =
         try
             JsonSerializer.Deserialize<B>("""{"Case":"Bc","Fields":[null,true]}""", options)
@@ -1405,6 +1410,11 @@ module Struct =
         Assert.Equal("""{"Case":"Ba"}""", JsonSerializer.Serialize(Ba, options))
         Assert.Equal("""{"Case":"Bb","Fields":[32]}""", JsonSerializer.Serialize(Bb 32, options))
         Assert.Equal("""{"Case":"Bc","Fields":["test",true]}""", JsonSerializer.Serialize(Bc("test", true), options))
+
+    [<Fact>]
+    let ``disallow null unions`` () =
+        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<B>("null", options) |> ignore)
+        |> ignore
 
     [<Fact>]
     let ``not fill in nulls`` () =

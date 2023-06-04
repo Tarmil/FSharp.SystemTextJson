@@ -41,6 +41,8 @@ type JsonTupleConverter<'T> internal (fsOptions) =
             JsonSerializer.Serialize(writer, values[i], fieldProps[i].Type, options)
         writer.WriteEndArray()
 
+    override _.HandleNull = true
+
     new(fsOptions: JsonFSharpOptions) = JsonTupleConverter<'T>(fsOptions.Record)
 
 type JsonTupleConverter(fsOptions) =
