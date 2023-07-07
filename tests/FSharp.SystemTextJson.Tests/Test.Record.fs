@@ -300,10 +300,13 @@ module NonStruct =
         Assert.Equal("""{"unignoredX":1}""", actual)
 
     let ignoreNullOptions =
-        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
+        JsonFSharpOptions()
+            .WithAllowNullFields()
+            .ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
         JsonFSharpOptions()
+            .WithAllowNullFields()
             .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
@@ -763,10 +766,13 @@ module Struct =
         Assert.Equal("""{"unignoredX":1}""", actual)
 
     let ignoreNullOptions =
-        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
+        JsonFSharpOptions()
+            .WithAllowNullFields()
+            .ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
         JsonFSharpOptions()
+            .WithAllowNullFields()
             .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
