@@ -27,7 +27,8 @@ type private RecordField
 
     let isSkippableType = isSkippableType fsOptions p.PropertyType
 
-    let canBeSkipped = ignore || (ignoreNullValues options && nullValue.IsSome) || isSkippableType
+    let canBeSkipped =
+        ignore || (ignoreNullValues options && nullValue.IsSome) || isSkippableType
 
     let read =
         let m = p.GetGetMethod()

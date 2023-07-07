@@ -16,12 +16,13 @@ module NonStruct =
 
     [<Fact>]
     let ``deserialize empty record with ignore-null-values on`` () =
-        let options = JsonSerializerOptions(DefaultIgnoreCondition = Serialization.JsonIgnoreCondition.WhenWritingNull)
+        let options =
+            JsonSerializerOptions(DefaultIgnoreCondition = Serialization.JsonIgnoreCondition.WhenWritingNull)
         try
             JsonSerializer.Deserialize<A>("{}", options) |> ignore
         with
-            | :? System.NullReferenceException -> failwith "Unexpected NRE."
-            | ex when ex.Message.Contains("Missing field for record type") -> () // It's expected to fail since the record requires its fields to be initialized.
+        | :? System.NullReferenceException -> failwith "Unexpected NRE."
+        | ex when ex.Message.Contains("Missing field for record type") -> () // It's expected to fail since the record requires its fields to be initialized.
 
     [<Fact>]
     let ``serialize via explicit converter`` () =
