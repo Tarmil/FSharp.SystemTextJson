@@ -15,6 +15,16 @@ module NonStruct =
         Assert.Equal({ ax = 1; ay = "b" }, actual)
 
     [<Fact>]
+    let ``deserialize empty record with ignore-null-values on`` () =
+        let options =
+            JsonSerializerOptions(DefaultIgnoreCondition = Serialization.JsonIgnoreCondition.WhenWritingNull)
+        try
+            JsonSerializer.Deserialize<A>("{}", options) |> ignore
+        with
+        | :? System.NullReferenceException -> failwith "Unexpected NRE."
+        | ex when ex.Message.Contains("Missing field for record type") -> () // It's expected to fail since the record requires its fields to be initialized.
+
+    [<Fact>]
     let ``serialize via explicit converter`` () =
         let actual = JsonSerializer.Serialize { ax = 1; ay = "b" }
         Assert.Equal("""{"ax":1,"ay":"b"}""", actual)
@@ -291,10 +301,13 @@ module NonStruct =
         Assert.Equal("""{"unignoredX":1}""", actual)
 
     let ignoreNullOptions =
-        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
+        JsonFSharpOptions()
+            .WithAllowNullFields()
+            .ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
         JsonFSharpOptions()
+            .WithAllowNullFields()
             .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]
@@ -754,10 +767,13 @@ module Struct =
         Assert.Equal("""{"unignoredX":1}""", actual)
 
     let ignoreNullOptions =
-        JsonFSharpOptions().ToJsonSerializerOptions(IgnoreNullValues = true)
+        JsonFSharpOptions()
+            .WithAllowNullFields()
+            .ToJsonSerializerOptions(IgnoreNullValues = true)
 
     let newIgnoreNullOptions =
         JsonFSharpOptions()
+            .WithAllowNullFields()
             .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
 
     [<AllowNullLiteral>]

@@ -27,7 +27,8 @@ type private RecordField
 
     let isSkippableType = isSkippableType fsOptions p.PropertyType
 
-    let canBeSkipped = ignore || ignoreNullValues options || isSkippableType
+    let canBeSkipped =
+        ignore || (ignoreNullValues options && nullValue.IsSome) || isSkippableType
 
     let read =
         let m = p.GetGetMethod()
@@ -226,7 +227,7 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
                 | _ -> reader.Skip()
             | _ -> ()
 
-        if requiredFieldCount < minExpectedFieldCount && not (ignoreNullValues options) then
+        if requiredFieldCount < minExpectedFieldCount then
             for i in 0 .. fieldCount - 1 do
                 if isNull fields[i] && fieldProps[i].MustBePresent then
                     failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Names[0]
