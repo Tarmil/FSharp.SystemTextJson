@@ -2,7 +2,7 @@ namespace System.Text.Json.Serialization
 
 /// Represents a value that can be represented as an absent field in JSON.
 /// In particular, Skippable<'T option> allows distinguishing between absent field and null field.
-[<Struct>]
+[<Struct; StructuralComparison; StructuralEquality>]
 type Skippable<'T> =
     | Skip
     | Include of 'T
