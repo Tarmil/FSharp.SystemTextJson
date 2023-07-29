@@ -130,7 +130,7 @@ type JsonFSharpConverterAttribute(fsOptions: JsonFSharpOptions) =
     member _.UnionFieldNamesFromTypes
         with set v = fsOptions <- fsOptions.WithUnionFieldNamesFromTypes(v)
     member _.SkippableOptionFields
-        with set v = fsOptions <- fsOptions.WithSkippableOptionFields(v)
+        with set v = fsOptions <- fsOptions.WithSkippableOptionFields(v: SkippableOptionFields)
 
     new() = JsonFSharpConverterAttribute(JsonFSharpOptions())
 

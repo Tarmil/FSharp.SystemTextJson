@@ -38,12 +38,17 @@ let isNullableUnion (ty: Type) =
         x.Flags.HasFlag(CompilationRepresentationFlags.UseNullAsTrueValue)
     )
 
+let isOptionType (ty: Type) =
+    ty.IsGenericType
+    && let genTy = ty.GetGenericTypeDefinition() in
+       genTy = typedefof<option<_>> || genTy = typedefof<voption<_>>
+
 let isSkippableType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
     if ty.IsGenericType then
         let genTy = ty.GetGenericTypeDefinition()
         genTy = typedefof<Skippable<_>>
-        || (fsOptions.SkippableOptionFields
-            && (genTy = typedefof<option<_>> || genTy = typedefof<voption<_>>))
+        || (fsOptions.SkippableOptionFields = SkippableOptionFields.Always
+            && isOptionType ty)
     else
         false
 
@@ -146,7 +151,12 @@ type FieldHelper
         options.IgnoreNullValues
         || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     let canBeSkipped =
-        (ignoreNullValues && (nullValue.IsSome || isClass ty)) || isSkippableWrapperType
+        if isOptionType ty then
+            (fsOptions.SkippableOptionFields = SkippableOptionFields.Always)
+            || (ignoreNullValues
+                && fsOptions.SkippableOptionFields = SkippableOptionFields.FromJsonSerializerOptions)
+        else
+            (ignoreNullValues && (nullValue.IsSome || isClass ty)) || isSkippableWrapperType
     let deserializeType =
         if isSkippableWrapperType then ty.GenericTypeArguments[0] else ty
 
@@ -166,7 +176,7 @@ type FieldHelper
             fun _ -> false
 
     let ignoreOnWrite (v: obj) =
-        isSkip v || (ignoreNullValues && isNull v)
+        canBeSkipped && (isSkip v || isNull v)
 
     let defaultValue =
         if isSkippableWrapperType || isValueOptionType ty then

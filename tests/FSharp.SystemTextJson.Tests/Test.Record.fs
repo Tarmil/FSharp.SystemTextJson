@@ -223,6 +223,39 @@ module NonStruct =
             )
         Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
 
+    type NonSkO = { x: int option }
+
+    [<Fact>]
+    let ``deserialize non-skippable option field even with WhenWritingNull`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields(SkippableOptionFields.Never)
+                .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+
+        let actual = JsonSerializer.Deserialize("""{"x":1}""", options)
+        Assert.Equal({ x = Some 1 }, actual)
+
+        let actual = JsonSerializer.Deserialize("""{"x":null}""", options)
+        Assert.Equal({ x = None }, actual)
+
+        let ex =
+            Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<NonSkO>("{}", options) |> ignore)
+        Assert.Contains("", ex.Message)
+
+    [<Fact>]
+    let ``serialize non-skippable option field even with WhenWritingNull`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields(SkippableOptionFields.Never)
+                .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+        let actual = JsonSerializer.Serialize({ x = Some 1 }, options)
+        Assert.Equal("""{"x":1}""", actual)
+
+        let actual = JsonSerializer.Serialize({ x = None }, options)
+        Assert.Equal("""{"x":null}""", actual)
+
     type C = { cx: B }
 
     [<Fact>]
@@ -694,6 +727,40 @@ module Struct =
                 options
             )
         Assert.Equal("""{"sa":1,"sb":2,"sc":3,"sd":4}""", actual)
+
+    [<Struct>]
+    type NonSkO = { x: int option }
+
+    [<Fact>]
+    let ``deserialize non-skippable option field even with WhenWritingNull`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields(SkippableOptionFields.Never)
+                .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+
+        let actual = JsonSerializer.Deserialize("""{"x":1}""", options)
+        Assert.Equal({ x = Some 1 }, actual)
+
+        let actual = JsonSerializer.Deserialize("""{"x":null}""", options)
+        Assert.Equal({ x = None }, actual)
+
+        let ex =
+            Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<NonSkO>("{}", options) |> ignore)
+        Assert.Contains("", ex.Message)
+
+    [<Fact>]
+    let ``serialize non-skippable option field even with WhenWritingNull`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields(SkippableOptionFields.Never)
+                .ToJsonSerializerOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)
+        let actual = JsonSerializer.Serialize({ x = Some 1 }, options)
+        Assert.Equal("""{"x":1}""", actual)
+
+        let actual = JsonSerializer.Serialize({ x = None }, options)
+        Assert.Equal("""{"x":null}""", actual)
 
     [<Struct>]
     type C = { cx: B }
