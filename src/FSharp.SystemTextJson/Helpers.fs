@@ -50,13 +50,6 @@ let isSkippableType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
 let isValueOptionType (ty: Type) =
     ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<ValueOption<_>>
 
-let isSkip (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
-    if isSkippableType fsOptions ty then
-        let getTag = FSharpValue.PreComputeUnionTagReader(ty)
-        fun x -> getTag x = 0
-    else
-        fun _ -> false
-
 [<AutoOpen>]
 type Helper =
     static member tryGetUnionCases(ty: Type, cases: UnionCaseInfo[] outref) =
@@ -82,6 +75,11 @@ type Helper =
         && cases.Length = 1
         && tryGetUnionCaseSingleProperty (cases[0], &property)
 
+let isClass ty =
+    not (FSharpType.IsUnion(ty, true))
+    && not (FSharpType.IsRecord(ty, true))
+    && not (FSharpType.IsTuple(ty))
+
 /// If null is a valid JSON representation for ty,
 /// then return ValueSome with the value represented by null,
 /// else return ValueNone.
@@ -96,12 +94,7 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj vo
     elif isSkippableType fsOptions ty then
         tryGetNullValue fsOptions (ty.GetGenericArguments()[0])
         |> ValueOption.map (fun x -> FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[1], [| x |], true))
-    elif
-        fsOptions.AllowNullFields
-        && not (FSharpType.IsUnion(ty, true))
-        && not (FSharpType.IsRecord(ty, true))
-        && not (FSharpType.IsTuple(ty))
-    then
+    elif fsOptions.AllowNullFields && isClass ty then
         ValueSome(if ty.IsValueType then Activator.CreateInstance(ty) else null)
     else
         match tryGetUnwrappedSingleCaseField (fsOptions, ty) with
@@ -139,9 +132,71 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
         | true, options -> options |> inheritUnionEncoding
         | false, _ -> applyAttributeOverride ()
 
-let ignoreNullValues (options: JsonSerializerOptions) =
-    options.IgnoreNullValues
-    || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+type FieldHelper
+    (
+        options: JsonSerializerOptions,
+        fsOptions: JsonFSharpOptionsRecord,
+        ty: Type,
+        nullDeserializeError: string
+    ) =
+
+    let nullValue = tryGetNullValue fsOptions ty
+    let isSkippableWrapperType = isSkippableType fsOptions ty
+    let ignoreNullValues =
+        options.IgnoreNullValues
+        || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    let canBeSkipped =
+        (ignoreNullValues && (nullValue.IsSome || isClass ty)) || isSkippableWrapperType
+    let deserializeType =
+        if isSkippableWrapperType then ty.GenericTypeArguments[0] else ty
+
+    let wrapDeserialized =
+        if isSkippableWrapperType then
+            let case = FSharpType.GetUnionCases(ty)[1]
+            let f = FSharpValue.PreComputeUnionConstructor(case, true)
+            fun x -> f [| box x |]
+        else
+            id
+
+    let isSkip =
+        if isSkippableWrapperType then
+            let getTag = FSharpValue.PreComputeUnionTagReader(ty)
+            fun x -> getTag x = 0
+        else
+            fun _ -> false
+
+    let ignoreOnWrite (v: obj) =
+        isSkip v || (ignoreNullValues && isNull v)
+
+    let defaultValue =
+        if isSkippableWrapperType || isValueOptionType ty then
+            let case = FSharpType.GetUnionCases(ty)[0]
+            ValueSome(FSharpValue.MakeUnion(case, [||]))
+        else
+            ValueNone
+
+
+    member _.NullValue = nullValue
+    member _.DefaultValue = defaultValue
+    member _.IsSkippableWrapperType = isSkippableWrapperType
+    member _.CanBeSkipped = canBeSkipped
+    member _.IgnoreOnWrite = ignoreOnWrite
+    member _.DeserializeType = deserializeType
+    member _.IsSkip = isSkip
+    member _.WrapDeserialized = wrapDeserialized
+    member _.NullDeserializeError = nullDeserializeError
+    member _.Options = options
+
+    member this.IsNullable = this.NullValue.IsNone
+
+    member this.Deserialize(reader: byref<Utf8JsonReader>) =
+        if reader.TokenType = JsonTokenType.Null && not this.IsSkippableWrapperType then
+            match this.NullValue with
+            | ValueSome v -> v
+            | ValueNone -> raise (JsonException this.NullDeserializeError)
+        else
+            JsonSerializer.Deserialize(&reader, this.DeserializeType, this.Options)
+            |> this.WrapDeserialized
 
 let convertName (policy: JsonNamingPolicy) (name: string) =
     match policy with
