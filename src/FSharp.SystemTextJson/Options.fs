@@ -120,6 +120,14 @@ type JsonFSharpTypes =
     /// All supported types.
     | All = 0xfff
 
+type SkippableOptionFields =
+    /// None and ValueNone fields in records and unions are skippable if the JsonSerializerOptions has DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull.
+    | FromJsonSerializerOptions = 0
+    /// None and ValueNone fields in records and unions are never skippable.
+    | Never = 1
+    /// None and ValueNone fields in records and unions are always skippable.
+    | Always = 2
+
 module internal Default =
 
     [<Literal>]
@@ -158,7 +166,7 @@ type internal JsonFSharpOptionsRecord =
       UnionTagCaseInsensitive: bool
       AllowNullFields: bool
       IncludeRecordProperties: bool
-      SkippableOptionFields: bool
+      SkippableOptionFields: SkippableOptionFields
       Types: JsonFSharpTypes
       AllowOverride: bool
       Overrides: JsonFSharpOptions -> IDictionary<Type, JsonFSharpOptions> }
@@ -191,7 +199,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               UnionTagCaseInsensitive = unionTagCaseInsensitive
               AllowNullFields = allowNullFields
               IncludeRecordProperties = includeRecordProperties
-              SkippableOptionFields = false
+              SkippableOptionFields = SkippableOptionFields.FromJsonSerializerOptions
               Types = types
               AllowOverride = allowOverride
               Overrides = emptyOverrides }
@@ -262,16 +270,24 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
     member _.WithIncludeRecordProperties([<Optional; DefaultParameterValue true>] includeRecordProperties) =
         JsonFSharpOptions({ options with IncludeRecordProperties = includeRecordProperties })
 
-    member _.WithSkippableOptionFields([<Optional; DefaultParameterValue true>] skippableOptionFields) =
+    member _.WithSkippableOptionFields(skippableOptionFields) =
         JsonFSharpOptions(
             { options with
                 SkippableOptionFields = skippableOptionFields
                 UnionEncoding =
-                    if skippableOptionFields then
+                    if skippableOptionFields = SkippableOptionFields.Always then
                         options.UnionEncoding ||| JsonUnionEncoding.UnwrapOption
                     else
                         options.UnionEncoding }
         )
+
+
+    member this.WithSkippableOptionFields([<Optional; DefaultParameterValue true>] skippableOptionFields) =
+        if skippableOptionFields then
+            SkippableOptionFields.Always
+        else
+            SkippableOptionFields.FromJsonSerializerOptions
+        |> this.WithSkippableOptionFields
 
     member _.WithTypes(types) =
         JsonFSharpOptions({ options with Types = types })

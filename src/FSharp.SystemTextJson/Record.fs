@@ -199,7 +199,7 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
 
         if requiredFieldCount < minExpectedFieldCount then
             for i in 0 .. fieldCount - 1 do
-                if isNull fields[i] && fieldProps[i].MustBePresent then
+                if fields[i] = defaultFields[i] && fieldProps[i].MustBePresent then
                     failf "Missing field for record type %s: %s" recordType.FullName fieldProps[i].Names[0]
 
         ctor fields :?> 'T

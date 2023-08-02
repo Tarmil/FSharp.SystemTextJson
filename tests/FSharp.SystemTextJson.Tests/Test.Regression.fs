@@ -99,3 +99,15 @@ let ``regression #123`` () =
         { FirstName = "yarr"; LastName = None; age = 5 },
         JsonSerializer.Deserialize<Person>("""{"FirstName": "yarr", "age": 5 }""", skipOptions2)
     )
+
+type R = { x: int option }
+type RV = { x: int voption }
+
+[<Fact>]
+let ``regression #154`` () =
+    let o =
+        JsonFSharpOptions().WithSkippableOptionFields(false).ToJsonSerializerOptions()
+    Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<R>("{}", o) |> ignore)
+    |> ignore
+    Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<RV>("{}", o) |> ignore)
+    |> ignore
