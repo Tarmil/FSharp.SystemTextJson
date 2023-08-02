@@ -98,8 +98,9 @@ Target.create
 
 Target.create "All" ignore
 
-"Build" ==> "Test" ==> "TestTrim" ==> "Pack" ==> "All"
-
-"Clean" =?> ("Build", Cli.clean)
+"All" <== [ "Test"; "TestTrim"; "Pack" ]
+"Test" <== [ "Build" ]
+"Pack" <== [ "Build" ]
+"Build" <== [ if Cli.clean then "Clean" ]
 
 Target.runOrDefaultWithArguments "All"
