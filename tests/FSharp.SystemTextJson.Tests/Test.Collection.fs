@@ -98,6 +98,24 @@ let ``serialize newtype-string-keyed map`` (m: Map<NonNull<string>, int>) =
     let actual = JsonSerializer.Serialize(m, options)
     Assert.Equal(expected, actual)
 
+[<Property>]
+let ``deserialize newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
+    let d = Dictionary()
+    for KeyValue (NonNull k, v) in d' do
+        d[UserId k] <- v
+    let ser = "{" + String.concat "," (Seq.map serKV1_1 d) + "}"
+    let actual = JsonSerializer.Deserialize<Dictionary<UserId, int>>(ser, options)
+    Assert.Equal<Dictionary<UserId, int>>(d, actual)
+
+[<Property>]
+let ``serialize newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
+    let d = Dictionary()
+    for KeyValue (NonNull k, v) in d' do
+        d[UserId k] <- v
+    let expected = "{" + String.concat "," (Seq.map serKV1_1 d) + "}"
+    let actual = JsonSerializer.Serialize(d, options)
+    Assert.Equal(expected, actual)
+
 [<Struct>]
 type SUserId = SUserId of string
 
@@ -116,6 +134,24 @@ let ``serialize struct-newtype-string-keyed map`` (m: Map<NonNull<string>, int>)
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (SUserId k) v m)
     let expected = "{" + String.concat "," (Seq.map serKV1_2 m) + "}"
     let actual = JsonSerializer.Serialize(m, options)
+    Assert.Equal(expected, actual)
+
+[<Property>]
+let ``deserialize struct-newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
+    let d = Dictionary()
+    for KeyValue (NonNull k, v) in d' do
+        d[SUserId k] <- v
+    let ser = "{" + String.concat "," (Seq.map serKV1_2 d) + "}"
+    let actual = JsonSerializer.Deserialize<Dictionary<SUserId, int>>(ser, options)
+    Assert.Equal<Dictionary<SUserId, int>>(d, actual)
+
+[<Property>]
+let ``serialize struct-newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
+    let d = Dictionary()
+    for KeyValue (NonNull k, v) in d' do
+        d[SUserId k] <- v
+    let expected = "{" + String.concat "," (Seq.map serKV1_2 d) + "}"
+    let actual = JsonSerializer.Serialize(d, options)
     Assert.Equal(expected, actual)
 
 let keyPolicyOptions =

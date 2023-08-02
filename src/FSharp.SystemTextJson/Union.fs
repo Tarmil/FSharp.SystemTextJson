@@ -702,17 +702,31 @@ type JsonUnwrapValueOptionConverter<'T>() =
         | ValueNone -> writer.WriteNullValue()
         | ValueSome x -> JsonSerializer.Serialize<'T>(writer, x, options)
 
-type JsonUnwrappedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo) =
+type JsonUnwrappedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo, options: JsonSerializerOptions) =
     inherit JsonConverter<'T>()
 
     let ctor = FSharpValue.PreComputeUnionConstructor(case, true)
     let getter = FSharpValue.PreComputeUnionReader(case, true)
+    let innerConverter =
+        match options.GetConverter(typeof<'FieldT>) with
+        | :? JsonConverter<'FieldT> as c -> c
+        | _ -> null
 
     override _.Read(reader, _typeToConvert, options) =
         ctor [| box (JsonSerializer.Deserialize<'FieldT>(&reader, options)) |] :?> 'T
 
+    override _.ReadAsPropertyName(reader, typeToConvert, options) =
+        match innerConverter with
+        | null -> base.ReadAsPropertyName(&reader, typeToConvert, options)
+        | innerConverter -> ctor [| innerConverter.ReadAsPropertyName(&reader, typeof<'FieldT>, options) |] :?> 'T
+
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<'FieldT>(writer, (getter value)[0] :?> 'FieldT, options)
+
+    override _.WriteAsPropertyName(writer, value, options) =
+        match innerConverter with
+        | null -> base.WriteAsPropertyName(writer, value, options)
+        | innerConverter -> innerConverter.WriteAsPropertyName(writer, (getter value)[0] :?> 'FieldT, options)
 
 type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
@@ -769,8 +783,8 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
                 let case = cases[0]
                 jsonUnwrappedUnionConverterTy
                     .MakeGenericType([| typeToConvert; unwrappedSingleCaseField.PropertyType |])
-                    .GetConstructor([| caseTy |])
-                    .Invoke([| case |])
+                    .GetConstructor([| caseTy; typeof<JsonSerializerOptions> |])
+                    .Invoke([| case; options |])
                 :?> JsonConverter
             | false, cases, _ ->
                 jsonUnionConverterTy
