@@ -128,6 +128,19 @@ type SkippableOptionFields =
     /// None and ValueNone fields in records and unions are always skippable.
     | Always = 2
 
+type MapFormat =
+    /// Always serialize Maps as JSON objects.
+    /// Only supports the same key types as the built-in serializer for Dictionary.
+    | Object = 0
+    /// Always serialize Maps as JSON arrays whose items are [key, value] JSON arrays.
+    /// Supports all key types.
+    | ArrayOfPairs = 1
+    /// Serialize Maps as JSON objects if the key type is string or a single-case union wrapping string;
+    /// otherwise, serialize Maps as JSON arrays whose items are [key, value] JSON arrays.
+    /// Supports all key types.
+    /// This is the default format.
+    | ObjectOrArrayOfPairs = 2
+
 module internal Default =
 
     [<Literal>]
@@ -167,6 +180,7 @@ type internal JsonFSharpOptionsRecord =
       AllowNullFields: bool
       IncludeRecordProperties: bool
       SkippableOptionFields: SkippableOptionFields
+      MapFormat: MapFormat
       Types: JsonFSharpTypes
       AllowOverride: bool
       Overrides: JsonFSharpOptions -> IDictionary<Type, JsonFSharpOptions> }
@@ -200,6 +214,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               AllowNullFields = allowNullFields
               IncludeRecordProperties = includeRecordProperties
               SkippableOptionFields = SkippableOptionFields.FromJsonSerializerOptions
+              MapFormat = MapFormat.ObjectOrArrayOfPairs
               Types = types
               AllowOverride = allowOverride
               Overrides = emptyOverrides }
@@ -239,6 +254,8 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
     member _.IncludeRecordProperties = options.IncludeRecordProperties
 
     member _.SkippableOptionFields = options.SkippableOptionFields
+
+    member _.MapFormat = options.MapFormat
 
     member _.Types = options.Types
 
@@ -288,6 +305,9 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
         else
             SkippableOptionFields.FromJsonSerializerOptions
         |> this.WithSkippableOptionFields
+
+    member _.WithMapFormat(format) =
+        JsonFSharpOptions({ options with MapFormat = format })
 
     member _.WithTypes(types) =
         JsonFSharpOptions({ options with Types = types })

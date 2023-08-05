@@ -97,46 +97,15 @@ type JsonSetConverter(fsOptions) =
     override _.CreateConverter(typeToConvert, _options) =
         JsonSetConverter.CreateConverter(typeToConvert, fsOptions)
 
-type JsonStringMapConverter<'V>() =
-    inherit JsonConverter<Map<string, 'V>>()
-
-    let ty = typeof<Map<string, 'V>>
-
-    let rec read (acc: Map<string, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
-        if not (reader.Read()) then
-            acc
-        else
-            match reader.TokenType with
-            | JsonTokenType.EndObject -> acc
-            | JsonTokenType.PropertyName ->
-                let key = reader.GetString()
-                let value = JsonSerializer.Deserialize<'V>(&reader, options)
-                read (Map.add key value acc) &reader options
-            | _ -> failExpecting "JSON field" &reader ty
-
-    override _.Read(reader, _typeToConvert, options) =
-        expectAlreadyRead JsonTokenType.StartObject "JSON object" &reader ty
-        read Map.empty &reader options
-
-    override _.Write(writer, value, options) =
-        writer.WriteStartObject()
-        for kv in value do
-            let k = convertName options.DictionaryKeyPolicy kv.Key
-            writer.WritePropertyName(k)
-            JsonSerializer.Serialize<'V>(writer, kv.Value, options)
-        writer.WriteEndObject()
-
-    override _.HandleNull = true
-
-type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
+type JsonMapObjectConverter<'K, 'V when 'K: comparison>(options: JsonSerializerOptions) =
     inherit JsonConverter<Map<'K, 'V>>()
 
     let ty = typeof<Map<'K, 'V>>
     let kty = typeof<'K>
-
-    let case = FSharpType.GetUnionCases(kty, true).[0]
-    let wrap = FSharpValue.PreComputeUnionConstructor(case, true)
-    let unwrap = FSharpValue.PreComputeUnionReader(case, true)
+    let keyConverter =
+        match options.GetConverter(kty) with
+        | :? JsonConverter<'K> as c -> c
+        | _ -> failf "Cannot serialize type %s as a map key with MapFormat.Object" kty.FullName
 
     let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if not (reader.Read()) then
@@ -145,9 +114,9 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
             match reader.TokenType with
             | JsonTokenType.EndObject -> acc
             | JsonTokenType.PropertyName ->
-                let key = reader.GetString()
+                let key = keyConverter.ReadAsPropertyName(&reader, kty, options)
                 let value = JsonSerializer.Deserialize<'V>(&reader, options)
-                read (Map.add (wrap [| key |] :?> 'K) value acc) &reader options
+                read (Map.add key value acc) &reader options
             | _ -> failExpecting "JSON field" &reader ty
 
     override _.Read(reader, _typeToConvert, options) =
@@ -157,14 +126,13 @@ type JsonWrappedStringMapConverter<'K, 'V when 'K: comparison>() =
     override _.Write(writer, value: Map<'K, 'V>, options) =
         writer.WriteStartObject()
         for kv in value do
-            let k =
-                let k = (unwrap kv.Key)[0] :?> string
-                convertName options.DictionaryKeyPolicy k
-            writer.WritePropertyName(k)
+            keyConverter.WriteAsPropertyName(writer, kv.Key, options)
             JsonSerializer.Serialize<'V>(writer, kv.Value, options)
         writer.WriteEndObject()
 
-type JsonMapConverter<'K, 'V when 'K: comparison>() =
+    override _.HandleNull = true
+
+type JsonMapArrayOfPairsConverter<'K, 'V when 'K: comparison>() =
     inherit JsonConverter<Map<'K, 'V>>()
 
     let ty = typeof<Map<'K, 'V>>
@@ -199,7 +167,7 @@ type JsonMapConverter<'K, 'V when 'K: comparison>() =
 
     override _.HandleNull = true
 
-type JsonMapConverter() =
+type JsonMapConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
 
     static let isWrappedString (ty: Type) =
@@ -210,22 +178,42 @@ type JsonMapConverter() =
            && let fields = cases[ 0 ].GetFields() in
               fields.Length = 1 && fields[0].PropertyType = typeof<string>
 
+    static let jsonMapObjectConverter genArgs (options: JsonSerializerOptions) =
+        typedefof<JsonMapObjectConverter<_, _>>
+            .MakeGenericType(genArgs)
+            .GetConstructor([| typeof<JsonSerializerOptions> |])
+            .Invoke([| options |])
+        :?> JsonConverter
+
+    static let jsonMapArrayOfPairsConverter genArgs =
+        typedefof<JsonMapArrayOfPairsConverter<_, _>>
+            .MakeGenericType(genArgs)
+            .GetConstructor([||])
+            .Invoke([||])
+        :?> JsonConverter
+
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isMap typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type) =
+    static member internal CreateConverter
+        (
+            typeToConvert: Type,
+            options: JsonSerializerOptions,
+            fsOptions: JsonFSharpOptions
+        ) =
         let genArgs = typeToConvert.GetGenericArguments()
-        let ty =
-            if genArgs[0] = typeof<string> then
-                typedefof<JsonStringMapConverter<_>>.MakeGenericType ([| genArgs[1] |])
-            elif isWrappedString genArgs[0] then
-                typedefof<JsonWrappedStringMapConverter<_, _>>.MakeGenericType (genArgs)
+        match fsOptions.MapFormat with
+        | MapFormat.Object -> jsonMapObjectConverter genArgs options
+        | MapFormat.ArrayOfPairs -> jsonMapArrayOfPairsConverter genArgs
+        | MapFormat.ObjectOrArrayOfPairs ->
+            if genArgs[0] = typeof<string> || isWrappedString genArgs[0] then
+                jsonMapObjectConverter genArgs options
             else
-                typedefof<JsonMapConverter<_, _>>.MakeGenericType (genArgs)
-        ty.GetConstructor([||]).Invoke([||]) :?> JsonConverter
+                jsonMapArrayOfPairsConverter genArgs
+        | format -> failf "Invalid F# Map format: %A" format
 
     override _.CanConvert(typeToConvert) =
         JsonMapConverter.CanConvert(typeToConvert)
 
-    override _.CreateConverter(typeToConvert, _options) =
-        JsonMapConverter.CreateConverter(typeToConvert)
+    override _.CreateConverter(typeToConvert, options) =
+        JsonMapConverter.CreateConverter(typeToConvert, options, fsOptions)

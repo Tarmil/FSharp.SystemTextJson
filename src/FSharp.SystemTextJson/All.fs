@@ -43,7 +43,7 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
         match TypeCache.getKind typeToConvert with
         | TypeCache.TypeKind.List -> JsonListConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Set -> JsonSetConverter.CreateConverter(typeToConvert, fsOptions)
-        | TypeCache.TypeKind.Map -> JsonMapConverter.CreateConverter(typeToConvert)
+        | TypeCache.TypeKind.Map -> JsonMapConverter.CreateConverter(typeToConvert, options, fsOptions)
         | TypeCache.TypeKind.Tuple -> JsonTupleConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Record -> JsonRecordConverter.CreateConverter(typeToConvert, options, fsOptions)
         | TypeCache.TypeKind.Union -> JsonUnionConverter.CreateConverter(typeToConvert, options, fsOptions)

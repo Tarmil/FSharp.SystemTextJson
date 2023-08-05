@@ -1,5 +1,6 @@
 module Tests.Collection
 
+open System
 open System.Collections.Generic
 open System.Text.Json.Serialization
 open System.Text.Json
@@ -188,6 +189,142 @@ let ``deserialize int-keyed map`` (m: Map<int, string>) =
 let ``serialize int-keyed map`` (m: Map<int, string>) =
     let expected = "[" + String.concat "," (Seq.map serKV2 m) + "]"
     let actual = JsonSerializer.Serialize(m, options)
+    Assert.Equal(expected, actual)
+
+let objectOptions =
+    JsonFSharpOptions().WithMapFormat(MapFormat.Object).ToJsonSerializerOptions()
+
+[<Property>]
+let ``deserialize string-keyed map with Object`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
+    let ser =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> String.concat ","
+        |> sprintf "{%s}"
+    let actual = JsonSerializer.Deserialize<Map<string, int>>(ser, objectOptions)
+    Assert.Equal<Map<string, int>>(m, actual)
+
+[<Property>]
+let ``serialize string-keyed map with Object`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
+    let expected =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> String.concat ","
+        |> sprintf "{%s}"
+    let actual = JsonSerializer.Serialize(m, objectOptions)
+    Assert.Equal(expected, actual)
+
+[<Property>]
+let ``deserialize newtype-string-keyed map with Object`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
+    let ser =
+        m
+        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> String.concat ","
+        |> sprintf "{%s}"
+    let actual = JsonSerializer.Deserialize<Map<UserId, int>>(ser, objectOptions)
+    Assert.Equal<Map<UserId, int>>(m, actual)
+
+[<Property>]
+let ``serialize newtype-string-keyed map with Object`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
+    let expected =
+        m
+        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> String.concat ","
+        |> sprintf "{%s}"
+    let actual = JsonSerializer.Serialize(m, objectOptions)
+    Assert.Equal(expected, actual)
+
+[<Property>]
+let ``deserialize Guid-keyed map with Object`` (m: Map<Guid, int>) =
+    let ser =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"\"{k}\":{v}")
+        |> String.concat ","
+        |> sprintf "{%s}"
+    let actual = JsonSerializer.Deserialize<Map<Guid, int>>(ser, objectOptions)
+    Assert.Equal<Map<Guid, int>>(m, actual)
+
+[<Property>]
+let ``serialize Guid-keyed map with Object`` (m: Map<Guid, int>) =
+    let expected =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"\"{k}\":{v}")
+        |> String.concat ","
+        |> sprintf "{%s}"
+    let actual = JsonSerializer.Serialize(m, objectOptions)
+    Assert.Equal(expected, actual)
+
+let arrayOfPairsOptions =
+    JsonFSharpOptions()
+        .WithMapFormat(MapFormat.ArrayOfPairs)
+        .ToJsonSerializerOptions()
+
+[<Property>]
+let ``deserialize string-keyed map with ArrayOfPairs`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
+    let ser =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> String.concat ","
+        |> sprintf "[%s]"
+    let actual = JsonSerializer.Deserialize<Map<string, int>>(ser, arrayOfPairsOptions)
+    Assert.Equal<Map<string, int>>(m, actual)
+
+[<Property>]
+let ``serialize string-keyed map with ArrayOfPairs`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
+    let expected =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> String.concat ","
+        |> sprintf "[%s]"
+    let actual = JsonSerializer.Serialize(m, arrayOfPairsOptions)
+    Assert.Equal(expected, actual)
+
+[<Property>]
+let ``deserialize newtype-string-keyed map with ArrayOfPairs`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
+    let ser =
+        m
+        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> String.concat ","
+        |> sprintf "[%s]"
+    let actual = JsonSerializer.Deserialize<Map<UserId, int>>(ser, arrayOfPairsOptions)
+    Assert.Equal<Map<UserId, int>>(m, actual)
+
+[<Property>]
+let ``serialize newtype-string-keyed map with ArrayOfPairs`` (m: Map<NonNull<string>, int>) =
+    let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
+    let expected =
+        m
+        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> String.concat ","
+        |> sprintf "[%s]"
+    let actual = JsonSerializer.Serialize(m, arrayOfPairsOptions)
+    Assert.Equal(expected, actual)
+
+[<Property>]
+let ``deserialize Guid-keyed map with ArrayOfPairs`` (m: Map<Guid, int>) =
+    let ser =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"[\"{k}\",{v}]")
+        |> String.concat ","
+        |> sprintf "[%s]"
+    let actual = JsonSerializer.Deserialize<Map<Guid, int>>(ser, arrayOfPairsOptions)
+    Assert.Equal<Map<Guid, int>>(m, actual)
+
+[<Property>]
+let ``serialize Guid-keyed map with ArrayOfPairs`` (m: Map<Guid, int>) =
+    let expected =
+        m
+        |> Seq.map (fun (KeyValue (k, v)) -> $"[\"{k}\",{v}]")
+        |> String.concat ","
+        |> sprintf "[%s]"
+    let actual = JsonSerializer.Serialize(m, arrayOfPairsOptions)
     Assert.Equal(expected, actual)
 
 [<Property>]
