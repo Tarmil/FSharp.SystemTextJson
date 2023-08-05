@@ -108,7 +108,7 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj vo
             |> ValueOption.map (fun x -> FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[0], [| x |], true))
         | false, _, _ -> ValueNone
 
-let rec isNullableFieldType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
+let isNullableFieldType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
     tryGetNullValue fsOptions ty |> ValueOption.isSome
 
 let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
@@ -136,6 +136,14 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
         match overrides.TryGetValue(ty) with
         | true, options -> options |> inheritUnionEncoding
         | false, _ -> applyAttributeOverride ()
+
+let isWrappedString (ty: Type) =
+    TypeCache.isUnion ty
+    && let cases = FSharpType.GetUnionCases(ty, true) in
+
+       cases.Length = 1
+       && let fields = cases[ 0 ].GetFields() in
+          fields.Length = 1 && fields[0].PropertyType = typeof<string>
 
 type FieldHelper
     (
@@ -240,7 +248,22 @@ let getJsonFieldNames (getAttributes: Type -> obj[]) =
 
 let getConverterForDictionaryKey<'T> (options: JsonSerializerOptions) =
     if typeof<'T> = typeof<string> then
-        FixedStringConverterForDictionaryKey() :> JsonConverter :?> JsonConverter<'T>
+        // Pre-8.0, the built-in StringConverter doesn't support {Read|Write}AsPropertyName() correctly.
+        // See https://github.com/dotnet/runtime/issues/77326
+        { new JsonConverter<string>() with
+            override this.Read(reader, _typeToConvert, _options) =
+                reader.GetString()
+
+            override this.Write(writer, value, _options) =
+                writer.WriteStringValue(value)
+
+            override this.ReadAsPropertyName(reader, _typeToConvert, _options) =
+                reader.GetString()
+
+            override this.WriteAsPropertyName(writer, value, options) =
+                writer.WritePropertyName(convertName options.DictionaryKeyPolicy value) }
+        :> JsonConverter
+        :?> JsonConverter<'T>
     else
         match options.GetConverter(typeof<'T>) with
         | :? JsonConverter<'T> as c -> c

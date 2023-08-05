@@ -3,7 +3,6 @@ namespace System.Text.Json.Serialization
 open System
 open System.Text.Json
 open System.Text.Json.Serialization.Helpers
-open FSharp.Reflection
 
 type JsonListConverter<'T> internal (fsOptions) =
     inherit JsonConverter<list<'T>>()
@@ -169,14 +168,6 @@ type JsonMapArrayOfPairsConverter<'K, 'V when 'K: comparison>() =
 
 type JsonMapConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
-
-    static let isWrappedString (ty: Type) =
-        TypeCache.isUnion ty
-        && let cases = FSharpType.GetUnionCases(ty, true) in
-
-           cases.Length = 1
-           && let fields = cases[ 0 ].GetFields() in
-              fields.Length = 1 && fields[0].PropertyType = typeof<string>
 
     static let jsonMapObjectConverter (genArgs: Type array) (options: JsonSerializerOptions) =
         typedefof<JsonMapObjectConverter<_, _>>
