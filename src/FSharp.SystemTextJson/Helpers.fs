@@ -237,3 +237,11 @@ let getJsonFieldNames (getAttributes: Type -> obj[]) =
         | _ -> None
     )
     |> readOnlyDict
+
+let getConverterForDictionaryKey<'T> (options: JsonSerializerOptions) =
+    if typeof<'T> = typeof<string> then
+        FixedStringConverterForDictionaryKey() :> JsonConverter :?> JsonConverter<'T>
+    else
+        match options.GetConverter(typeof<'T>) with
+        | :? JsonConverter<'T> as c -> c
+        | _ -> null

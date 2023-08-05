@@ -707,10 +707,7 @@ type JsonUnwrappedUnionConverter<'T, 'FieldT>(case: UnionCaseInfo, options: Json
 
     let ctor = FSharpValue.PreComputeUnionConstructor(case, true)
     let getter = FSharpValue.PreComputeUnionReader(case, true)
-    let innerConverter =
-        match options.GetConverter(typeof<'FieldT>) with
-        | :? JsonConverter<'FieldT> as c -> c
-        | _ -> null
+    let innerConverter = getConverterForDictionaryKey<'FieldT> options
 
     override _.Read(reader, _typeToConvert, options) =
         ctor [| box (JsonSerializer.Deserialize<'FieldT>(&reader, options)) |] :?> 'T

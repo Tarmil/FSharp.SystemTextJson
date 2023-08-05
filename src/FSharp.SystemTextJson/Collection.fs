@@ -103,9 +103,9 @@ type JsonMapObjectConverter<'K, 'V when 'K: comparison>(options: JsonSerializerO
     let ty = typeof<Map<'K, 'V>>
     let kty = typeof<'K>
     let keyConverter =
-        match options.GetConverter(kty) with
-        | :? JsonConverter<'K> as c -> c
-        | _ -> failf "Cannot serialize type %s as a map key with MapFormat.Object" kty.FullName
+        match getConverterForDictionaryKey<'K> options with
+        | null -> failf "Cannot serialize type %s as a map key with MapFormat.Object" kty.FullName
+        | c -> c
 
     let rec read (acc: Map<'K, 'V>) (reader: byref<Utf8JsonReader>) (options: JsonSerializerOptions) =
         if not (reader.Read()) then
@@ -178,7 +178,7 @@ type JsonMapConverter(fsOptions: JsonFSharpOptions) =
            && let fields = cases[ 0 ].GetFields() in
               fields.Length = 1 && fields[0].PropertyType = typeof<string>
 
-    static let jsonMapObjectConverter genArgs (options: JsonSerializerOptions) =
+    static let jsonMapObjectConverter (genArgs: Type array) (options: JsonSerializerOptions) =
         typedefof<JsonMapObjectConverter<_, _>>
             .MakeGenericType(genArgs)
             .GetConstructor([| typeof<JsonSerializerOptions> |])

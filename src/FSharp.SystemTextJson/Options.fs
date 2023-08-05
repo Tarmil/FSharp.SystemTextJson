@@ -131,6 +131,7 @@ type SkippableOptionFields =
 type MapFormat =
     /// Always serialize Maps as JSON objects.
     /// Only supports the same key types as the built-in serializer for Dictionary.
+    /// Requires System.Text.Json 8.0 or newer.
     | Object = 0
     /// Always serialize Maps as JSON arrays whose items are [key, value] JSON arrays.
     /// Supports all key types.
