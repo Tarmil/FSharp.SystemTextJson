@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.2
+
+* [#154](https://github.com/Tarmil/FSharp.SystemTextJson/issues/154): Add `SkippableOptionFields` enum to further customize the skipping of fields of type `option` and `voption` with `WithSkippableOptionFields`.
+    * `SkippableOptionFields.FromJsonSerializerOptions` is the default and equivalent to `WithSkippableOptionFields(false)`: fields of type `option` and `voption` are skipped if used with `JsonIgnoreCondition.WhenWritingNull`.
+    * `SkippableOptionFields.Always` is equivalent to `WithSkippableOptionFields(true)`: fields of type `option` and `voption` are always skipped.
+    * `SkippableOptionFields.Never`: fields of type `option` and `voption` are never skipped.
+
+* [#159](https://github.com/Tarmil/FSharp.SystemTextJson/issues/158): Throw an exception when trying to deserialize `null` into a record or union in any context, rather than only when they are in fields of records and unions.
+
+* [#160](https://github.com/Tarmil/FSharp.SystemTextJson/issues/160): Fix `WithSkippableOptionFields(false)` not working for `voption`.
+
+* [#161](https://github.com/Tarmil/FSharp.SystemTextJson/issues/161): Allow using single-case unions as keys in all dictionary types.
+
+    NOTE: This requires System.Text.Json 8.0.
+
+* [#162](https://github.com/Tarmil/FSharp.SystemTextJson/issues/162): Add option `.WithMapFormat(MapFormat)` to customize the format of F# maps.
+    * `MapFormat.Object` always serializes maps as objects. The key type must be supported as key for dictionaries. NOTE: This requires System.Text.Json 8.0.
+    * `MapFormat.ArrayOfPairs` always serializes maps as JSON arrays whose items are `[key,value]` pairs.
+    * `MapFormat.ObjectOrArrayOfPairs` is the default: maps whose keys are string or single-case unions wrapping string are serialized as JSON objects, and other maps are serialized as JSON arrays whose items are `[key,value]` pairs.
+
+* [#163](https://github.com/Tarmil/FSharp.SystemTextJson/issues/163): Add `StructuralComparison` to the type `Skippable<_>`.
+
+* [#164](https://github.com/Tarmil/FSharp.SystemTextJson/issues/164): When deserializing a record with `JsonIgnoreCondition.WhenWritingNull`, when a non-nullable field is missing, throw a proper `JsonException` rather than a `NullReferenceException`.
+
 ## 1.1
 
 * [#141](https://github.com/Tarmil/FSharp.SystemTextJson/issues/141): Add fluent options builder. `JsonFSharpOptions` has the following new methods:
