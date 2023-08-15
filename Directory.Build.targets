@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <_DotnetToolManifestFile>$(MSBuildThisFileDirectory).config\dotnet-tools.json</_DotnetToolManifestFile>
+    <_DotnetToolRestoreOutputFile>$(MSBuildThisFileDirectory)build\obj\dotnet-tool-restore-$(NETCoreSdkVersion)</_DotnetToolRestoreOutputFile>
+  </PropertyGroup>
+
+  <!-- Make sure that dotnet tools (including paket) are restored before restoring any project -->
+  <Target Name="ToolRestore" BeforeTargets="Restore;CollectPackageReferences" Inputs="$(_DotnetToolManifestFile)" Outputs="$(_DotnetToolRestoreOutputFile)">
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildThisFileDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" />
+    <Touch Files="$(_DotnetToolRestoreOutputFile)" AlwaysCreate="True" ForceTouch="True" />
+  </Target>
+
+</Project>
