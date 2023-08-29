@@ -120,4 +120,4 @@ let ``regression #172`` () =
     let options = JsonSerializerOptions()
     options.Converters.Add(JsonFSharpOptions.Default() |> JsonFSharpConverter)
     // Should not throw
-    JsonSerializer.Serialize(x, options) |> ignore<string>
+    Assert.Equal("{\"X\":null}", JsonSerializer.Serialize(x, options))
