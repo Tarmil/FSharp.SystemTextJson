@@ -119,5 +119,4 @@ let ``regression #172`` () =
     let x = { X = Unchecked.defaultof<_> }
     let options = JsonSerializerOptions()
     options.Converters.Add(JsonFSharpOptions.Default() |> JsonFSharpConverter)
-    // Should not throw
     Assert.Equal("{\"X\":null}", JsonSerializer.Serialize(x, options))
