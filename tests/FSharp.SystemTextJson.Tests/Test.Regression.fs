@@ -111,3 +111,16 @@ let ``regression #154`` () =
     |> ignore
     Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<RV>("{}", o) |> ignore)
     |> ignore
+
+type X = { X: X }
+type UY = UY of int * int
+type Y = { Y: UY }
+
+[<Fact>]
+let ``regression #172`` () =
+    let x = { X = Unchecked.defaultof<_> }
+    let y = { Y = Unchecked.defaultof<_> }
+    let options = JsonSerializerOptions()
+    options.Converters.Add(JsonFSharpConverter())
+    Assert.Equal("{\"X\":null}", JsonSerializer.Serialize(x, options))
+    Assert.Equal("{\"Y\":null}", JsonSerializer.Serialize(y, options))
