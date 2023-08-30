@@ -205,8 +205,11 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
         ctor fields :?> 'T
 
     override this.Write(writer, value, options) =
-        writer.WriteStartObject()
-        this.WriteRestOfObject(writer, value, options)
+        if isNull (box value) then
+            writer.WriteNullValue()
+        else
+            writer.WriteStartObject()
+            this.WriteRestOfObject(writer, value, options)
 
     override this.HandleNull = true
 
