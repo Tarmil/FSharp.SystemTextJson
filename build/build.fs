@@ -47,6 +47,20 @@ module Paths =
         </> "publish"
         </> "FSharp.SystemTextJson.TrimTest.dll"
 
+module Target =
+
+    let create name action =
+        Target.create name
+        <| fun o ->
+            if BuildServer.isGitHubActionsBuild then
+                try
+                    printfn $"::group::{name}"
+                    action o
+                finally
+                    printfn "::endgroup::"
+            else
+                action o
+
 Target.create "Clean" (fun _ -> !! "**/bin" ++ "**/obj" |> Shell.cleanDirs)
 
 Target.create "Build" (fun _ -> DotNet.build id Paths.sln)
@@ -103,4 +117,6 @@ Target.create "All" ignore
 "Pack" <== [ "Build" ]
 "Build" <== [ if Cli.clean then "Clean" ]
 
+
+if BuildServer.isGitHubActionsBuild then printfn "::endgroup::"
 Target.runOrDefaultWithArguments "All"
