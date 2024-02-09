@@ -8,34 +8,33 @@ nuget Nerdbank.GitVersioning copy_local:true
 nuget System.Text.Json >= 6.0 lowest_matching: true
 
 group test
-framework net7.0
+framework net8.0
 storage none
 source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core >= 5.0
 nuget FsCheck.XUnit
-nuget Microsoft.NET.Test.Sdk ~> 16.3.0
+nuget Microsoft.NET.Test.Sdk
 nuget System.Text.Json >= 8.0 prerelease
-nuget xunit ~> 2.4.0
-nuget xunit.runner.visualstudio ~> 2.4.0
+nuget xunit
+nuget xunit.runner.visualstudio
 nuget BenchmarkDotNet
 nuget Newtonsoft.Json
 
 group trimtest
-framework net7.0
+framework net8.0
 storage none
 source https://api.nuget.org/v3/index.json
 
-nuget FSharp.Core >= 5.0
-nuget System.Text.Json >= 6.0
+nuget FSharp.Core
+nuget System.Text.Json
 nuget FsCheck.XUnit
-nuget xunit ~> 2.4.0
-nuget xunit.console ~> 2.4.0
-nuget xunit.extensibility.execution ~> 2.4.0 copy_content_to_output_dir: always, copy_local: true
-nuget Microsoft.NET.Test.Sdk ~> 16.3.0
+nuget xunit
+nuget xunit.console
+nuget Microsoft.NET.Test.Sdk
 
 group fake
-framework net7.0
+framework net8.0
 storage none
 source https://api.nuget.org/v3/index.json
 

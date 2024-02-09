@@ -12,3 +12,4 @@ paket-files/
 .vscode
 *.user
 .idea/
+artifacts/
