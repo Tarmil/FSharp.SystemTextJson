@@ -42,7 +42,7 @@ module Paths =
         trimTest
         </> "bin"
         </> "Release"
-        </> "net7.0"
+        </> "net8.0"
         </> rti
         </> "publish"
         </> "FSharp.SystemTextJson.TrimTest.dll"
