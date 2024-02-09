@@ -32,19 +32,17 @@ module Paths =
     let root = Path.getDirectory __SOURCE_DIRECTORY__
     let sln = root </> "FSharp.SystemTextJson.sln"
     let src = root </> "src" </> "FSharp.SystemTextJson"
-    let out = root </> "bin"
-    let nugetOut = out </> "nuget"
+    let artifacts = root </> "artifacts"
+    let nugetOut = artifacts </> "nuget"
     let test = root </> "tests" </> "FSharp.SystemTextJson.Tests"
     let benchmarks = root </> "benchmarks" </> "FSharp.SystemTextJson.Benchmarks"
     let trimTest = root </> "tests" </> "FSharp.SystemTextJson.TrimTest"
 
     let trimTestOut rti =
-        trimTest
-        </> "bin"
-        </> "Release"
-        </> "net8.0"
-        </> rti
+        artifacts
         </> "publish"
+        </> "FSharp.SystemTextJson.TrimTest"
+        </> $"release_%s{rti}"
         </> "FSharp.SystemTextJson.TrimTest.dll"
 
 module Target =
@@ -61,7 +59,7 @@ module Target =
             else
                 action o
 
-Target.create "Clean" (fun _ -> !! "**/bin" ++ "**/obj" |> Shell.cleanDirs)
+Target.create "Clean" (fun _ -> !! "artifacts" |> Shell.cleanDirs)
 
 Target.create "Build" (fun _ -> DotNet.build id Paths.sln)
 
@@ -85,7 +83,7 @@ Target.create
                 { o with
                     Configuration = DotNet.BuildConfiguration.Release
                     Logger = Some "trx"
-                    ResultsDirectory = Some Paths.out }
+                    ResultsDirectory = Some Paths.artifacts }
             )
             Paths.test
     )

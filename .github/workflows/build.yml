@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: nuget
-          path: bin/nuget
+          path: artifacts/nuget
 
   prerelease:
     runs-on: ubuntu-latest
