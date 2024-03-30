@@ -1248,6 +1248,39 @@ module NonStruct =
                 .ToJsonSerializerOptions()
         Assert.Equal("""{"tag2":"A","x":123,"y":"abc"}""", JsonSerializer.Serialize(Override.A(123, "abc"), o))
 
+    [<Fact>]
+    let ``should apply explicit overrides on generic type`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithOverrides(fun o -> dict [ typedefof<Result<_, _>>, o.WithUnionTagName("Result") ])
+                .ToJsonSerializerOptions()
+        Assert.Equal("""{"Result":"Ok","ResultValue":"abc"}""", JsonSerializer.Serialize(Ok "abc", o))
+
+    [<Fact>]
+    let ``should apply explicit override on specific type over generic type`` () =
+        let o =
+            JsonFSharpOptions
+                .Default()
+                .WithUnionInternalTag()
+                .WithUnionNamedFields()
+                .WithOverrides(fun o ->
+                    dict
+                        [ typeof<Result<string, string>>, o.WithUnionTagName("SpecificResult")
+                          typedefof<Result<_, _>>, o.WithUnionTagName("GenericResult") ]
+                )
+                .ToJsonSerializerOptions()
+        Assert.Equal(
+            """{"GenericResult":"Ok","ResultValue":42}""",
+            JsonSerializer.Serialize((Ok 42: Result<int, string>), o)
+        )
+        Assert.Equal(
+            """{"SpecificResult":"Ok","ResultValue":"abc"}""",
+            JsonSerializer.Serialize((Ok "abc": Result<string, string>), o)
+        )
+
     type NamedAfterTypesA = NTA of int
 
     type NamedAfterTypesB = NTB of int * string
