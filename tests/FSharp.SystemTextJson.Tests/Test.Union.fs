@@ -1363,6 +1363,25 @@ module NonStruct =
             )
         )
 
+    [<Fact>]
+    let ``deserialize skippable option from either null or missing`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields(SkippableOptionFields.Always, deserializeNullAsNone = true)
+                .ToJsonSerializerOptions()
+
+        let actual = JsonSerializer.Deserialize<{| x: int option |}>("""{}""", options)
+        Assert.Equal({| x = None |}, actual)
+
+        let actual =
+            JsonSerializer.Deserialize<{| x: int option |}>("""{"x":null}""", options)
+        Assert.Equal({| x = None |}, actual)
+
+        let actual =
+            JsonSerializer.Deserialize<{| x: int option |}>("""{"x":42}""", options)
+        Assert.Equal({| x = Some 42 |}, actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -2692,3 +2711,22 @@ module Struct =
                 namedAfterTypesOptionsWithNamingPolicy
             )
         )
+
+    [<Fact>]
+    let ``deserialize skippable option from either null or missing`` () =
+        let options =
+            JsonFSharpOptions
+                .Default()
+                .WithSkippableOptionFields(SkippableOptionFields.Always, deserializeNullAsNone = true)
+                .ToJsonSerializerOptions()
+
+        let actual = JsonSerializer.Deserialize<{| x: int voption |}>("""{}""", options)
+        Assert.Equal({| x = ValueNone |}, actual)
+
+        let actual =
+            JsonSerializer.Deserialize<{| x: int voption |}>("""{"x":null}""", options)
+        Assert.Equal({| x = ValueNone |}, actual)
+
+        let actual =
+            JsonSerializer.Deserialize<{| x: int voption |}>("""{"x":42}""", options)
+        Assert.Equal({| x = ValueSome 42 |}, actual)
