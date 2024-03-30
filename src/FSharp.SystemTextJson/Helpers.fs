@@ -133,9 +133,19 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
     if isNull overrides then
         applyAttributeOverride ()
     else
-        match overrides.TryGetValue(ty) with
-        | true, options -> options |> inheritUnionEncoding
-        | false, _ -> applyAttributeOverride ()
+        let overrideOpt =
+            let mutable options = Unchecked.defaultof<_>
+            if
+                overrides.TryGetValue(ty, &options)
+                || (ty.IsGenericType
+                    && overrides.TryGetValue(ty.GetGenericTypeDefinition(), &options))
+            then
+                ValueSome options
+            else
+                ValueNone
+        match overrideOpt with
+        | ValueSome options -> options |> inheritUnionEncoding
+        | ValueNone -> applyAttributeOverride ()
 
 let isWrappedString (ty: Type) =
     TypeCache.isUnion ty
