@@ -3,6 +3,7 @@
 #nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
 
 open System
+open System.Collections.Generic
 open System.Reflection
 open System.Text.Json
 open System.Text.Json.Serialization
@@ -111,6 +112,17 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj vo
 let isNullableFieldType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
     tryGetNullValue fsOptions ty |> ValueOption.isSome
 
+let private tryGetTypeOrGeneric (ty: Type) (types: IDictionary<Type, _>) =
+    let mutable res = Unchecked.defaultof<_>
+    if isNull types then
+        ValueNone
+    elif types.TryGetValue(ty, &res) then
+        ValueSome res
+    elif ty.IsGenericType && types.TryGetValue(ty.GetGenericTypeDefinition(), &res) then
+        ValueSome res
+    else
+        ValueNone
+
 let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
     let inheritUnionEncoding (options: JsonFSharpOptions) =
         if options.UnionEncoding.HasFlag(JsonUnionEncoding.Inherit) then
@@ -118,24 +130,18 @@ let overrideOptions (ty: Type) (defaultOptions: JsonFSharpOptions) =
         else
             options
 
-    let applyAttributeOverride () =
-        if defaultOptions.AllowOverride then
-            match
-                ty.GetCustomAttributes(typeof<IJsonFSharpConverterAttribute>, true)
-                |> Array.tryHead
-                with
-            | Some (:? IJsonFSharpConverterAttribute as attr) -> attr.Options |> inheritUnionEncoding
-            | _ -> defaultOptions
+    let overrides = defaultOptions.Overrides defaultOptions
+
+    match tryGetTypeOrGeneric ty overrides with
+    | ValueSome options -> inheritUnionEncoding options
+    | ValueNone when defaultOptions.AllowOverride ->
+        let attrs = ty.GetCustomAttributes(typeof<IJsonFSharpConverterAttribute>, true)
+        if attrs.Length > 0 then
+            let attr = attrs[0] :?> IJsonFSharpConverterAttribute
+            inheritUnionEncoding attr.Options
         else
             defaultOptions
-
-    let overrides = defaultOptions.Overrides defaultOptions
-    if isNull overrides then
-        applyAttributeOverride ()
-    else
-        match overrides.TryGetValue(ty) with
-        | true, options -> options |> inheritUnionEncoding
-        | false, _ -> applyAttributeOverride ()
+    | ValueNone -> defaultOptions
 
 let isWrappedString (ty: Type) =
     TypeCache.isUnion ty
