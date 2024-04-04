@@ -181,6 +181,7 @@ type internal JsonFSharpOptionsRecord =
       AllowNullFields: bool
       IncludeRecordProperties: bool
       SkippableOptionFields: SkippableOptionFields
+      DeserializeNullAsNone: bool
       MapFormat: MapFormat
       Types: JsonFSharpTypes
       AllowOverride: bool
@@ -215,6 +216,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               AllowNullFields = allowNullFields
               IncludeRecordProperties = includeRecordProperties
               SkippableOptionFields = SkippableOptionFields.FromJsonSerializerOptions
+              DeserializeNullAsNone = false
               MapFormat = MapFormat.ObjectOrArrayOfPairs
               Types = types
               AllowOverride = allowOverride
@@ -288,10 +290,15 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
     member _.WithIncludeRecordProperties([<Optional; DefaultParameterValue true>] includeRecordProperties) =
         JsonFSharpOptions({ options with IncludeRecordProperties = includeRecordProperties })
 
-    member _.WithSkippableOptionFields(skippableOptionFields) =
+    member _.WithSkippableOptionFields
+        (
+            skippableOptionFields,
+            [<Optional; DefaultParameterValue false>] deserializeNullAsNone: bool
+        ) =
         JsonFSharpOptions(
             { options with
                 SkippableOptionFields = skippableOptionFields
+                DeserializeNullAsNone = deserializeNullAsNone
                 UnionEncoding =
                     if skippableOptionFields = SkippableOptionFields.Always then
                         options.UnionEncoding ||| JsonUnionEncoding.UnwrapOption

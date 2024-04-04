@@ -155,6 +155,8 @@ type FieldHelper
 
     let nullValue = tryGetNullValue fsOptions ty
     let isSkippableWrapperType = isSkippableType fsOptions ty
+    let deserializeNullAsSome =
+        isSkippableWrapperType && not fsOptions.DeserializeNullAsNone
     let ignoreNullValues =
         options.IgnoreNullValues
         || options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -197,6 +199,7 @@ type FieldHelper
     member _.NullValue = nullValue
     member _.DefaultValue = defaultValue
     member _.IsSkippableWrapperType = isSkippableWrapperType
+    member _.DeserializeNullAsSome = deserializeNullAsSome
     member _.CanBeSkipped = canBeSkipped
     member _.IgnoreOnWrite = ignoreOnWrite
     member _.DeserializeType = deserializeType
@@ -208,7 +211,7 @@ type FieldHelper
     member this.IsNullable = this.NullValue.IsNone
 
     member this.Deserialize(reader: byref<Utf8JsonReader>) =
-        if reader.TokenType = JsonTokenType.Null && not this.IsSkippableWrapperType then
+        if reader.TokenType = JsonTokenType.Null && not this.DeserializeNullAsSome then
             match this.NullValue with
             | ValueSome v -> v
             | ValueNone -> raise (JsonException this.NullDeserializeError)
