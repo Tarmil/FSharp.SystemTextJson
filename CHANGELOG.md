@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3
+
+* [#151](https://github.com/Tarmil/FSharp.SystemTextJson/issues/151): Add optional argument `deserializeNullAsNone: bool` to option `.WithSkippableOptionFields(SkippableOptionFields)`. When true, skippable option fields can be deserialized as `None` not only from a missing field, but also from `null`.
+
 ## 1.2
 
 * [#154](https://github.com/Tarmil/FSharp.SystemTextJson/issues/154): Add `SkippableOptionFields` enum to further customize the skipping of fields of type `option` and `voption` with `WithSkippableOptionFields`.
