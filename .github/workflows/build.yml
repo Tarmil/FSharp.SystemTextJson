@@ -45,6 +45,7 @@ jobs:
         with:
           name: nuget
           path: artifacts/nuget
+          if-no-files-found: error
 
   prerelease:
     runs-on: ubuntu-latest
@@ -63,7 +64,7 @@ jobs:
           name: nuget
 
       - name: Push to GitHub feed
-        run: dotnet nuget push nuget/*.nupkg
+        run: dotnet nuget push *.nupkg
                --api-key "${{secrets.GITHUB_TOKEN}}"
                --source "https://nuget.pkg.github.com/${{github.repository_owner}}/"
                --skip-duplicate
@@ -79,7 +80,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '8.0.101'
+          dotnet-version: '9.0.101'
           include-prerelease: true
 
       - name: Prepare
