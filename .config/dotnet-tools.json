@@ -3,22 +3,25 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "8.0.3",
+      "version": "9.0.2",
       "commands": [
         "paket"
-      ]
+      ],
+      "rollForward": false
     },
     "nbgv": {
       "version": "3.3.37",
       "commands": [
         "nbgv"
-      ]
+      ],
+      "rollForward": false
     },
     "fantomas": {
       "version": "5.0.0-alpha-009",
       "commands": [
         "fantomas"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }
