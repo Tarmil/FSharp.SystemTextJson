@@ -124,3 +124,21 @@ let ``regression #172`` () =
     options.Converters.Add(JsonFSharpConverter())
     Assert.Equal("{\"X\":null}", JsonSerializer.Serialize(x, options))
     Assert.Equal("{\"Y\":null}", JsonSerializer.Serialize(y, options))
+
+type Rec = { X: int }
+
+[<JsonFSharpConverter(UnionEncoding = (JsonUnionEncoding.Default
+                                       ||| JsonUnionEncoding.InternalTag
+                                       ||| JsonUnionEncoding.NamedFields))>]
+type Union =
+    | A of record: Rec
+    | B
+
+[<Fact>]
+let ``regression #187`` () =
+    let options =
+        JsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true)
+    let record = { X = 42 }
+    let union = A record
+    Assert.Equal("{\"x\":42}", JsonSerializer.Serialize(record, options))
+    Assert.Equal("{\"Case\":\"A\",\"record\":{\"x\":42}}", JsonSerializer.Serialize(union, options))
