@@ -1,5 +1,6 @@
 module Tests.Union
 
+open System.Collections.Generic
 open Xunit
 open System.Text.Json.Serialization
 open System.Text.Json
@@ -1415,6 +1416,74 @@ module NonStruct =
             JsonSerializer.Deserialize<{| x: int option |}>("""{"x":42}""", options)
         Assert.Equal({| x = Some 42 |}, actual)
 
+    type EnumLikeUnion =
+        | EnumA
+        | EnumB
+
+    let enumLikeOptions () =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapFieldlessTags()
+            .WithMapFormat(MapFormat.Object)
+
+    [<Fact>]
+    let ``serialize dictionary with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Serialize(dict [ EnumA, 1 ], options)
+        Assert.Equal("""{"EnumA":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize dictionary with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"EnumA":1}""", options)
+        Assert.Equal<IDictionary<_, _>>(dict [ EnumA, 1 ], actual)
+
+    [<Fact>]
+    let ``serialize map with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Serialize(Map [ EnumA, 1 ], options)
+        Assert.Equal("""{"EnumA":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize map with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"EnumA":1}""", options)
+        Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
+
+    [<Fact>]
+    let ``serialize map with enum-like union as key with PropertyNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower)
+        let actual = JsonSerializer.Serialize(Map [ EnumA, 1 ], options)
+        Assert.Equal("""{"enum-a":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize map with enum-like union as key with PropertyNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower)
+        let actual = JsonSerializer.Deserialize("""{"enum-a":1}""", options)
+        Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
+
+    [<Fact>]
+    let ``serialize map with enum-like union as key with UnionTagNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .WithUnionTagNamingPolicy(JsonNamingPolicy.KebabCaseLower)
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Serialize(Map [ EnumA, 1 ], options)
+        Assert.Equal("""{"enum-a":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize map with enum-like union as key with UnionTagNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .WithUnionTagNamingPolicy(JsonNamingPolicy.KebabCaseLower)
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"enum-a":1}""", options)
+        Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -2763,3 +2832,72 @@ module Struct =
         let actual =
             JsonSerializer.Deserialize<{| x: int voption |}>("""{"x":42}""", options)
         Assert.Equal({| x = ValueSome 42 |}, actual)
+
+    [<Struct>]
+    type EnumLikeUnion =
+        | EnumA
+        | EnumB
+
+    let enumLikeOptions () =
+        JsonFSharpOptions
+            .Default()
+            .WithUnionUnwrapFieldlessTags()
+            .WithMapFormat(MapFormat.Object)
+
+    [<Fact>]
+    let ``serialize dictionary with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Serialize(dict [ EnumA, 1 ], options)
+        Assert.Equal("""{"EnumA":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize dictionary with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"EnumA":1}""", options)
+        Assert.Equal<IDictionary<_, _>>(dict [ EnumA, 1 ], actual)
+
+    [<Fact>]
+    let ``serialize map with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Serialize(Map [ EnumA, 1 ], options)
+        Assert.Equal("""{"EnumA":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize map with enum-like union as key`` () =
+        let options = enumLikeOptions().ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"EnumA":1}""", options)
+        Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
+
+    [<Fact>]
+    let ``serialize map with enum-like union as key with PropertyNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower)
+        let actual = JsonSerializer.Serialize(Map [ EnumA, 1 ], options)
+        Assert.Equal("""{"enum-a":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize map with enum-like union as key with PropertyNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .ToJsonSerializerOptions(PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower)
+        let actual = JsonSerializer.Deserialize("""{"enum-a":1}""", options)
+        Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
+
+    [<Fact>]
+    let ``serialize map with enum-like union as key with UnionTagNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .WithUnionTagNamingPolicy(JsonNamingPolicy.KebabCaseLower)
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Serialize(Map [ EnumA, 1 ], options)
+        Assert.Equal("""{"enum-a":1}""", actual)
+
+    [<Fact>]
+    let ``deserialize map with enum-like union as key with UnionTagNamingPolicy`` () =
+        let options =
+            enumLikeOptions()
+                .WithUnionTagNamingPolicy(JsonNamingPolicy.KebabCaseLower)
+                .ToJsonSerializerOptions()
+        let actual = JsonSerializer.Deserialize("""{"enum-a":1}""", options)
+        Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
