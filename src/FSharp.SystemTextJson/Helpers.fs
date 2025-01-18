@@ -92,7 +92,7 @@ let isClass ty =
 let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj voption =
     if isNullableUnion ty then
         ValueSome null
-    elif ty = typeof<unit> then
+    elif Type.(=)(ty, typeof<unit>) then
         ValueSome()
     elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
          && isValueOptionType ty then
@@ -149,7 +149,7 @@ let isWrappedString (ty: Type) =
 
        cases.Length = 1
        && let fields = cases[ 0 ].GetFields() in
-          fields.Length = 1 && fields[0].PropertyType = typeof<string>
+          fields.Length = 1 && Type.(=)(fields[0].PropertyType, typeof<string>)
 
 type FieldHelper
     (
@@ -256,7 +256,7 @@ let getJsonFieldNames (getAttributes: Type -> obj[]) =
     |> readOnlyDict
 
 let getConverterForDictionaryKey<'T> (options: JsonSerializerOptions) =
-    if typeof<'T> = typeof<string> then
+    if Type.(=)(typeof<'T>, typeof<string>) then
         // Pre-8.0, the built-in StringConverter doesn't support {Read|Write}AsPropertyName() correctly.
         // See https://github.com/dotnet/runtime/issues/77326
         { new JsonConverter<string>() with

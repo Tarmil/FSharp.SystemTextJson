@@ -197,7 +197,7 @@ type JsonMapConverter(fsOptions: JsonFSharpOptions) =
         | MapFormat.Object -> jsonMapObjectConverter genArgs options
         | MapFormat.ArrayOfPairs -> jsonMapArrayOfPairsConverter genArgs
         | MapFormat.ObjectOrArrayOfPairs ->
-            if genArgs[0] = typeof<string> || isWrappedString genArgs[0] then
+            if Type.(=)(genArgs[0], typeof<string>) || isWrappedString genArgs[0] then
                 jsonMapObjectConverter genArgs options
             else
                 jsonMapArrayOfPairsConverter genArgs
