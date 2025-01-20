@@ -108,7 +108,7 @@ type MyTestController() =
 
 To use FSharp.SystemTextJson in Giraffe (for example with the `json` function):
 
-* With Giraffe 5.x or newer, add the following to your `configureServices` function:
+* With Giraffe 7.x, `FSharp.SystemTextJson` is supported out of the box using the `FSharpFriendlySerializer`:
 
     ```fsharp
     open System.Text.Json
@@ -120,6 +120,23 @@ To use FSharp.SystemTextJson in Giraffe (for example with the `json` function):
 
         let jsonOptions =
             JsonFSharpOptions.Default()
+                // .Add customizations here...
+        services.AddSingleton<Json.ISerializer>(Json.FsharpFriendlySerializer(jsonOptions)) |> ignore
+    ```
+
+* With Giraffe 5.x or 6.x, add the following to your `configureServices` function:
+
+    ```fsharp
+    open System.Text.Json
+    open System.Text.Json.Serialization
+    open Giraffe
+
+    let configureServices (services: IServiceCollection) =
+        services.AddGiraffe() |> ignore
+
+        let jsonOptions =
+            JsonFSharpOptions.Default()
+                // .Add customizations here...
                 .ToJsonSerializerOptions()
         services.AddSingleton<Json.ISerializer>(SystemTextJson.Serializer(jsonOptions)) |> ignore
         // ...
