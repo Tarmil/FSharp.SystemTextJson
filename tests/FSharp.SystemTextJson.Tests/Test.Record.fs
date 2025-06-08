@@ -1,5 +1,7 @@
 module Tests.Record
 
+#nowarn 44 // ignore obsolete on IgnoreNullValues
+
 open Xunit
 open System.Text.Json.Serialization
 open System.Text.Json

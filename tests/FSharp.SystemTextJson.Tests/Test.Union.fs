@@ -1,5 +1,7 @@
 module Tests.Union
 
+#nowarn 44 // ignore obsolete on IgnoreNullValues
+
 open System.Collections.Generic
 open Xunit
 open System.Text.Json.Serialization
