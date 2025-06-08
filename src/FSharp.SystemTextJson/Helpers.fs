@@ -56,6 +56,11 @@ let isSkippableType (fsOptions: JsonFSharpOptionsRecord) (ty: Type) =
 let isValueOptionType (ty: Type) =
     ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<ValueOption<_>>
 
+let isEnumLikeUnion (ty: Type) =
+    FSharpType.IsUnion(ty, true)
+    && FSharpType.GetUnionCases(ty, true)
+       |> Array.forall (fun case -> case.GetFields().Length = 0)
+
 [<AutoOpen>]
 type Helper =
     static member tryGetUnionCases(ty: Type, cases: UnionCaseInfo[] outref) =
