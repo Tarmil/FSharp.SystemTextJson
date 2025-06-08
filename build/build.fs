@@ -59,7 +59,7 @@ module Target =
             else
                 action o
 
-Target.create "Clean" (fun _ -> !! "artifacts" |> Shell.cleanDirs)
+Target.create "Clean" (fun _ -> !!"artifacts" |> Shell.cleanDirs)
 
 Target.create "Build" (fun _ -> DotNet.build id Paths.sln)
 
@@ -113,8 +113,11 @@ Target.create "All" ignore
 "All" <== [ "Test"; "TestTrim"; "Pack" ]
 "Test" <== [ "Build" ]
 "Pack" <== [ "Build" ]
-"Build" <== [ if Cli.clean then "Clean" ]
+"Build"
+<== [ if Cli.clean then
+          "Clean" ]
 
 
-if BuildServer.isGitHubActionsBuild then printfn "::endgroup::"
+if BuildServer.isGitHubActionsBuild then
+    printfn "::endgroup::"
 Target.runOrDefaultWithArguments "All"

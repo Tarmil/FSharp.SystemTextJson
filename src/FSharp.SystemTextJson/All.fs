@@ -54,17 +54,20 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
 
     new() = JsonFSharpConverter(JsonFSharpOptions())
 
-    new([<Optional; DefaultParameterValue(Default.UnionEncoding)>] unionEncoding: JsonUnionEncoding,
-        [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
-        [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
-        [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionTagNamingPolicy: JsonNamingPolicy,
-        [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionFieldNamingPolicy: JsonNamingPolicy,
-        [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
-        [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
-        [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
-        [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes,
-        [<Optional; DefaultParameterValue(false)>] allowOverride: bool,
-        [<Optional>] overrides: IDictionary<Type, JsonFSharpOptions>) =
+    new
+        (
+            [<Optional; DefaultParameterValue(Default.UnionEncoding)>] unionEncoding: JsonUnionEncoding,
+            [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
+            [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
+            [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionTagNamingPolicy: JsonNamingPolicy,
+            [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionFieldNamingPolicy: JsonNamingPolicy,
+            [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
+            [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
+            [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
+            [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes,
+            [<Optional; DefaultParameterValue(false)>] allowOverride: bool,
+            [<Optional>] overrides: IDictionary<Type, JsonFSharpOptions>
+        ) =
         JsonFSharpConverter(
             JsonFSharpOptions(
                 unionEncoding = unionEncoding,
@@ -134,15 +137,21 @@ type JsonFSharpConverterAttribute(fsOptions: JsonFSharpOptions) =
 
     new() = JsonFSharpConverterAttribute(JsonFSharpOptions())
 
-    new([<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding: JsonUnionEncoding,
-        [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
-        [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
-        [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionTagNamingPolicy: JsonKnownNamingPolicy,
-        [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionFieldNamingPolicy: JsonKnownNamingPolicy,
-        [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
-        [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
-        [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
-        [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes) =
+    new
+        (
+            [<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding:
+                JsonUnionEncoding,
+            [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
+            [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
+            [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionTagNamingPolicy:
+                JsonKnownNamingPolicy,
+            [<Optional; DefaultParameterValue(JsonKnownNamingPolicy.Unspecified)>] unionFieldNamingPolicy:
+                JsonKnownNamingPolicy,
+            [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
+            [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
+            [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
+            [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes
+        ) =
         let fsOptions =
             JsonFSharpOptions(
                 unionEncoding = unionEncoding,

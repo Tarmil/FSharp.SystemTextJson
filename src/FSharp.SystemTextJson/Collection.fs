@@ -177,21 +177,15 @@ type JsonMapConverter(fsOptions: JsonFSharpOptions) =
         :?> JsonConverter
 
     static let jsonMapArrayOfPairsConverter genArgs =
-        typedefof<JsonMapArrayOfPairsConverter<_, _>>
-            .MakeGenericType(genArgs)
-            .GetConstructor([||])
-            .Invoke([||])
+        typedefof<JsonMapArrayOfPairsConverter<_, _>>.MakeGenericType(genArgs).GetConstructor([||]).Invoke([||])
         :?> JsonConverter
 
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isMap typeToConvert
 
     static member internal CreateConverter
-        (
-            typeToConvert: Type,
-            options: JsonSerializerOptions,
-            fsOptions: JsonFSharpOptions
-        ) =
+        (typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions)
+        =
         let genArgs = typeToConvert.GetGenericArguments()
         match fsOptions.MapFormat with
         | MapFormat.Object -> jsonMapObjectConverter genArgs options

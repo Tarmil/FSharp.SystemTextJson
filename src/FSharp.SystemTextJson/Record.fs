@@ -16,8 +16,8 @@ type private RecordField
         fieldOrderIndices: int[] voption,
         names: string[]
     ) =
-    inherit FieldHelper
-        (
+    inherit
+        FieldHelper(
             options,
             fsOptions,
             p.PropertyType,
@@ -190,8 +190,9 @@ type JsonRecordConverter<'T> internal (options: JsonSerializerOptions, fsOptions
             | JsonTokenType.PropertyName ->
                 skipRead <- false
                 match fieldIndex &reader with
-                | ValueSome (i, p) when not p.Ignore ->
-                    if p.MustBePresent then requiredFieldCount <- requiredFieldCount + 1
+                | ValueSome(i, p) when not p.Ignore ->
+                    if p.MustBePresent then
+                        requiredFieldCount <- requiredFieldCount + 1
                     reader.Read() |> ignore
                     fields[i] <- p.Deserialize(&reader)
                 | _ -> reader.Skip()
@@ -240,11 +241,8 @@ type JsonRecordConverter(fsOptions: JsonFSharpOptions) =
         TypeCache.isRecord typeToConvert
 
     static member internal CreateConverter
-        (
-            typeToConvert: Type,
-            options: JsonSerializerOptions,
-            fsOptions: JsonFSharpOptions
-        ) =
+        (typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions)
+        =
         let fsOptions = overrideOptions typeToConvert fsOptions
         typedefof<JsonRecordConverter<_>>
             .MakeGenericType([| typeToConvert |])

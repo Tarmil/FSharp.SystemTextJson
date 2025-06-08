@@ -63,11 +63,10 @@ type Records() =
     inherit ArrayTestBase<TestRecord>(recordInstance)
 
 type Classes() =
-    inherit ArrayTestBase<SimpleClass>(SimpleClass(
-        Name = "sample",
-        Thing = Some true,
-        Time = DateTimeOffset.UnixEpoch.AddDays(200.)
-    ))
+    inherit
+        ArrayTestBase<SimpleClass>(
+            SimpleClass(Name = "sample", Thing = Some true, Time = DateTimeOffset.UnixEpoch.AddDays(200.))
+        )
 
 
 type ReflectionComparison() =

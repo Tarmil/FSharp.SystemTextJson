@@ -189,23 +189,27 @@ type internal JsonFSharpOptionsRecord =
 
 and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
-    let removeBaseEncodings = enum<JsonUnionEncoding> ~~~ 0x00_00_00_FF
+    let removeBaseEncodings = enum<JsonUnionEncoding> ~~~0x00_00_00_FF
 
     static let emptyOverrides (_: JsonFSharpOptions) =
         null
 
     // Note: For binary compatibility, don't add options to this constructor.
     // New options will only be settable via fluent API.
-    new([<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding: JsonUnionEncoding,
-        [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
-        [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
-        [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionTagNamingPolicy: JsonNamingPolicy,
-        [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionFieldNamingPolicy: JsonNamingPolicy,
-        [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
-        [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
-        [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
-        [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes,
-        [<Optional; DefaultParameterValue(false)>] allowOverride: bool) =
+    new
+        (
+            [<Optional; DefaultParameterValue(Default.UnionEncoding ||| JsonUnionEncoding.Inherit)>] unionEncoding:
+                JsonUnionEncoding,
+            [<Optional; DefaultParameterValue(Default.UnionTagName)>] unionTagName: JsonUnionTagName,
+            [<Optional; DefaultParameterValue(Default.UnionFieldsName)>] unionFieldsName: JsonUnionFieldsName,
+            [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionTagNamingPolicy: JsonNamingPolicy,
+            [<Optional; DefaultParameterValue(Default.UnionTagNamingPolicy)>] unionFieldNamingPolicy: JsonNamingPolicy,
+            [<Optional; DefaultParameterValue(Default.UnionTagCaseInsensitive)>] unionTagCaseInsensitive: bool,
+            [<Optional; DefaultParameterValue(Default.AllowNullFields)>] allowNullFields: bool,
+            [<Optional; DefaultParameterValue(Default.IncludeRecordProperties)>] includeRecordProperties: bool,
+            [<Optional; DefaultParameterValue(Default.Types)>] types: JsonFSharpTypes,
+            [<Optional; DefaultParameterValue(false)>] allowOverride: bool
+        ) =
         JsonFSharpOptions(
             { UnionEncoding = unionEncoding
               UnionTagName = unionTagName
@@ -279,22 +283,29 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
         JsonFSharpOptions({ options with UnionTagNamingPolicy = unionTagNamingPolicy })
 
     member _.WithUnionFieldNamingPolicy(unionFieldNamingPolicy) =
-        JsonFSharpOptions({ options with UnionFieldNamingPolicy = unionFieldNamingPolicy })
+        JsonFSharpOptions(
+            { options with
+                UnionFieldNamingPolicy = unionFieldNamingPolicy }
+        )
 
     member _.WithUnionTagCaseInsensitive([<Optional; DefaultParameterValue true>] unionTagCaseInsensitive) =
-        JsonFSharpOptions({ options with UnionTagCaseInsensitive = unionTagCaseInsensitive })
+        JsonFSharpOptions(
+            { options with
+                UnionTagCaseInsensitive = unionTagCaseInsensitive }
+        )
 
     member _.WithAllowNullFields([<Optional; DefaultParameterValue true>] allowNullFields) =
         JsonFSharpOptions({ options with AllowNullFields = allowNullFields })
 
     member _.WithIncludeRecordProperties([<Optional; DefaultParameterValue true>] includeRecordProperties) =
-        JsonFSharpOptions({ options with IncludeRecordProperties = includeRecordProperties })
+        JsonFSharpOptions(
+            { options with
+                IncludeRecordProperties = includeRecordProperties }
+        )
 
     member _.WithSkippableOptionFields
-        (
-            skippableOptionFields,
-            [<Optional; DefaultParameterValue false>] deserializeNullAsNone: bool
-        ) =
+        (skippableOptionFields, [<Optional; DefaultParameterValue false>] deserializeNullAsNone: bool)
+        =
         JsonFSharpOptions(
             { options with
                 SkippableOptionFields = skippableOptionFields

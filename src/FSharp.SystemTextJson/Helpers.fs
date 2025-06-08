@@ -1,4 +1,4 @@
-﻿module internal System.Text.Json.Serialization.Helpers
+module internal System.Text.Json.Serialization.Helpers
 
 #nowarn "44" // JsonSerializerOptions.IgnoreNullValues is obsolete for users but still relevant for converters.
 
@@ -65,22 +65,20 @@ let isEnumLikeUnion (ty: Type) =
 type Helper =
     static member tryGetUnionCases(ty: Type, cases: UnionCaseInfo[] outref) =
         let isUnion = FSharpType.IsUnion(ty, true)
-        if isUnion then cases <- FSharpType.GetUnionCases(ty, true)
+        if isUnion then
+            cases <- FSharpType.GetUnionCases(ty, true)
         isUnion
 
     static member tryGetUnionCaseSingleProperty(case: UnionCaseInfo, property: PropertyInfo outref) =
         let properties = case.GetFields()
         let isSingle = properties.Length = 1
-        if isSingle then property <- properties[0]
+        if isSingle then
+            property <- properties[0]
         isSingle
 
     static member tryGetUnwrappedSingleCaseField
-        (
-            fsOptions: JsonFSharpOptionsRecord,
-            ty: Type,
-            cases: UnionCaseInfo[] outref,
-            property: PropertyInfo outref
-        ) =
+        (fsOptions: JsonFSharpOptionsRecord, ty: Type, cases: UnionCaseInfo[] outref, property: PropertyInfo outref)
+        =
         tryGetUnionCases (ty, &cases)
         && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapSingleCaseUnions
         && cases.Length = 1
@@ -99,8 +97,10 @@ let rec tryGetNullValue (fsOptions: JsonFSharpOptionsRecord) (ty: Type) : obj vo
         ValueSome null
     elif Type.(=) (ty, typeof<unit>) then
         ValueSome()
-    elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
-         && isValueOptionType ty then
+    elif
+        fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
+        && isValueOptionType ty
+    then
         ValueSome(FSharpValue.MakeUnion(FSharpType.GetUnionCases(ty, true)[0], [||], true))
     elif isSkippableType fsOptions ty then
         tryGetNullValue fsOptions (ty.GetGenericArguments()[0])
@@ -153,16 +153,11 @@ let isWrappedString (ty: Type) =
     && let cases = FSharpType.GetUnionCases(ty, true) in
 
        cases.Length = 1
-       && let fields = cases[ 0 ].GetFields() in
+       && let fields = cases[0].GetFields() in
           fields.Length = 1 && Type.(=) (fields[0].PropertyType, typeof<string>)
 
 type FieldHelper
-    (
-        options: JsonSerializerOptions,
-        fsOptions: JsonFSharpOptionsRecord,
-        ty: Type,
-        nullDeserializeError: string
-    ) =
+    (options: JsonSerializerOptions, fsOptions: JsonFSharpOptionsRecord, ty: Type, nullDeserializeError: string) =
 
     let nullValue = tryGetNullValue fsOptions ty
     let isSkippableWrapperType = isSkippableType fsOptions ty
@@ -236,13 +231,14 @@ let convertName (policy: JsonNamingPolicy) (name: string) =
     | policy -> policy.ConvertName(name)
 
 let getJsonNames kind (getAttributes: Type -> obj[]) =
-    match getAttributes typeof<JsonNameAttribute>
-          |> Array.choose (
-              function
-              | :? JsonNameAttribute as attr when isNull attr.Field -> Some attr
-              | _ -> None
-          )
-        with
+    match
+        getAttributes typeof<JsonNameAttribute>
+        |> Array.choose (
+            function
+            | :? JsonNameAttribute as attr when isNull attr.Field -> Some attr
+            | _ -> None
+        )
+    with
     | [||] ->
         match getAttributes typeof<JsonPropertyNameAttribute> with
         | [| :? JsonPropertyNameAttribute as attr |] -> ValueSome [| JsonName.String attr.Name |]

@@ -63,7 +63,7 @@ let ``serialize set of ints`` (s: Set<int>) =
     let actual = JsonSerializer.Serialize(s, options)
     Assert.Equal(expected, actual)
 
-let serKV1 (KeyValue (k: string, v: int)) =
+let serKV1 (KeyValue(k: string, v: int)) =
     JsonSerializer.Serialize(k) + ":" + JsonSerializer.Serialize(v)
 
 [<Property>]
@@ -82,7 +82,7 @@ let ``serialize string-keyed map`` (m: Map<NonNull<string>, int>) =
 
 type UserId = UserId of string
 
-let serKV1_1 (KeyValue (UserId k, v: int)) =
+let serKV1_1 (KeyValue(UserId k, v: int)) =
     JsonSerializer.Serialize(k) + ":" + JsonSerializer.Serialize(v)
 
 [<Property>]
@@ -102,7 +102,7 @@ let ``serialize newtype-string-keyed map`` (m: Map<NonNull<string>, int>) =
 [<Property>]
 let ``deserialize newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
     let d = Dictionary()
-    for KeyValue (NonNull k, v) in d' do
+    for KeyValue(NonNull k, v) in d' do
         d[UserId k] <- v
     let ser = "{" + String.concat "," (Seq.map serKV1_1 d) + "}"
     let actual = JsonSerializer.Deserialize<Dictionary<UserId, int>>(ser, options)
@@ -111,7 +111,7 @@ let ``deserialize newtype-string-keyed dictionary`` (d': Dictionary<NonNull<stri
 [<Property>]
 let ``serialize newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
     let d = Dictionary()
-    for KeyValue (NonNull k, v) in d' do
+    for KeyValue(NonNull k, v) in d' do
         d[UserId k] <- v
     let expected = "{" + String.concat "," (Seq.map serKV1_1 d) + "}"
     let actual = JsonSerializer.Serialize(d, options)
@@ -120,7 +120,7 @@ let ``serialize newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string
 [<Struct>]
 type SUserId = SUserId of string
 
-let serKV1_2 (KeyValue (SUserId k, v: int)) =
+let serKV1_2 (KeyValue(SUserId k, v: int)) =
     JsonSerializer.Serialize(k) + ":" + JsonSerializer.Serialize(v)
 
 [<Property>]
@@ -140,7 +140,7 @@ let ``serialize struct-newtype-string-keyed map`` (m: Map<NonNull<string>, int>)
 [<Property>]
 let ``deserialize struct-newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
     let d = Dictionary()
-    for KeyValue (NonNull k, v) in d' do
+    for KeyValue(NonNull k, v) in d' do
         d[SUserId k] <- v
     let ser = "{" + String.concat "," (Seq.map serKV1_2 d) + "}"
     let actual = JsonSerializer.Deserialize<Dictionary<SUserId, int>>(ser, options)
@@ -149,15 +149,14 @@ let ``deserialize struct-newtype-string-keyed dictionary`` (d': Dictionary<NonNu
 [<Property>]
 let ``serialize struct-newtype-string-keyed dictionary`` (d': Dictionary<NonNull<string>, int>) =
     let d = Dictionary()
-    for KeyValue (NonNull k, v) in d' do
+    for KeyValue(NonNull k, v) in d' do
         d[SUserId k] <- v
     let expected = "{" + String.concat "," (Seq.map serKV1_2 d) + "}"
     let actual = JsonSerializer.Serialize(d, options)
     Assert.Equal(expected, actual)
 
 let keyPolicyOptions =
-    JsonFSharpOptions()
-        .ToJsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
+    JsonFSharpOptions().ToJsonSerializerOptions(DictionaryKeyPolicy = JsonNamingPolicy.CamelCase)
 
 [<Property>]
 let ``deserialize string-keyed map with key policy`` (m: Map<NonNull<string>, int>) =
@@ -171,12 +170,12 @@ let ``serialize string-keyed map with key policy`` (m: Map<NonNull<string>, int>
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
     let ccm =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> KeyValuePair(JsonNamingPolicy.CamelCase.ConvertName k, v))
+        |> Seq.map (fun (KeyValue(k, v)) -> KeyValuePair(JsonNamingPolicy.CamelCase.ConvertName k, v))
     let expected = "{" + String.concat "," (Seq.map serKV1 ccm) + "}"
     let actual = JsonSerializer.Serialize(m, keyPolicyOptions)
     Assert.Equal(expected, actual)
 
-let serKV2 (KeyValue (k: int, v: string)) =
+let serKV2 (KeyValue(k: int, v: string)) =
     "[" + JsonSerializer.Serialize(k) + "," + JsonSerializer.Serialize(v) + "]"
 
 [<Property>]
@@ -199,7 +198,7 @@ let ``deserialize string-keyed map with Object`` (m: Map<NonNull<string>, int>) 
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
     let ser =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
         |> String.concat ","
         |> sprintf "{%s}"
     let actual = JsonSerializer.Deserialize<Map<string, int>>(ser, objectOptions)
@@ -210,7 +209,7 @@ let ``serialize string-keyed map with Object`` (m: Map<NonNull<string>, int>) =
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
     let expected =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
         |> String.concat ","
         |> sprintf "{%s}"
     let actual = JsonSerializer.Serialize(m, objectOptions)
@@ -221,7 +220,7 @@ let ``deserialize newtype-string-keyed map with Object`` (m: Map<NonNull<string>
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
     let ser =
         m
-        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> Seq.map (fun (KeyValue(UserId k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
         |> String.concat ","
         |> sprintf "{%s}"
     let actual = JsonSerializer.Deserialize<Map<UserId, int>>(ser, objectOptions)
@@ -232,7 +231,7 @@ let ``serialize newtype-string-keyed map with Object`` (m: Map<NonNull<string>, 
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
     let expected =
         m
-        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
+        |> Seq.map (fun (KeyValue(UserId k, v)) -> $"{JsonSerializer.Serialize(k)}:{v}")
         |> String.concat ","
         |> sprintf "{%s}"
     let actual = JsonSerializer.Serialize(m, objectOptions)
@@ -242,7 +241,7 @@ let ``serialize newtype-string-keyed map with Object`` (m: Map<NonNull<string>, 
 let ``deserialize Guid-keyed map with Object`` (m: Map<Guid, int>) =
     let ser =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"\"{k}\":{v}")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"\"{k}\":{v}")
         |> String.concat ","
         |> sprintf "{%s}"
     let actual = JsonSerializer.Deserialize<Map<Guid, int>>(ser, objectOptions)
@@ -252,23 +251,21 @@ let ``deserialize Guid-keyed map with Object`` (m: Map<Guid, int>) =
 let ``serialize Guid-keyed map with Object`` (m: Map<Guid, int>) =
     let expected =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"\"{k}\":{v}")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"\"{k}\":{v}")
         |> String.concat ","
         |> sprintf "{%s}"
     let actual = JsonSerializer.Serialize(m, objectOptions)
     Assert.Equal(expected, actual)
 
 let arrayOfPairsOptions =
-    JsonFSharpOptions()
-        .WithMapFormat(MapFormat.ArrayOfPairs)
-        .ToJsonSerializerOptions()
+    JsonFSharpOptions().WithMapFormat(MapFormat.ArrayOfPairs).ToJsonSerializerOptions()
 
 [<Property>]
 let ``deserialize string-keyed map with ArrayOfPairs`` (m: Map<NonNull<string>, int>) =
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
     let ser =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
         |> String.concat ","
         |> sprintf "[%s]"
     let actual = JsonSerializer.Deserialize<Map<string, int>>(ser, arrayOfPairsOptions)
@@ -279,7 +276,7 @@ let ``serialize string-keyed map with ArrayOfPairs`` (m: Map<NonNull<string>, in
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add k v m)
     let expected =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
         |> String.concat ","
         |> sprintf "[%s]"
     let actual = JsonSerializer.Serialize(m, arrayOfPairsOptions)
@@ -290,7 +287,7 @@ let ``deserialize newtype-string-keyed map with ArrayOfPairs`` (m: Map<NonNull<s
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
     let ser =
         m
-        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> Seq.map (fun (KeyValue(UserId k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
         |> String.concat ","
         |> sprintf "[%s]"
     let actual = JsonSerializer.Deserialize<Map<UserId, int>>(ser, arrayOfPairsOptions)
@@ -301,7 +298,7 @@ let ``serialize newtype-string-keyed map with ArrayOfPairs`` (m: Map<NonNull<str
     let m = (Map.empty, m) ||> Map.fold (fun m (NonNull k) v -> Map.add (UserId k) v m)
     let expected =
         m
-        |> Seq.map (fun (KeyValue (UserId k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
+        |> Seq.map (fun (KeyValue(UserId k, v)) -> $"[{JsonSerializer.Serialize(k)},{v}]")
         |> String.concat ","
         |> sprintf "[%s]"
     let actual = JsonSerializer.Serialize(m, arrayOfPairsOptions)
@@ -311,7 +308,7 @@ let ``serialize newtype-string-keyed map with ArrayOfPairs`` (m: Map<NonNull<str
 let ``deserialize Guid-keyed map with ArrayOfPairs`` (m: Map<Guid, int>) =
     let ser =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"[\"{k}\",{v}]")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"[\"{k}\",{v}]")
         |> String.concat ","
         |> sprintf "[%s]"
     let actual = JsonSerializer.Deserialize<Map<Guid, int>>(ser, arrayOfPairsOptions)
@@ -321,7 +318,7 @@ let ``deserialize Guid-keyed map with ArrayOfPairs`` (m: Map<Guid, int>) =
 let ``serialize Guid-keyed map with ArrayOfPairs`` (m: Map<Guid, int>) =
     let expected =
         m
-        |> Seq.map (fun (KeyValue (k, v)) -> $"[\"{k}\",{v}]")
+        |> Seq.map (fun (KeyValue(k, v)) -> $"[\"{k}\",{v}]")
         |> String.concat ","
         |> sprintf "[%s]"
     let actual = JsonSerializer.Serialize(m, arrayOfPairsOptions)
@@ -438,7 +435,8 @@ module NullCollections =
 
     [<Fact>]
     let ``disallow null struct 2-tuple`` () =
-        Assert.Throws<JsonException>(fun () -> JsonSerializer.Deserialize<struct (int * int)>("null", options) |> ignore
+        Assert.Throws<JsonException>(fun () ->
+            JsonSerializer.Deserialize<struct (int * int)>("null", options) |> ignore
         )
         |> ignore
 

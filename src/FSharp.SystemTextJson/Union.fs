@@ -16,8 +16,8 @@ type private UnionField
         unionCase: UnionCaseInfo,
         names: string[]
     ) =
-    inherit FieldHelper
-        (
+    inherit
+        FieldHelper(
             options,
             fsOptions,
             p.PropertyType,
@@ -29,12 +29,15 @@ type private UnionField
                 p.PropertyType.Name
         )
 
-    new(fsOptions,
-        options: JsonSerializerOptions,
-        fieldNames: IReadOnlyDictionary<string, JsonName[]>,
-        p,
-        unionCase,
-        name) =
+    new
+        (
+            fsOptions,
+            options: JsonSerializerOptions,
+            fieldNames: IReadOnlyDictionary<string, JsonName[]>,
+            p,
+            unionCase,
+            name
+        ) =
         let names =
             match fieldNames.TryGetValue(name) with
             | true, names -> names |> Array.map (fun n -> n.AsString())
@@ -123,10 +126,12 @@ module private Case =
             else
                 ValueNone
         let unwrappedRecordField =
-            if fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.NamedFields
-               && fields.Length = 1
-               && FSharpType.IsRecord(fields[0].Type, true)
-               && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapRecordCases then
+            if
+                fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.NamedFields
+                && fields.Length = 1
+                && FSharpType.IsRecord(fields[0].Type, true)
+                && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapRecordCases
+            then
                 JsonRecordConverter.CreateConverter(fields[0].Type, options, JsonFSharpOptions fsOptions)
                 |> box
                 :?> IRecordConverter
@@ -175,7 +180,8 @@ module private Case =
                     | JsonName.String _ -> ()
                     | name ->
                         let stringName = JsonName.String(name.AsString())
-                        if not (dict.ContainsKey(stringName)) then dict[stringName] <- c
+                        if not (dict.ContainsKey(stringName)) then
+                            dict[stringName] <- c
             ValueSome dict
         else
             ValueNone
@@ -286,12 +292,7 @@ module private Case =
 
 
 type JsonUnionConverter<'T>
-    internal
-    (
-        options: JsonSerializerOptions,
-        fsOptions: JsonFSharpOptionsRecord,
-        cases: UnionCaseInfo[]
-    ) =
+    internal (options: JsonSerializerOptions, fsOptions: JsonFSharpOptionsRecord, cases: UnionCaseInfo[]) =
     inherit JsonConverter<'T>()
 
     [<Literal>]
@@ -337,7 +338,7 @@ type JsonUnionConverter<'T>
                         hasDuplicateFieldNames <- true
                     Map.add fieldName case foundFieldNames
             )
-        let fields = [| for KeyValue (k, v) in fields -> struct (k, v) |]
+        let fields = [| for KeyValue(k, v) in fields -> struct (k, v) |]
         not hasDuplicateFieldNames, fieldlessCase, fields
 
     let allFieldsByName =
@@ -347,7 +348,7 @@ type JsonUnionConverter<'T>
                 match c.FieldsByName with
                 | ValueNone -> ()
                 | ValueSome fields ->
-                    for KeyValue (n, _) in fields do
+                    for KeyValue(n, _) in fields do
                         dict[n] <- c
             ValueSome dict
         else
@@ -461,7 +462,7 @@ type JsonUnionConverter<'T>
             | JsonTokenType.PropertyName ->
                 skipRead <- false
                 match fieldIndexByName &reader case with
-                | ValueSome (i, f) ->
+                | ValueSome(i, f) ->
                     fieldsFound <- fieldsFound + 1
                     fields[i] <- readField &reader f
                 | _ -> reader.Skip()
@@ -622,7 +623,7 @@ type JsonUnionConverter<'T>
 
     let writeExternalTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
-        writer.WritePropertyName(case.Names[ 0 ].AsString())
+        writer.WritePropertyName(case.Names[0].AsString())
         writeFields writer case value options
         writer.WriteEndObject()
 
@@ -811,14 +812,13 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
         TypeCache.isUnion typeToConvert
 
     static member internal CreateConverter
-        (
-            typeToConvert: Type,
-            options: JsonSerializerOptions,
-            fsOptions: JsonFSharpOptions
-        ) =
+        (typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions)
+        =
         let fsOptions = overrideOptions typeToConvert fsOptions
-        if isEnumLikeUnion typeToConvert
-           && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags then
+        if
+            isEnumLikeUnion typeToConvert
+            && fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapFieldlessTags
+        then
             jsonEnumLikeUnionConverterTy
                 .MakeGenericType(typeToConvert)
                 .GetConstructor(
@@ -829,24 +829,30 @@ type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
                 )
                 .Invoke([| options; fsOptions.Record |])
             :?> JsonConverter
-        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
-             && typeToConvert.IsGenericType
-             && typeToConvert.GetGenericTypeDefinition() = optionTy then
+        elif
+            fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
+            && typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() = optionTy
+        then
             jsonUnwrapOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
             :?> JsonConverter
-        elif fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
-             && typeToConvert.IsGenericType
-             && typeToConvert.GetGenericTypeDefinition() = voptionTy then
+        elif
+            fsOptions.UnionEncoding.HasFlag JsonUnionEncoding.UnwrapOption
+            && typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() = voptionTy
+        then
             jsonUnwrapValueOptionConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
                 .Invoke([||])
             :?> JsonConverter
-        elif typeToConvert.IsGenericType
-             && typeToConvert.GetGenericTypeDefinition() = skippableTy then
+        elif
+            typeToConvert.IsGenericType
+            && typeToConvert.GetGenericTypeDefinition() = skippableTy
+        then
             jsonSkippableConverterTy
                 .MakeGenericType(typeToConvert.GetGenericArguments())
                 .GetConstructor([||])
