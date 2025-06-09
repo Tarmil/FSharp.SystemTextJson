@@ -3,6 +3,7 @@ namespace System.Text.Json.Serialization
 open System
 open System.Text.Json
 open System.Text.Json.Serialization.Helpers
+open Microsoft.FSharp.Core.CompilerServices
 
 type JsonListConverter<'T> internal (fsOptions) =
     inherit JsonConverter<list<'T>>()
@@ -12,12 +13,19 @@ type JsonListConverter<'T> internal (fsOptions) =
 
     override _.Read(reader, typeToConvert, options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
-        let array = JsonSerializer.Deserialize(&reader, typeof<'T[]>, options) :?> 'T[]
+
+        let mutable l = ListCollector<'T>()
+        while reader.Read() && reader.TokenType <> JsonTokenType.EndArray do
+            let value = JsonSerializer.Deserialize(&reader, typeof<'T>, options)
+            l.Add(value :?> 'T)
+        let list = l.Close()
+
         if needsNullChecking then
-            for elem in array do
+            for elem in list do
                 if isNull (box elem) then
                     failf "Unexpected null inside array. Expected only elements of type %s" tType.Name
-        array |> List.ofArray
+
+        list
 
     override _.Write(writer, value, options) =
         JsonSerializer.Serialize<seq<'T>>(writer, value, options)

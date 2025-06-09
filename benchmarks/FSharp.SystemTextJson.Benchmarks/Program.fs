@@ -6,23 +6,15 @@ open System
 open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Diagnosers
 open BenchmarkDotNet.Configs
-open BenchmarkDotNet.Jobs
 open BenchmarkDotNet.Running
 open BenchmarkDotNet.Validators
 open BenchmarkDotNet.Exporters
-open BenchmarkDotNet.Environments
-open System.Reflection
-open BenchmarkDotNet.Configs
 
 open System.Text.Json
 open System.Text.Json.Serialization
 open Newtonsoft.Json
-open Newtonsoft.Json.Linq
 
-type TestRecord =
-    { name: string
-      thing: bool option
-      time: System.DateTimeOffset }
+type TestRecord = { name: string; thing: bool option; time: DateTimeOffset }
 
 type SimpleClass() =
     member val Name: string = null with get, set
@@ -119,6 +111,30 @@ type TupleComparison() =
     member this.RefSpecialized() =
         System.Text.Json.JsonSerializer.Deserialize<int * bool>("[1,true]", specializedOptions)
 
+type ListDeserialization<'t>(instance: 't) =
+    let options = JsonFSharpOptions().ToJsonSerializerOptions()
+
+    [<Params(10, 100)>]
+    member val ListLength = 0 with get, set
+
+    member val String = "" with get, set
+
+    [<GlobalSetup>]
+    member this.InitList() =
+        this.String <- System.Text.Json.JsonSerializer.Serialize(Array.replicate this.ListLength instance, options)
+
+    [<Benchmark>]
+    member this.ListCollector() =
+        System.Text.Json.JsonSerializer.Deserialize<'t list>(this.String, options)
+
+    [<Benchmark>]
+    member this.AsArray() =
+        System.Text.Json.JsonSerializer.Deserialize<'t array>(this.String, options)
+        |> List.ofArray
+
+type ListDeserialization() =
+    inherit ListDeserialization<int>(42)
+
 let config =
     ManualConfig
         .Create(DefaultConfig.Instance)
@@ -131,7 +147,8 @@ let defaultSwitch () =
         [| typeof<Records>
            typeof<Classes>
            typeof<ReflectionComparison>
-           typeof<TupleComparison> |]
+           typeof<TupleComparison>
+           typeof<ListDeserialization> |]
     )
 
 
