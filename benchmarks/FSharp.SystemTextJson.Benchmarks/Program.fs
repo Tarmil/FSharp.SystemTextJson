@@ -94,6 +94,30 @@ type ReflectionComparison() =
         for i in 0 .. this.Iterations do
             TypeCache.isRecord typeof<TestRecord> |> ignore
 
+type TupleComparison() =
+
+    let fsharpOptions = JsonFSharpOptions.Default()
+    let specializedOptions = fsharpOptions.ToJsonSerializerOptions()
+    let genericOptions =
+        let o = JsonSerializerOptions()
+        o.Converters.Add(JsonTupleConverter(fsharpOptions, true))
+        o
+
+    [<Benchmark>]
+    member this.StructGeneric() =
+        System.Text.Json.JsonSerializer.Deserialize<struct (int * bool)>("[1,true]", genericOptions)
+
+    [<Benchmark>]
+    member this.StructSpecialized() =
+        System.Text.Json.JsonSerializer.Deserialize<struct (int * bool)>("[1,true]", specializedOptions)
+
+    [<Benchmark>]
+    member this.RefGeneric() =
+        System.Text.Json.JsonSerializer.Deserialize<int * bool>("[1,true]", genericOptions)
+
+    [<Benchmark>]
+    member this.RefSpecialized() =
+        System.Text.Json.JsonSerializer.Deserialize<int * bool>("[1,true]", specializedOptions)
 
 let config =
     ManualConfig
@@ -106,7 +130,8 @@ let defaultSwitch () =
     BenchmarkSwitcher(
         [| typeof<Records>
            typeof<Classes>
-           typeof<ReflectionComparison> |]
+           typeof<ReflectionComparison>
+           typeof<TupleComparison> |]
     )
 
 
