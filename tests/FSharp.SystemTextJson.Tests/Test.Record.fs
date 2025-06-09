@@ -497,6 +497,26 @@ module NonStruct =
             JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
         Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
 
+    type OverrideMembersRecord = { x: int; y: string }
+
+    let overrideMembersOptions =
+        JsonFSharpOptions()
+            .WithOverrides(fun o ->
+                dict [ typeof<OverrideMembersRecord>, o.WithOverrideMembers(dict [ "x", [ JsonNameAttribute("z") ] ]) ]
+            )
+            .ToJsonSerializerOptions()
+
+    [<Fact>]
+    let ``serialize with OverrideMembers`` () =
+        let actual = JsonSerializer.Serialize({ x = 1; y = "b" }, overrideMembersOptions)
+        Assert.Equal("""{"z":1,"y":"b"}""", actual)
+
+    [<Fact>]
+    let ``deserialize with OverrideMembers`` () =
+        let actual =
+            JsonSerializer.Deserialize<OverrideMembersRecord>("""{"z":1,"y":"b"}""", overrideMembersOptions)
+        Assert.Equal({ x = 1; y = "b" }, actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -943,3 +963,24 @@ module Struct =
         let actual =
             JsonSerializer.Serialize({ incX = 1; incY = "a" }, dontIncludeRecordPropertiesOptions)
         Assert.Equal("""{"incX":1,"incY":"a","incZ":42}""", actual)
+
+    [<Struct>]
+    type OverrideMembersRecord = { x: int; y: string }
+
+    let overrideMembersOptions =
+        JsonFSharpOptions()
+            .WithOverrides(fun o ->
+                dict [ typeof<OverrideMembersRecord>, o.WithOverrideMembers(dict [ "x", [ JsonNameAttribute("z") ] ]) ]
+            )
+            .ToJsonSerializerOptions()
+
+    [<Fact>]
+    let ``serialize with OverrideMembers`` () =
+        let actual = JsonSerializer.Serialize({ x = 1; y = "b" }, overrideMembersOptions)
+        Assert.Equal("""{"z":1,"y":"b"}""", actual)
+
+    [<Fact>]
+    let ``deserialize with OverrideMembers`` () =
+        let actual =
+            JsonSerializer.Deserialize<OverrideMembersRecord>("""{"z":1,"y":"b"}""", overrideMembersOptions)
+        Assert.Equal({ x = 1; y = "b" }, actual)
