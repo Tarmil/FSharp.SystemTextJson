@@ -17,12 +17,13 @@ jobs:
           name: nuget
 
       - name: Push to GitHub release
-        uses: svenstaro/upload-release-action@1.1.0
+        uses: svenstaro/upload-release-action@v2
         with:
           tag: ${{github.ref}}
           repo_token: ${{secrets.GITHUB_TOKEN}}
-          file_glob: 'true'
+          file_glob: true
           file: ./*.nupkg
+          overwrite: true
 
       - name: Push to GitHub feed
         run: dotnet nuget push *.nupkg
