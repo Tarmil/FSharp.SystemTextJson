@@ -72,6 +72,14 @@ The way to customize the serialization format depends on [how FSharp.SystemTextJ
                     // Use completely new options:
                     typeof<AnotherUnion>, JsonFSharpOptions.FSharpLuLike()
                         .WithUnionAdjacentTag()
+
+                    // Apply to a generic type:
+                    typedefof<AGenericUnion<_>>, options
+                        .WithUnionTagName("GenericCase")
+
+                    // A specific override takes priority over a generic one:
+                    typeof<AGenericUnion<string>>, options
+                        .WithUnionTagName("SpecificCase")
                 ])
             .ToJsonSerializerOptions()
     ```
