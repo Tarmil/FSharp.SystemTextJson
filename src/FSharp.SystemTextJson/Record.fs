@@ -8,6 +8,7 @@ open FSharp.Reflection
 open System.Text.Json.Serialization.Helpers
 
 type private RecordField
+    private
     (
         fsOptions: JsonFSharpOptionsRecord,
         options: JsonSerializerOptions,
@@ -37,7 +38,18 @@ type private RecordField
 
     new(fsOptions, options: JsonSerializerOptions, i, p: PropertyInfo, fieldOrderIndices) =
         let names =
-            match getJsonNames "field" (fun ty -> p.GetCustomAttributes(ty, true)) with
+            match
+                getJsonNames
+                    "field"
+                    (fun ty ->
+                        match fsOptions.OverrideMembers.TryGetValue(p.Name) with
+                        | true, attrs ->
+                            [| for attr in attrs do
+                                   if attr.GetType().IsAssignableFrom(ty) then
+                                       box attr |]
+                        | false, _ -> p.GetCustomAttributes(ty, true)
+                    )
+            with
             | ValueSome names -> names |> Array.map (fun n -> n.AsString())
             | ValueNone -> [| convertName options.PropertyNamingPolicy p.Name |]
         RecordField(fsOptions, options, i, p, fieldOrderIndices, names)

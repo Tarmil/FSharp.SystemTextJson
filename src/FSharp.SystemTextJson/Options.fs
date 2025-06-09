@@ -185,6 +185,7 @@ type internal JsonFSharpOptionsRecord =
       MapFormat: MapFormat
       Types: JsonFSharpTypes
       AllowOverride: bool
+      OverrideMembers: IDictionary<string, seq<Attribute>>
       Overrides: JsonFSharpOptions -> IDictionary<Type, JsonFSharpOptions> }
 
 and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
@@ -224,6 +225,7 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
               MapFormat = MapFormat.ObjectOrArrayOfPairs
               Types = types
               AllowOverride = allowOverride
+              OverrideMembers = Map.empty
               Overrides = emptyOverrides }
         )
 
@@ -339,6 +341,9 @@ and JsonFSharpOptions internal (options: JsonFSharpOptionsRecord) =
 
     member _.WithOverrides(overrides) =
         JsonFSharpOptions({ options with Overrides = fun _ -> overrides })
+
+    member _.WithOverrideMembers(overrides) =
+        JsonFSharpOptions({ options with OverrideMembers = overrides })
 
     member private this.WithUnionEncodingFlag(flag, set) =
         if set then

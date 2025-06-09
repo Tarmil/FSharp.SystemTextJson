@@ -74,11 +74,18 @@ module private Case =
         (options: JsonSerializerOptions)
         (uci: UnionCaseInfo)
         =
+        let getAttrs ty =
+            match fsOptions.OverrideMembers.TryGetValue(uci.Name) with
+            | true, attrs ->
+                [| for attr in attrs do
+                       if attr.GetType().IsAssignableFrom(ty) then
+                           box attr |]
+            | false, _ -> uci.GetCustomAttributes(ty)
         let names =
-            match getJsonNames "case" uci.GetCustomAttributes with
+            match getJsonNames "case" getAttrs with
             | ValueSome name -> name
             | ValueNone -> [| JsonName.String(convertName tagNamingPolicy uci.Name) |]
-        let fieldNames = getJsonFieldNames uci.GetCustomAttributes
+        let fieldNames = getJsonFieldNames getAttrs
         let fields =
             let fields = uci.GetFields()
             let usedFieldNames = Dictionary()

@@ -1429,6 +1429,47 @@ module NonStruct =
         let actual = JsonSerializer.Deserialize("""{"enum-a":1}""", options)
         Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
 
+    let overrideCasesOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithOverrides(fun o ->
+                dict
+                    [ typedefof<Result<_, _>>,
+                      o
+                          .WithUnionInternalTag()
+                          .WithUnionNamedFields()
+                          .WithUnionTagName("isSuccess")
+                          .WithOverrideMembers(
+                              dict
+                                  [ nameof Ok,
+                                    [ JsonNameAttribute(true)
+                                      JsonNameAttribute("value", Field = "ResultValue") ]
+                                    nameof Error,
+                                    [ JsonNameAttribute(false)
+                                      JsonNameAttribute("error", Field = "ErrorValue") ] ]
+                          ) ]
+            )
+            .ToJsonSerializerOptions()
+
+    [<Fact>]
+    let ``serialize with OverrideMembers`` () =
+        let actual = JsonSerializer.Serialize(Ok 42, overrideCasesOptions)
+        Assert.Equal("""{"isSuccess":true,"value":42}""", actual)
+        let actual = JsonSerializer.Serialize(Error "failed :(", overrideCasesOptions)
+        Assert.Equal("""{"isSuccess":false,"error":"failed :("}""", actual)
+
+    [<Fact>]
+    let ``deserialize with OverrideMembers`` () =
+        let actual =
+            JsonSerializer.Deserialize<Result<int, string>>("""{"isSuccess":true,"value":42}""", overrideCasesOptions)
+        Assert.Equal(Ok 42, actual)
+        let actual =
+            JsonSerializer.Deserialize<Result<int, string>>(
+                """{"isSuccess":false,"error":"failed :("}""",
+                overrideCasesOptions
+            )
+        Assert.Equal(Error "failed :(", actual)
+
 module Struct =
 
     [<Struct; JsonFSharpConverter>]
@@ -2789,3 +2830,52 @@ module Struct =
             enumLikeOptions().WithUnionTagNamingPolicy(JsonNamingPolicy.KebabCaseLower).ToJsonSerializerOptions()
         let actual = JsonSerializer.Deserialize("""{"enum-a":1}""", options)
         Assert.Equal<Map<_, _>>(Map [ EnumA, 1 ], actual)
+
+    [<Struct>]
+    type CustomResult<'TOk, 'TError> =
+        | Ok of ResultValue: 'TOk
+        | Error of ErrorValue: 'TError
+
+    let overrideCasesOptions =
+        JsonFSharpOptions
+            .Default()
+            .WithOverrides(fun o ->
+                dict
+                    [ typedefof<CustomResult<_, _>>,
+                      o
+                          .WithUnionInternalTag()
+                          .WithUnionNamedFields()
+                          .WithUnionTagName("isSuccess")
+                          .WithOverrideMembers(
+                              dict
+                                  [ nameof Ok,
+                                    [ JsonNameAttribute(true)
+                                      JsonNameAttribute("value", Field = "ResultValue") ]
+                                    nameof Error,
+                                    [ JsonNameAttribute(false)
+                                      JsonNameAttribute("error", Field = "ErrorValue") ] ]
+                          ) ]
+            )
+            .ToJsonSerializerOptions()
+
+    [<Fact>]
+    let ``serialize with OverrideMembers`` () =
+        let actual = JsonSerializer.Serialize(Ok 42, overrideCasesOptions)
+        Assert.Equal("""{"isSuccess":true,"value":42}""", actual)
+        let actual = JsonSerializer.Serialize(Error "failed :(", overrideCasesOptions)
+        Assert.Equal("""{"isSuccess":false,"error":"failed :("}""", actual)
+
+    [<Fact>]
+    let ``deserialize with OverrideMembers`` () =
+        let actual =
+            JsonSerializer.Deserialize<CustomResult<int, string>>(
+                """{"isSuccess":true,"value":42}""",
+                overrideCasesOptions
+            )
+        Assert.Equal(Ok 42, actual)
+        let actual =
+            JsonSerializer.Deserialize<CustomResult<int, string>>(
+                """{"isSuccess":false,"error":"failed :("}""",
+                overrideCasesOptions
+            )
+        Assert.Equal(Error "failed :(", actual)
