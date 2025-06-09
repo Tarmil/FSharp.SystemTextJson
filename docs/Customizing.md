@@ -36,6 +36,7 @@ The serialization and deserialization of `FSharp.SystemTextJson` can be customiz
 - [Attributes](#attributes)
   - [JsonFSharpConverter](#jsonfsharpconverter)
   - [JsonName](#jsonname)
+  - [Attribute overrides](#attribute-overrides)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -995,4 +996,57 @@ However, it also includes its own attribute `JsonNameAttribute` which provides m
 
     JsonSerializer.Serialize(Error "Failed to retrieve x", options)
     // --> {"isSuccess":false,"error":"Failed to retrieve x"}
+    ```
+
+### Attribute overrides
+
+In order to customize the names of record fields and union cases and fields for a type that you can't or don't want to enrich with attributes,
+the alternate solution is to use the `OverrideMembers` option.
+
+* Override attributes on record fields:
+
+    ```fsharp
+    type MyRecord = { x: int }
+
+    let options =
+        JsonFSharpOptions.Default()
+            .WithOverrides(fun o -> dict [
+                typeof<MyRecord>, o
+                    .WithOverrideMembers(dict [
+                        "x", [JsonNameAttribute "y"]
+                    ])
+            ])
+            .ToJsonSerializerOptions()
+
+    JsonSerializer.Serialize({ x = 1 }, o)
+    // --> {"y":1}
+    ```
+
+* Override attributes on union cases:
+
+    ```fsharp
+    let options =
+        JsonFSharpOptions.Default()
+            .WithOverrides(fun o -> dict [
+                typedefof<Result<_, _>>, o
+                    .WithUnionInternalTag()
+                    .WithUnionNamedFields()
+                    .WithUnionTagName("isSuccess")
+                    .WithOverrideMembers(dict [
+                        nameof Ok, [
+                            JsonNameAttribute true
+                            JsonNameAttribute("value", Field = "ResultValue")
+                        ]
+                        nameof Error, [
+                            JsonNameAttribute false
+                            JsonNameAttribute("error", Field = "ErrorValue")
+                        ]
+                    ])
+            ])
+
+    JsonSerializer.Serialize(Ok 42, options)
+    // --> {"isSuccess":true,"value":42}
+
+    JsonSerializer.Serialize(Error "Internal error", options)
+    // --> {"isSuccess":false,"error":"Internal error"}
     ```
