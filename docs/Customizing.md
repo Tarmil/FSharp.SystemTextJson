@@ -31,6 +31,7 @@ The serialization and deserialization of `FSharp.SystemTextJson` can be customiz
   - [Include record properties](#include-record-properties)
   - [Skippable option fields](#skippable-option-fields)
   - [Allowing null fields](#allowing-null-fields)
+  - [Map formats](#map-formats)
   - [Changing the supported types](#changing-the-supported-types)
 - [Attributes](#attributes)
   - [JsonFSharpConverter](#jsonfsharpconverter)
@@ -798,6 +799,55 @@ JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 JsonSerializer.Deserialize<Rectangle>("""{"TopRight":{"X":1,"Y":2}}""", options)
 // --> { BottomLeft = null; TopRight = Point(X = 1., Y = 2.) }
 ```
+
+### Map formats
+
+The option `MapFormat` allows customizing the format for the type `Map<'k, 'v>`.
+It takes an enum with one of the following values:
+
+* `MapFormat.Object` serializes maps as JSON objects.
+    This format supports the same key types as the built-in serializer for Dictionary.
+
+    Requires System.Text.Json 8.0 or newer.
+
+    ```fsharp
+    let options =
+        JsonFSharpOptions.Default()
+            .WithMapFormat(MapFormat.Object)
+            .ToJsonSerializerOptions()
+
+    JsonSerializer.Serialize(Map [ ("a", 1); ("b", 2) ], options)
+    // --> {"a":1,"b":2}
+    ```
+
+* `MapFormat.ArrayOfPairs` serializes maps as JSON arrays of `[key, value]` JSON arrays.
+    This format supports all key types.
+
+    ```fsharp
+    let options =
+        JsonFSharpOptions.Default()
+            .WithMapFormat(MapFormat.ArrayOfPairs)
+            .ToJsonSerializerOptions()
+
+    JsonSerializer.Serialize(Map [ ("a", 1); ("b", 2) ], options)
+    // --> [["a",1],["b",2]]
+    ```
+
+* `MapFormat.ObjectOrArrayOfPairs` is the default.
+    It serializes maps as JSON objects if the key is either `string` or a single-case union wrapping `string`.
+    Otherwise, it serializes maps as JSON arrays of `[key, value]` JSON arrays.
+
+    ```fsharp
+    let options =
+        JsonFSharpOptions.Default()
+            .WithMapFormat(MapFormat.ArrayOfPairs)
+            .ToJsonSerializerOptions()
+
+    JsonSerializer.Serialize(Map [ ("a", 1); ("b", 2) ], options)
+    // --> {"a":1,"b":2}
+    JsonSerializer.Serialize(Map [ (1, "a"); (2, "b") ], options)
+    // --> [[1,"a"],[2,"b"]]
+    ```
 
 ### Changing the supported types
 
