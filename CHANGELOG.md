@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4
+
+* [#177](https://github.com/Tarmil/FSharp.SystemTextJson/issues/177): Support enum-like unions (ie unions where no cases have fields) as key for maps and dictionaries.
+* [#180](https://github.com/Tarmil/FSharp.SystemTextJson/issues/180): In `WithOverrides`, allow using `typedefof` to override generic types.
+* [#181](https://github.com/Tarmil/FSharp.SystemTextJson/issues/181): Add `WithOverrideMembers` option to add JsonNameAttributes to given record fields or union cases.
+* [#192](https://github.com/Tarmil/FSharp.SystemTextJson/issues/192): Update dependency on System.Text.Json to 6.0.10.
+* [#195](https://github.com/Tarmil/FSharp.SystemTextJson/issues/195): Fix `JsonNameAttribute`'s `PropertyTargets` so that it can be applied to cases with arguments when compiling with F# 9.
+* [#198](https://github.com/Tarmil/FSharp.SystemTextJson/issues/198): Improve performance of type comparisons.
+* [#201](https://github.com/Tarmil/FSharp.SystemTextJson/issues/201): Reduce memory allocations when serializing or deserializing tuples and struct tuples with 2, 3 or 4 items.
+
 ## 1.3
 
 * [#151](https://github.com/Tarmil/FSharp.SystemTextJson/issues/151): Add optional argument `deserializeNullAsNone: bool` to option `.WithSkippableOptionFields(SkippableOptionFields)`. When true, skippable option fields can be deserialized as `None` not only from a missing field, but also from `null`.
