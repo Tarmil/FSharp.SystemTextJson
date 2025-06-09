@@ -3,21 +3,22 @@ namespace System.Text.Json.Serialization
 open System
 open System.Text.Json
 open System.Text.Json.Serialization.Helpers
+open System.Text.Json.Serialization.Metadata
 open Microsoft.FSharp.Core.CompilerServices
 
-type JsonListConverter<'T> internal (fsOptions) =
+type JsonListConverter<'T> internal (options, fsOptions) =
     inherit JsonConverter<list<'T>>()
     let tType = typeof<'T>
     let tIsNullable = isNullableFieldType fsOptions tType
     let needsNullChecking = not tIsNullable && not tType.IsValueType
+    let typeInfo = JsonTypeInfo.CreateJsonTypeInfo<'T>(options)
 
-    override _.Read(reader, typeToConvert, options) =
+    override _.Read(reader, typeToConvert, _options) =
         expectAlreadyRead JsonTokenType.StartArray "JSON array" &reader typeToConvert
 
         let mutable l = ListCollector<'T>()
         while reader.Read() && reader.TokenType <> JsonTokenType.EndArray do
-            let value = JsonSerializer.Deserialize(&reader, typeof<'T>, options)
-            l.Add(value :?> 'T)
+            l.Add(JsonSerializer.Deserialize<'T>(&reader, typeInfo))
         let list = l.Close()
 
         if needsNullChecking then
@@ -32,7 +33,7 @@ type JsonListConverter<'T> internal (fsOptions) =
 
     override _.HandleNull = true
 
-    new(fsOptions: JsonFSharpOptions) = JsonListConverter<'T>(fsOptions.Record)
+    new(options, fsOptions: JsonFSharpOptions) = JsonListConverter<'T>(options, fsOptions.Record)
 
 type JsonListConverter(fsOptions) =
     inherit JsonConverterFactory()
@@ -40,18 +41,23 @@ type JsonListConverter(fsOptions) =
     static member internal CanConvert(typeToConvert: Type) =
         TypeCache.isList typeToConvert
 
-    static member internal CreateConverter(typeToConvert: Type, fsOptions: JsonFSharpOptions) =
+    static member internal CreateConverter
+        (typeToConvert: Type, options: JsonSerializerOptions, fsOptions: JsonFSharpOptions)
+        =
         typedefof<JsonListConverter<_>>
             .MakeGenericType([| typeToConvert.GetGenericArguments().[0] |])
-            .GetConstructor([| typeof<JsonFSharpOptions> |])
-            .Invoke([| fsOptions |])
+            .GetConstructor(
+                [| typeof<JsonSerializerOptions>
+                   typeof<JsonFSharpOptions> |]
+            )
+            .Invoke([| options; fsOptions |])
         :?> JsonConverter
 
     override _.CanConvert(typeToConvert) =
         JsonListConverter.CanConvert(typeToConvert)
 
-    override _.CreateConverter(typeToConvert, _options) =
-        JsonListConverter.CreateConverter(typeToConvert, fsOptions)
+    override _.CreateConverter(typeToConvert, options) =
+        JsonListConverter.CreateConverter(typeToConvert, options, fsOptions)
 
 type JsonSetConverter<'T when 'T: comparison> internal (fsOptions) =
     inherit JsonConverter<Set<'T>>()
