@@ -30,7 +30,7 @@ jobs:
       - name: Check formatting
         run: |
           dotnet tool restore
-          dotnet fantomas --check -r .
+          dotnet fantomas --check .
 
       - name: Build
         run: |
