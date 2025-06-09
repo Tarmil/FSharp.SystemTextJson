@@ -2,20 +2,20 @@ frameworks netstandard2.0
 storage none
 source https://api.nuget.org/v3/index.json
 
-nuget FSharp.Core >= 4.7.0 lowest_matching:true
+nuget FSharp.Core >= 6.0 lowest_matching:true
 nuget Microsoft.SourceLink.GitHub prerelease copy_local:true
 nuget Nerdbank.GitVersioning copy_local:true
-nuget System.Text.Json >= 6.0.10 lowest_matching: true
+nuget System.Text.Json >= 8.0.5 lowest_matching: true
 
 group test
 framework net9.0
 storage none
 source https://api.nuget.org/v3/index.json
 
-nuget FSharp.Core >= 5.0
+nuget FSharp.Core >= 6.0
 nuget FsCheck.XUnit
 nuget Microsoft.NET.Test.Sdk
-nuget System.Text.Json >= 8.0.5 prerelease
+nuget System.Text.Json >= 8.0.5
 nuget xunit
 nuget xunit.runner.visualstudio
 nuget BenchmarkDotNet

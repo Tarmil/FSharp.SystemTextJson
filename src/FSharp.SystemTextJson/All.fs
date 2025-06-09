@@ -41,7 +41,7 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
 
     static member internal CreateConverter(typeToConvert, options, fsOptions) =
         match TypeCache.getKind typeToConvert with
-        | TypeCache.TypeKind.List -> JsonListConverter.CreateConverter(typeToConvert, fsOptions)
+        | TypeCache.TypeKind.List -> JsonListConverter.CreateConverter(typeToConvert, options, fsOptions)
         | TypeCache.TypeKind.Set -> JsonSetConverter.CreateConverter(typeToConvert, fsOptions)
         | TypeCache.TypeKind.Map -> JsonMapConverter.CreateConverter(typeToConvert, options, fsOptions)
         | TypeCache.TypeKind.Tuple -> JsonTupleConverter.CreateConverter(typeToConvert, fsOptions)
