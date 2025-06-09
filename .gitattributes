@@ -1,3 +1,5 @@
 * text=auto
 .paket/Paket.Restore.targets text eol=crlf
+*.fs text eol=crlf
+*.fsx text eol=crlf
 *.yml text eol=lf
