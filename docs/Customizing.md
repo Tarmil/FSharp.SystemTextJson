@@ -371,6 +371,20 @@ JsonSerializer.Serialize(WithArgs (123, "Hello, world!"), options)
 // --> (same format as without UnwrapFieldlessTags)
 ```
 
+Additionally, when this flag is active, enum-like unions, ie unions where no cases have any fields, can be used as dictionary keys.
+
+```fsharp
+type Color = Red | Green | Blue
+
+let options =
+    JsonFSharpOptions.Default()
+        .WithUnionUnwrapFieldlessTags()
+        .ToJsonSerializerOptions()
+
+JsonSerializer.Serialize(dict [ (Red, 1); (Blue, 2) ], options)
+// --> {"Red":1,"Blue":2}
+```
+
 ### Unwrap option values
 
 `UnwrapOption` is enabled by default.
