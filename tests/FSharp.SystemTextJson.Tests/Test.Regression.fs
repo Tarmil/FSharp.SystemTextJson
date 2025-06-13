@@ -127,6 +127,82 @@ let ``regression #172`` () =
     Assert.Equal("{\"X\":null}", JsonSerializer.Serialize(x, options))
     Assert.Equal("{\"Y\":null}", JsonSerializer.Serialize(y, options))
 
+module ``Regression #203`` =
+    type Enum =
+        | CaseOne
+        | CaseTwo
+
+    let optionsWithPropertyPolicy =
+        JsonFSharpOptions()
+            .WithUnionUnwrapFieldlessTags()
+            .WithMapFormat(MapFormat.Object)
+            .ToJsonSerializerOptions(
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower
+            )
+
+    let optionsWithTagPolicy =
+        JsonFSharpOptions()
+            .WithUnionUnwrapFieldlessTags()
+            .WithMapFormat(MapFormat.Object)
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.KebabCaseLower)
+            .ToJsonSerializerOptions(PropertyNameCaseInsensitive = true)
+
+    let optionsWithBothPolicies =
+        JsonFSharpOptions()
+            .WithUnionUnwrapFieldlessTags()
+            .WithMapFormat(MapFormat.Object)
+            .WithUnionTagNamingPolicy(JsonNamingPolicy.SnakeCaseLower)
+            .ToJsonSerializerOptions(
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower
+            )
+
+    module ``as value`` =
+
+        [<Fact>]
+        let ``serialize ignores property policy`` () =
+            let actual = JsonSerializer.Serialize(CaseOne, optionsWithPropertyPolicy)
+            Assert.Equal("\"CaseOne\"", actual)
+
+        [<Fact>]
+        let ``deserialize ignores property policy`` () =
+            let actual = JsonSerializer.Deserialize("\"CaseOne\"", optionsWithPropertyPolicy)
+            Assert.Equal(CaseOne, actual)
+
+        [<Fact>]
+        let ``serialize uses tag policy`` () =
+            let actual = JsonSerializer.Serialize(CaseOne, optionsWithTagPolicy)
+            Assert.Equal("\"case-one\"", actual)
+
+        [<Fact>]
+        let ``deserialize uses tag policy`` () =
+            let actual = JsonSerializer.Deserialize("\"case-one\"", optionsWithTagPolicy)
+            Assert.Equal(CaseOne, actual)
+
+    module ``as property`` =
+
+        [<Fact>]
+        let ``serialize uses property policy`` () =
+            let actual = JsonSerializer.Serialize(Map [ CaseOne, 1 ], optionsWithPropertyPolicy)
+            Assert.Equal("{\"case-one\":1}", actual)
+
+        [<Fact>]
+        let ``deserialize uses property policy`` () =
+            let actual =
+                JsonSerializer.Deserialize("{\"CAsE-one\":1}", optionsWithPropertyPolicy)
+            Assert.Equal<Map<Enum, int>>(Map [ CaseOne, 1 ], actual)
+
+        [<Fact>]
+        let ``serialize uses tag policy in priority`` () =
+            let actual = JsonSerializer.Serialize(Map [ CaseOne, 1 ], optionsWithBothPolicies)
+            Assert.Equal("{\"case_one\":1}", actual)
+
+        [<Fact>]
+        let ``deserialize uses tag policy in priority`` () =
+            let actual = JsonSerializer.Deserialize("{\"caSe_One\":1}", optionsWithBothPolicies)
+            Assert.Equal<Map<Enum, int>>(Map [ CaseOne, 1 ], actual)
+
 module ``Regression #204`` =
     type Enum =
         | Case1
