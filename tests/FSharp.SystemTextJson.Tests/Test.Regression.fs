@@ -126,3 +126,20 @@ let ``regression #172`` () =
     options.Converters.Add(JsonFSharpConverter())
     Assert.Equal("{\"X\":null}", JsonSerializer.Serialize(x, options))
     Assert.Equal("{\"Y\":null}", JsonSerializer.Serialize(y, options))
+
+module ``Regression #204`` =
+    type Enum =
+        | Case1
+        | Case2
+
+    type Record = { Field: Enum }
+
+    let options =
+        JsonFSharpOptions.Default().WithUnionUnwrapFieldlessTags().ToJsonSerializerOptions()
+
+    let actual () =
+        JsonSerializer.Serialize({ Field = Case2 }, options)
+
+[<Fact>]
+let ``regression #204`` () =
+    Assert.Equal("""{"Field":"Case2"}""", ``Regression #204``.actual ())

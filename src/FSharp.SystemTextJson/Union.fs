@@ -297,6 +297,12 @@ module private Case =
         | JsonName.Int name -> writer.WriteNumber(fsOptions.UnionTagName, name)
         | JsonName.Bool name -> writer.WriteBoolean(fsOptions.UnionTagName, name)
 
+    let writeCaseNameAsValue (writer: Utf8JsonWriter) (case: Case) =
+        match case.Names[0] with
+        | JsonName.String name -> writer.WriteStringValue(name)
+        | JsonName.Int name -> writer.WriteNumberValue(name)
+        | JsonName.Bool name -> writer.WriteBooleanValue(name)
+
 
 type JsonUnionConverter<'T>
     internal (options: JsonSerializerOptions, fsOptions: JsonFSharpOptionsRecord, cases: UnionCaseInfo[]) =
@@ -614,12 +620,6 @@ type JsonUnionConverter<'T>
         else
             writeFieldsAsArray writer case value options
 
-    let writeCaseNameAsValue (writer: Utf8JsonWriter) (case: Case) =
-        match case.Names[0] with
-        | JsonName.String name -> writer.WriteStringValue(name)
-        | JsonName.Int name -> writer.WriteNumberValue(name)
-        | JsonName.Bool name -> writer.WriteBooleanValue(name)
-
     let writeAdjacentTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
         Case.writeCaseNameAsField fsOptions writer case
@@ -641,7 +641,7 @@ type JsonUnionConverter<'T>
             writeFieldsAsRestOfObject writer case value options
         else
             writer.WriteStartArray()
-            writeCaseNameAsValue writer case
+            Case.writeCaseNameAsValue writer case
             writeFieldsAsRestOfArray writer case value options
 
     let writeUntagged (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
@@ -680,7 +680,7 @@ type JsonUnionConverter<'T>
             let tag = tagReader value
             let case = cases[tag]
             if unwrapFieldlessTags && case.Fields.Length = 0 then
-                writeCaseNameAsValue writer case
+                Case.writeCaseNameAsValue writer case
             else
                 match baseFormat with
                 | JsonUnionEncoding.AdjacentTag -> writeAdjacentTag writer case value options
@@ -792,7 +792,7 @@ type JsonEnumLikeUnionConverter<'T> internal (options: JsonSerializerOptions, fs
 
     override this.Write(writer, value, _options) =
         let tag = tagReader value
-        Case.writeCaseNameAsField fsOptions writer cases[tag]
+        Case.writeCaseNameAsValue writer cases[tag]
 
     override this.WriteAsPropertyName(writer, value, _options) =
         let tag = tagReader value
