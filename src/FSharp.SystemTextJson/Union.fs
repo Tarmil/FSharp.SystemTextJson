@@ -177,8 +177,8 @@ module private Case =
             else
                 i <- i + 1
 
-    let casesByName (fsOptions: JsonFSharpOptionsRecord) (cases: Case[]) =
-        if fsOptions.UnionTagCaseInsensitive then
+    let casesByName caseInsensitive (cases: Case[]) =
+        if caseInsensitive then
             let dict = Dictionary(JsonNameComparer(StringComparer.OrdinalIgnoreCase))
             for c in cases do
                 for name in c.Names do
@@ -221,7 +221,8 @@ module private Case =
             match reader.TryGetInt32() with
             | true, intName -> JsonName.Int intName
             | false, _ -> failExpecting "union tag" &reader ty
-        | JsonTokenType.String -> JsonName.String(reader.GetString())
+        | JsonTokenType.String
+        | JsonTokenType.PropertyName -> JsonName.String(reader.GetString())
         | _ -> failExpecting "union tag" &reader ty
 
     let isNamedFromReaderString (case: Case) (reader: byref<Utf8JsonReader>) (found: byref<ValueOption<_>>) =
@@ -297,6 +298,12 @@ module private Case =
         | JsonName.Int name -> writer.WriteNumber(fsOptions.UnionTagName, name)
         | JsonName.Bool name -> writer.WriteBoolean(fsOptions.UnionTagName, name)
 
+    let writeCaseNameAsValue (writer: Utf8JsonWriter) (case: Case) =
+        match case.Names[0] with
+        | JsonName.String name -> writer.WriteStringValue(name)
+        | JsonName.Int name -> writer.WriteNumberValue(name)
+        | JsonName.Bool name -> writer.WriteBooleanValue(name)
+
 
 type JsonUnionConverter<'T>
     internal (options: JsonSerializerOptions, fsOptions: JsonFSharpOptionsRecord, cases: UnionCaseInfo[]) =
@@ -361,7 +368,7 @@ type JsonUnionConverter<'T>
         else
             ValueNone
 
-    let casesByName = Case.casesByName fsOptions cases
+    let casesByName = Case.casesByName fsOptions.UnionTagCaseInsensitive cases
 
     let getCaseByPropertyName (reader: byref<Utf8JsonReader>) =
         match Case.tryGetCaseByPropertyName casesByName cases &reader with
@@ -614,12 +621,6 @@ type JsonUnionConverter<'T>
         else
             writeFieldsAsArray writer case value options
 
-    let writeCaseNameAsValue (writer: Utf8JsonWriter) (case: Case) =
-        match case.Names[0] with
-        | JsonName.String name -> writer.WriteStringValue(name)
-        | JsonName.Int name -> writer.WriteNumberValue(name)
-        | JsonName.Bool name -> writer.WriteBooleanValue(name)
-
     let writeAdjacentTag (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
         writer.WriteStartObject()
         Case.writeCaseNameAsField fsOptions writer case
@@ -641,7 +642,7 @@ type JsonUnionConverter<'T>
             writeFieldsAsRestOfObject writer case value options
         else
             writer.WriteStartArray()
-            writeCaseNameAsValue writer case
+            Case.writeCaseNameAsValue writer case
             writeFieldsAsRestOfArray writer case value options
 
     let writeUntagged (writer: Utf8JsonWriter) (case: Case) (value: obj) (options: JsonSerializerOptions) =
@@ -680,7 +681,7 @@ type JsonUnionConverter<'T>
             let tag = tagReader value
             let case = cases[tag]
             if unwrapFieldlessTags && case.Fields.Length = 0 then
-                writeCaseNameAsValue writer case
+                Case.writeCaseNameAsValue writer case
             else
                 match baseFormat with
                 | JsonUnionEncoding.AdjacentTag -> writeAdjacentTag writer case value options
@@ -758,7 +759,7 @@ type JsonEnumLikeUnionConverter<'T> internal (options: JsonSerializerOptions, fs
 
     let tagReader = FSharpValue.PreComputeUnionTagReader(typeof<'T>, true)
 
-    let cases =
+    let casesAsProperty =
         let namingPolicy =
             match fsOptions.UnionTagNamingPolicy with
             | null -> options.PropertyNamingPolicy
@@ -766,7 +767,15 @@ type JsonEnumLikeUnionConverter<'T> internal (options: JsonSerializerOptions, fs
         FSharpType.GetUnionCases(typeof<'T>, true)
         |> Array.map (Case.get namingPolicy fsOptions options)
 
-    let casesByName = Case.casesByName fsOptions cases
+    let casesAsValue =
+        FSharpType.GetUnionCases(typeof<'T>, true)
+        |> Array.map (Case.get fsOptions.UnionTagNamingPolicy fsOptions options)
+
+    let casesByNameAsProperty =
+        Case.casesByName (fsOptions.UnionTagCaseInsensitive || options.PropertyNameCaseInsensitive) casesAsProperty
+
+    let casesByNameAsValue =
+        Case.casesByName fsOptions.UnionTagCaseInsensitive casesAsValue
 
     let nullValue =
         tryGetNullValue fsOptions typeof<'T> |> ValueOption.map (fun x -> x :?> 'T)
@@ -783,20 +792,33 @@ type JsonEnumLikeUnionConverter<'T> internal (options: JsonSerializerOptions, fs
         | JsonTokenType.Number
         | JsonTokenType.True
         | JsonTokenType.False ->
-            let case = Case.getCaseByTagReader casesByName cases typeof<'T> &reader
+            let case =
+                Case.getCaseByTagReader casesByNameAsValue casesAsValue typeof<'T> &reader
             case.Ctor [||] :?> 'T
         | _ -> failExpecting "string" &reader typeToConvert
 
-    override this.ReadAsPropertyName(reader, typeToConvert, options) =
-        this.Read(&reader, typeToConvert, options)
+    override this.ReadAsPropertyName(reader, typeToConvert, _options) =
+        match reader.TokenType with
+        | JsonTokenType.Null ->
+            nullValue
+            |> ValueOption.defaultWith (fun () -> failf "Union %s can't be deserialized from null" typeof<'T>.FullName)
+        | JsonTokenType.PropertyName
+        | JsonTokenType.String
+        | JsonTokenType.Number
+        | JsonTokenType.True
+        | JsonTokenType.False ->
+            let case =
+                Case.getCaseByTagReader casesByNameAsProperty casesAsProperty typeof<'T> &reader
+            case.Ctor [||] :?> 'T
+        | _ -> failExpecting "string" &reader typeToConvert
 
     override this.Write(writer, value, _options) =
         let tag = tagReader value
-        Case.writeCaseNameAsField fsOptions writer cases[tag]
+        Case.writeCaseNameAsValue writer casesAsValue[tag]
 
     override this.WriteAsPropertyName(writer, value, _options) =
         let tag = tagReader value
-        writer.WritePropertyName(cases[tag].NamesAsString[0])
+        writer.WritePropertyName(casesAsProperty[tag].NamesAsString[0])
 
 type JsonUnionConverter(fsOptions: JsonFSharpOptions) =
     inherit JsonConverterFactory()
