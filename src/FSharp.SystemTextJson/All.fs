@@ -2,7 +2,6 @@ namespace System.Text.Json.Serialization
 
 open System
 open System.Collections.Generic
-open System.Reflection
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open System.Text.Json
