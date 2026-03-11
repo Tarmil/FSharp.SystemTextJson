@@ -1,9 +1,9 @@
 namespace System.Text.Json.Serialization
 
-open System.Reflection
 
 module TypeCache =
     open FSharp.Reflection
+    open System.Reflection
 
     // Have to use concurrentdictionary here because dictionaries thrown on non-locked access:
     (* Error Message:
