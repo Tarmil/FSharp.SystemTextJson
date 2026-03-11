@@ -1,5 +1,7 @@
 namespace System.Text.Json.Serialization
 
+open System.Reflection
+
 module TypeCache =
     open FSharp.Reflection
 
@@ -37,6 +39,16 @@ module TypeCache =
                     elif FSharpType.IsUnion(ty, true) then TypeKind.Union
                     elif FSharpType.IsRecord(ty, true) then TypeKind.Record
                     else TypeKind.Other
+            )
+    
+    let hasCustomJsonConverter =
+        let cache = Dict<System.Type, bool>()
+        fun (ty: System.Type) ->
+            cache.GetOrAdd(
+                ty,
+                fun ty ->
+                    CustomAttributeData.GetCustomAttributes(ty)
+                    |> Seq.exists (fun cad -> cad.AttributeType = typeof<JsonConverterAttribute>)
             )
 
     let isUnion ty =
