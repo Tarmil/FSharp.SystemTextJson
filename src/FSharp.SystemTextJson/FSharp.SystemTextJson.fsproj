@@ -25,6 +25,7 @@
     <Compile Include="Record.fs" />
     <Compile Include="Union.fs" />
     <Compile Include="All.fs" />
+    <Content Include="paket.references" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
