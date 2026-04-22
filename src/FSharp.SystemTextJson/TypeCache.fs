@@ -1,7 +1,9 @@
 namespace System.Text.Json.Serialization
 
+
 module TypeCache =
     open FSharp.Reflection
+    open System.Reflection
 
     // Have to use concurrentdictionary here because dictionaries thrown on non-locked access:
     (* Error Message:
@@ -37,6 +39,16 @@ module TypeCache =
                     elif FSharpType.IsUnion(ty, true) then TypeKind.Union
                     elif FSharpType.IsRecord(ty, true) then TypeKind.Record
                     else TypeKind.Other
+            )
+    
+    let hasCustomJsonConverter =
+        let cache = Dict<System.Type, bool>()
+        fun (ty: System.Type) ->
+            cache.GetOrAdd(
+                ty,
+                fun ty ->
+                    CustomAttributeData.GetCustomAttributes(ty)
+                    |> Seq.exists (fun cad -> cad.AttributeType = typeof<JsonConverterAttribute>)
             )
 
     let isUnion ty =

@@ -2482,6 +2482,45 @@ module Struct =
             """{"Case":"Unwrapped","Fields":["foo"]}""",
             JsonSerializer.Serialize(Unwrapped "foo", noNewtypeOptions)
         )
+        
+        
+    
+
+    [<JsonConverter(typeof<TruthConverter>)>]
+    type Truth =
+        | True
+        | False
+        | FileNotFound
+    and TruthConverter() =
+        inherit JsonConverter<Truth>()
+
+        override _.Write(writer, value, _options) =
+            writer.WriteStringValue(
+                match value with
+                | FileNotFound -> "lost"
+                | True -> "true"
+                | False -> "false"
+            )
+
+        override _.Read(reader, _typeToConvert, _options) =
+            match reader.GetString() with
+            | "lost" -> FileNotFound
+            | "true" -> True
+            | "false" -> False
+            | other -> failwithf "Unknown Truth value: %s" other
+        
+    [<Fact>]
+    let ``custom converter wins over FSharp.SystemTextJson`` () =
+        let options =
+            JsonFSharpOptions.Default().ToJsonSerializerOptions()
+
+        Assert.Equal("\"lost\"", JsonSerializer.Serialize( FileNotFound, options))
+        Assert.Equal("\"true\"", JsonSerializer.Serialize( True, options))
+        Assert.Equal("\"false\"", JsonSerializer.Serialize( False, options))
+
+        Assert.Equal(FileNotFound, JsonSerializer.Deserialize<Truth>("\"lost\"",options))
+        Assert.Equal(True, JsonSerializer.Deserialize<Truth>("\"true\"",options))
+        Assert.Equal(False, JsonSerializer.Deserialize<Truth>("\"false\"",options))
 
     module UnwrapRecord =
 
