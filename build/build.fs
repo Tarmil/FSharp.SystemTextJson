@@ -1,5 +1,6 @@
 #nowarn "52"
 
+open System.Runtime.InteropServices
 open Fake.Core
 open Fake.DotNet
 open Fake.IO
@@ -94,7 +95,8 @@ let checkOk (name: string) (r: ProcessResult) =
 
 Target.create "TestTrim"
 <| fun _ ->
-    let rti = Environment.environVarOrDefault "DOTNET_RUNTIME_IDENTIFIER" "win-x64"
+    let rti =
+        Environment.environVarOrDefault "DOTNET_RUNTIME_IDENTIFIER" RuntimeInformation.RuntimeIdentifier
     DotNet.publish (fun o -> { o with SelfContained = Some true; Runtime = Some rti }) Paths.trimTest
     let dll = Paths.trimTestOut rti
     DotNet.exec id dll dll |> checkOk "Trim test"
