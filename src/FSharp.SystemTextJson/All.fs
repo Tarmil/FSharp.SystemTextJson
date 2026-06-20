@@ -20,6 +20,8 @@ type JsonFSharpConverter(fsOptions: JsonFSharpOptions, [<Optional>] overrides: I
     member _.Overrides = fsOptions.Overrides
 
     override _.CanConvert(typeToConvert) =
+        not (TypeCache.hasCustomJsonConverter typeToConvert)
+        &&
         match TypeCache.getKind typeToConvert with
         | TypeCache.TypeKind.List -> fsOptions.Types.HasFlag JsonFSharpTypes.Lists
         | TypeCache.TypeKind.Set -> fsOptions.Types.HasFlag JsonFSharpTypes.Sets
