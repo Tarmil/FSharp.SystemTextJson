@@ -129,3 +129,8 @@ type Skippable<'T> with
     /// Transforms the input using the specified function.
     static member (<!>)(f, skippable) =
         Skippable.map f skippable
+
+    /// Infix operator for Skippable.bind.
+    /// Applies the Skippable-returning function to the Skippable-wrapped value.
+    static member (>>=)(skippable, f) =
+        Skippable.bind f skippable
